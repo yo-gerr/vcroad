@@ -1,0 +1,67 @@
+PAKIBASA ANG KASUNDUAN SA LISENSYA NG END-USER ("KASUNDUAN") NA ITO NANG MABUTI BAGO GAMITIN ANG VCROAD SYSTEM ("APLIKASYON"). SA PAG-INSTALL, PAG-ACCESS, O PAGGAMIT NG APLIKASYON, SUMASANG-AYON KA NA MASUSUNOD SA MGA TUNTUNIN AT KONDISYON NG KASUNDUAN NA ITO. KUNG HINDI KA SUMASANG-AYON, HUWAG I-INSTALL O GAMITIN ANG APLIKASYON.
+
+1. Pagkakaloob ng Lisensya (License Grant)
+   Ipinagkakaloob sa iyo ng VCRoad ang isang nababawi (revocable), hindi eksklusibo (non-exclusive), hindi maililipat (non-transferable), limitadong lisensya upang i-download, i-install, at gamitin ang Aplikasyon para lamang sa iyong personal o panloob na layunin ng negosyo alinsunod sa Kasunduan na ito.
+
+2. Mga Paghihigpit (Restrictions)
+   Sumasang-ayon ka na hindi:
+   • Kukopyahin, babaguhin, o ipapamahagi ang Aplikasyon o mga kaugnay na materyales.
+   • Iri-reverse engineer, ide-decompile, o iba-disassemble ang anumang bahagi ng Aplikasyon.
+   • Gagamitin ang Aplikasyon para sa anumang ilegal na layunin o upang labagin ang anumang batas.
+   • Gagamitin ang Aplikasyon upang mag-udyok ng mga maling alarma (false alarms), prank alerts, o anumang uri ng maling paggamit ng mga functionality ng emergency, alinsunod sa Ordinance No. 381 ng Valenzuela, na nagbabawal sa pangungutya at ilegal na paggamit ng alert button apps at katulad na mga emergency application.
+
+3. Pagsunod sa Ordinance No. 381 (Ordinance No. 381 Compliance)
+   • Anumang maling paggamit ng Aplikasyon, kabilang ang mga maling ulat (false reports), prank alerts, o sinasadyang maling paggamit ng mga tampok ng emergency, ay bumubuo ng paglabag sa Ordinance No. 381 ng Valenzuela.
+   • Ang mga lalabag ay maaaring maharap sa legal na kahihinatnan, kabilang ang mga multa at parusa, gaya ng inireseta ng ordinansa.
+   • Ang VCRoad System ay may karapatan na suspindihin o wakasan ang mga account na sangkot sa naturang mga paglabag at makikipagtulungan sa mga lokal na awtoridad para sa imbestigasyon at pagpapatupad.
+
+4. Pagmamay-ari (Ownership)
+   Ang Aplikasyon ay pag-aari ng VCRoad at protektado ng mga batas sa intellectual property. Ang Kasunduan na ito ay hindi nagkakaloob sa iyo ng pagmamay-ari sa Aplikasyon, kundi isang lisensya lamang upang gamitin ito.
+
+5. Pagkapribado at Pagkolekta ng Datos (Pagsunod sa Data Privacy Act of 2012) (Privacy and Data Collection (Data Privacy Act of 2012 Compliance))
+   • Ang VCRoad ay nakatuon sa pagprotekta ng iyong personal na datos alinsunod sa Data Privacy Act of 2012 (Republic Act No. 10173) ng Pilipinas.
+   • Ang Aplikasyon ay maaaring mangolekta at magproseso ng personal na datos, kabilang ngunit hindi limitado sa datos ng lokasyon, impormasyon sa kontak, at impormasyon ng device, para sa mga layunin ng pagbibigay ng mga functionality ng Aplikasyon, kasama ang emergency alerts, at para sa pagpapabuti ng Aplikasyon.
+   • Kukolektahin lamang namin ang personal na datos na kinakailangan para sa tinukoy na mga layunin.
+   • Ang iyong personal na datos ay pananatilihing kumpidensyal at hindi ibubunyag sa mga ikatlong partido maliban kung:
+      • Kinakailangan ng batas o legal na proseso.
+      • Mayroon kaming iyong tahasang pahintulot.
+      • Sa aming mga awtorisadong service provider na tumutulong sa amin sa pagbibigay ng Aplikasyon, batay sa mga kasunduan sa kumpidensyalidad at pagsunod sa Data Privacy Act.
+      • Sa mga kaugnay na awtoridad sa mga sitwasyon ng emergency.
+   • May karapatan ka na:
+      • Malaman ang koleksyon at pagproseso ng iyong personal na datos.
+      • I-access ang iyong personal na datos.
+      • Ituwid o iwasto ang hindi tumpak na personal na datos.
+      • Tumutol sa pagproseso ng iyong personal na datos.
+      • Burahin o i-block ang iyong personal na datos.
+      • Makakuha ng data portability.
+      • Maghain ng reklamo sa National Privacy Commission (NPC).
+   • Magpapatupad kami ng makatuwiran at naaangkop na pang-organisasyon, pisikal, at teknikal na mga panukala ng seguridad upang protektahan ang iyong personal na datos laban sa pagkawala, maling paggamit, hindi awtorisadong pag-access, pagbubunyag, pagbabago, o pagkasira.
+   • Pagpapanatili ng Datos (Data retention): Pananatilihin namin ang iyong personal na datos hangga't kinakailangan upang matupad ang mga layunin kung bakit ito kinolekta, o kung kinakailangan ng naaangkop na mga batas at regulasyon.
+   • Para sa mas detalyadong impormasyon tungkol sa aming mga kasanayan sa privacy ng datos, mangyaring sumangguni sa VCRoad Privacy Policy, na isinama sa Kasunduan na ito bilang pagtukoy.
+
+5-A. Pagsumite ng Balidong ID at Selfie (Submission of Valid IDs and Selfies)
+   • Maaaring hilingin sa mga gumagamit na magsumite ng litrato ng isang balidong ID na inisyu ng gobyerno at isang selfie para sa layunin ng pag-verify ng pagkakakilanlan.
+   • Ang mga ito ay gagamitin upang kumpirmahin ang iyong pagkakakilanlan, maiwasan ang maling paggamit ng Aplikasyon, at sumunod sa mga naaangkop na batas.
+   • Sa pagsumite ng iyong ID at selfie, kinukumpirma mo na ang mga ito ay tumpak at sa iyo, at sumasang-ayon ka sa pagproseso nito ng VCRoad at ng mga awtorisadong tauhan nito.
+   • Ang datos na ito ay ituturing na sensitive personal information sa ilalim ng Data Privacy Act of 2012 at poprotektahan nang naaayon.
+   • Ang impormasyong ito ay hindi ibabahagi sa mga ikatlong partido maliban kung:
+      • Kinakailangan ng batas o legal na proseso.
+      • Mayroon kaming iyong tahasang pahintulot.
+      • Sa mga awtorisadong service provider sa ilalim ng mga kasunduan sa kumpidensyalidad.
+      • Sa mga kaugnay na awtoridad sa mga kaso ng beripikadong maling paggamit o emergency.
+   • Ang pagkabigong magsumite ng balidong ID at selfie kapag hiniling ay maaaring magresulta sa pinaghihigpitang pag-access sa ilang mga tampok o pagsuspinde ng iyong account.
+   • Ang iyong ID at selfie ay ligtas na iimbak at pananatilihin lamang hangga't kinakailangan para sa layunin kung bakit ito kinolekta o kung kinakailangan ng batas.
+
+6. Mga Update at Pagpapanatili (Updates and Maintenance)
+   Ang VCRoad ay maaaring magbigay ng mga update, pagpapahusay, o pag-aayos ng bug. Ang mga update ay maaaring awtomatiko o nangangailangan ng manu-manong pag-install.
+
+7. Pagwawakas (Termination)
+   Ang Kasunduan na ito ay epektibo hanggang sa ito ay wakasan. Maaaring wakasan ito ng VCRoad kung lalabagin mo ang alinman sa mga tuntunin. Sa pagwawakas, dapat mong itigil ang lahat ng paggamit at burahin ang Aplikasyon.
+
+8. Limitasyon ng Pananagutan (Limitation of Liability)
+   Ang VCRoad ay hindi mananagot para sa anumang hindi direkta, incidental, o kahihinatnang pinsala (consequential damages) na nagmumula sa paggamit o kawalan ng kakayahang gamitin ang Aplikasyon.
+
+9. Impormasyon sa Pakikipag-ugnayan (Contact Information)
+   Para sa mga katanungan tungkol sa Kasunduan na ito, makipag-ugnayan sa: vcroad.contact@gmail.com
+
+Sa paggamit ng VCRoad System, kinikilala mo na nabasa at naintindihan mo ang Kasunduan na ito at sumasang-ayon ka na masusunod sa mga tuntunin nito.
