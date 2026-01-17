@@ -82,6 +82,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     super.initState();
     _loadAttemptState();
 
+    // Precache poster images for smoother slider transitions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mq = MediaQuery.of(context);
       final logicalWidth = (mq.size.shortestSide * 0.5).clamp(300.0, 1200.0);
@@ -109,6 +110,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  /// Loads login attempt and lockout state from shared preferences.
   Future<void> _loadAttemptState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -132,6 +134,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// Saves current login attempt and lockout state to shared preferences.
   Future<void> _saveAttemptState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -150,6 +153,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// Increments failed login attempts and applies lockout if threshold reached.
   Future<void> _incrementFailedAttempts() async {
     _failedAttempts++;
 
@@ -163,6 +167,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     if (mounted) setState(() {});
   }
 
+  /// Clears lockout and failed attempt state.
   Future<void> _clearLockout() async {
     _failedAttempts = 0;
     _lockoutUntil = null;
@@ -172,6 +177,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     if (mounted) setState(() {});
   }
 
+  /// Starts a timer to update UI during lockout period.
   void _startLockoutTimer() {
     _lockoutTimer?.cancel();
 
@@ -186,14 +192,15 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     });
   }
 
+  /// Formats remaining lockout time as a string.
   String _formatLockoutTime(Duration remaining) {
     final minutes = remaining.inMinutes;
     final seconds = remaining.inSeconds % 60;
     return '${minutes}m ${seconds}s';
   }
 
+  /// Finalizes login by prefetching user assets, applying claims, updating provider, and navigating.
   Future<void> _finalizeLoginAndNavigate(UserDetails userDetails) async {
-    // Keep this fast and resilient: swallow non-fatal errors so UI proceeds.
     try {
       await ImageService.prefetchDownloadUrls([userDetails.selfiePath]);
     } catch (_) {}
@@ -209,6 +216,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     RoleRouter.navigate(context, userDetails.role, userDetails: userDetails);
   }
 
+  /// Handles the login flow, including validation, lockout, session conflict, and error handling.
   Future<void> _onLogin() async {
     // Check if locked
     if (_isLocked) {
@@ -239,12 +247,12 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
             password: _passwordController.text,
           );
 
-          // ✅ Success -> clear attempts
+          // Success: clear attempts
           await _clearLockout();
 
           if (!mounted) return;
 
-          // If there's a pending deletion flow, close loading and handle it.
+          // Handle pending account deletion flow
           final scheduledDeletion = await _authService.checkPendingDeletion(
             userDetails.userId,
           );
@@ -266,7 +274,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
           );
 
           if (conflict != null && mounted) {
-            // Close the initial signing dialog while asking user for choice
+            // Handle session conflict dialog
             if (initialLoadingVisible && Navigator.canPop(context)) {
               Navigator.of(context).pop();
               initialLoadingVisible = false;
@@ -283,7 +291,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
             );
 
             if (shouldForceLogout == true && mounted) {
-              // Show a focused loading while we force logout and finalize login
+              // Force logout other device and finalize login
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -295,22 +303,20 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                   userDetails.userId,
                   proposedSessionId,
                 );
-                // Finalize (prefetch, apply claims, set provider and navigate)
                 await _finalizeLoginAndNavigate(userDetails);
               } finally {
-                // close the "Logging out..." dialog if still open
                 if (mounted && Navigator.canPop(context)) {
                   Navigator.of(context).pop();
                 }
               }
             } else {
-              // user canceled: sign out local auth and return to login UI
+              // User canceled: sign out local auth and return to login UI
               await _authService.signOut();
             }
             return;
           }
 
-          // No conflict: keep the initial "Signing in..." loading visible while finalizing
+          // No conflict: finalize login
           await SessionService.instance.setActiveSession(
             userDetails.userId,
             proposedSessionId,
@@ -328,7 +334,6 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
             if (_failedAttempts > 0 && _failedAttempts < _maxAttempts) {
               final remaining = _maxAttempts - _failedAttempts;
               if (mounted && Navigator.canPop(context)) {
-                // close loading if still open
                 if (initialLoadingVisible) {
                   Navigator.of(context).pop();
                   initialLoadingVisible = false;
@@ -340,7 +345,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                   'Invalid credentials. $remaining attempt${remaining == 1 ? '' : 's'} remaining.',
                 );
               }
-              return; // Don't rethrow to avoid showing duplicate error
+              return;
             }
           }
           rethrow;
@@ -355,6 +360,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// Handles pending account deletion dialog and actions.
   Future<void> _handlePendingDeletion(
     DateTime scheduledDate,
     UserDetails userDetails,
@@ -407,11 +413,9 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// Continues login flow after deletion cancellation by prefetching assets and navigating.
   void _proceedWithLogin(UserDetails userDetails) async {
-    // Prefetch selfie URL so Profile shows instantly.
     await ImageService.prefetchDownloadUrls([userDetails.selfiePath]);
-
-    // Sync user role claim with cloud function after login
     await AuthService.instance.applyUserRoleClaim();
 
     if (!mounted) return;
@@ -424,14 +428,17 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     RoleRouter.navigate(context, userDetails.role, userDetails: userDetails);
   }
 
+  /// Navigates to the password reset screen.
   void _onForgotPassword() {
     context.pushNamed('reset');
   }
 
+  /// Navigates to the registration screen.
   void _onRegister() {
     context.pushNamed('register');
   }
 
+  /// Handles download button tap, launching APK download or showing info.
   void _onDownload() {
     const apkAssetPath = 'assets/assets/downloads/vcroad.apk';
     // Download only supported on web (button is shown only on web). For other
@@ -462,6 +469,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     );
   }
 
+  /// Shows the login modal sheet or dialog depending on platform.
   Future<void> _showLoginModal(BuildContext context, bool isDesktop) async {
     if (!isDesktop) {
       await showModalBottomSheet<void>(
@@ -577,6 +585,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     );
   }
 
+  /// Builds the profile button for login, positioned and styled per platform.
   Widget _buildProfileButton(BuildContext context, bool isDesktop) {
     final mq = MediaQuery.of(context);
     final topOffset = mq.padding.top + 8;

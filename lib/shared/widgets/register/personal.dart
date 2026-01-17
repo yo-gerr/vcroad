@@ -14,7 +14,7 @@ class PersonalInfo extends StatefulWidget {
   final List<DropdownMenuItem<Barangay>> barangayItems;
   final Map<String, FocusNode> focusNodes;
 
-  // NEW
+  // Tracks user agreement to terms and privacy policy
   final bool agreed;
   final ValueChanged<bool> onAgreedChanged;
 
@@ -26,7 +26,6 @@ class PersonalInfo extends StatefulWidget {
     required this.onBarangayChanged,
     required this.barangayItems,
     required this.focusNodes,
-    // NEW
     required this.agreed,
     required this.onAgreedChanged,
   });
@@ -41,17 +40,19 @@ class _PersonalInfoState extends State<PersonalInfo> {
   @override
   void initState() {
     super.initState();
+    // Initializes the search controller for barangay dropdown search.
     _searchController = TextEditingController();
   }
 
   @override
   void dispose() {
+    // Disposes the search controller when the widget is removed.
     _searchController.dispose();
     super.dispose();
   }
 
+  /// Returns an InputDecoration for text fields with label and optional hint.
   InputDecoration _decoration(String label, {String? hint}) {
-    // Use auto floating label for better accessibility on filled fields
     return InputStyles.baseDecoration.copyWith(
       labelText: label,
       hintText: hint,
@@ -60,6 +61,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
     );
   }
 
+  /// Validates the selected barangay, ensuring it is not null or empty.
   String? _validateBarangay(Barangay? barangay) {
     return barangay == null || barangay.name.trim().isEmpty
         ? 'Barangay is required'
@@ -80,7 +82,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // --- First Name ---
+                // First Name input field
                 InputStyles.fieldLabel('First Name'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -99,7 +101,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Middle Name ---
+                // Middle Name input field (optional)
                 InputStyles.fieldLabel('Middle Name (Optional)'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -122,7 +124,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Last Name ---
+                // Last Name input field
                 InputStyles.fieldLabel('Last Name'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -140,7 +142,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Suffix (Optional) ---
+                // Suffix input field (optional)
                 InputStyles.fieldLabel('Suffix (Optional)'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -156,7 +158,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Phone Number ---
+                // Phone Number input field
                 InputStyles.fieldLabel('Phone Number'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -173,10 +175,9 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Barangay ---
+                // Barangay dropdown
                 InputStyles.fieldLabel('Barangay'),
                 const SizedBox(height: 4),
-                // If barangayItems is large consider replacing with a searchable typeahead widget.
                 DropdownButtonFormField2<Barangay>(
                   value: widget.selectedBarangay,
                   decoration: _decoration(
@@ -235,7 +236,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- Street ---
+                // Street input field
                 InputStyles.fieldLabel('Street'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -253,7 +254,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 ),
                 const SizedBox(height: 8),
 
-                // --- House Number ---
+                // House Number input field
                 InputStyles.fieldLabel('House Number'),
                 const SizedBox(height: 4),
                 TextFormField(
@@ -270,7 +271,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
 
                 const SizedBox(height: 16),
 
-                // NEW: Agreement (critical gate)
+                // Agreement checkbox (critical gate)
                 AgreementCheckbox(
                   initialValue: widget.agreed,
                   onChanged: widget.onAgreedChanged,

@@ -13,7 +13,10 @@ import 'package:vcroad_v2/shared/utils/responsive/responsive_build_context.dart'
 import 'package:permission_handler/permission_handler.dart';
 
 class IdCapture extends StatefulWidget {
-  final Map<String, dynamic> images; // keys: 'id', 'selfie'
+  /// Contains image data for 'id' and 'selfie' keys.
+  final Map<String, dynamic> images;
+
+  /// Callback when images are updated.
   final ValueChanged<Map<String, dynamic>> onChanged;
 
   const IdCapture({super.key, required this.images, required this.onChanged});
@@ -30,23 +33,22 @@ class _IdCaptureState extends State<IdCapture>
   @override
   bool get wantKeepAlive => true;
 
+  /// Handles image picking for either 'id' or 'selfie' slot.
+  /// Requests camera permission, launches picker, validates image, and updates state.
   Future<void> _pickImage(String key) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      // Only request camera (and microphone if video). No need to request storage/photos
-      // for a camera capture flow. Skip permission requests on web.
+      // Request camera permission (skip on web).
       Map<AppPermission, PermissionStatus> statuses = {};
       if (!kIsWeb) {
         final needed = <AppPermission>{AppPermission.camera};
-        // If you ever capture video set: if (video) needed.add(AppPermission.microphone);
         statuses = await PermissionService.instance.guardedRequest(needed);
       } else {
-        // On web treat as granted (PermissionService.request would also return granted,
-        // but avoid the extra async call).
         statuses = {AppPermission.camera: PermissionStatus.granted};
       }
 
+      // Show rationale dialog if permission not granted.
       if (!PermissionService.instance.allGranted(statuses)) {
         if (!mounted) return;
         await showDialog(
@@ -67,6 +69,7 @@ class _IdCaptureState extends State<IdCapture>
         return;
       }
 
+      // Pick image from camera (native) or file picker (web).
       dynamic imageData;
       XFile? file;
       if (kIsWeb) {
@@ -84,10 +87,10 @@ class _IdCaptureState extends State<IdCapture>
           preferredCameraDevice: CameraDevice.rear,
         );
         if (file == null) return;
-        // Use XFile's API directly (avoids creating a File wrapper).
         imageData = await file.readAsBytes();
       }
 
+      // Validate image quality and content.
       final validation = await ImageService.validateImage(imageData);
       if (validation['valid'] != true) {
         if (!mounted) return;
@@ -104,10 +107,12 @@ class _IdCaptureState extends State<IdCapture>
         return;
       }
 
+      // Update images map and notify parent.
       final updated = Map<String, dynamic>.from(widget.images);
       updated[key] = kIsWeb ? imageData : file?.path;
       if (mounted) widget.onChanged(updated);
     } catch (e) {
+      // Show error dialog if image picking fails.
       if (mounted) {
         showDialog(
           context: context,
@@ -123,6 +128,8 @@ class _IdCaptureState extends State<IdCapture>
     }
   }
 
+  /// Builds the UI slot for either ID or selfie image.
+  /// Shows camera icon if empty, image preview if present, and controls for retake/preview.
   Widget _buildSlot(
     BuildContext context,
     String label,
@@ -370,7 +377,8 @@ class _IdCaptureState extends State<IdCapture>
   }
 }
 
-/// Image widget with shimmer loading effect during decode
+/// Displays an image with a shimmer loading effect while decoding.
+/// Supports both memory and file images, and uses a Hero for transitions.
 class _ImageWithShimmer extends StatefulWidget {
   final dynamic pathOrBytes;
   final String heroTag;
@@ -397,7 +405,6 @@ class _ImageWithShimmerState extends State<_ImageWithShimmer> {
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
           if (wasSynchronouslyLoaded) return child;
           if (frame != null) {
-            // No need to setState _isLoading
             return child;
           }
           return _shimmerPlaceholder();
@@ -413,7 +420,6 @@ class _ImageWithShimmerState extends State<_ImageWithShimmer> {
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
           if (wasSynchronouslyLoaded) return child;
           if (frame != null) {
-            // No need to setState _isLoading
             return child;
           }
           return _shimmerPlaceholder();
@@ -429,6 +435,7 @@ class _ImageWithShimmerState extends State<_ImageWithShimmer> {
     );
   }
 
+  /// Returns a shimmer placeholder widget shown while image is loading.
   Widget _shimmerPlaceholder() {
     return Container(
       color: Colors.grey.shade200,

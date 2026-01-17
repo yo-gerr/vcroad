@@ -26,40 +26,41 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  final PageController _pageController = PageController(); // ✅ Added
+  final PageController _pageController = PageController();
 
   RegistrationStep _step = RegistrationStep.personal;
 
-  // Forms
+  // Form keys for each registration step
   final GlobalKey<FormState> _personalKey = GlobalKey<FormState>();
   final GlobalKey<FormState> _emailKey = GlobalKey<FormState>();
   final GlobalKey<FormState> _authKey = GlobalKey<FormState>();
 
-  // Controllers & focus nodes
+  // Controllers and focus nodes for form fields
   late final Map<String, TextEditingController> _controllers;
   late final Map<String, FocusNode> _focusNodes;
 
-  // Images for ID verification
+  // Stores images for ID and selfie verification
   final Map<String, dynamic> _images = {'id': null, 'selfie': null};
 
-  // Barangay
+  // Barangay selection and dropdown items
   Barangay? _selectedBarangay;
   final BarangayService _barangayService = BarangayService();
   List<DropdownMenuItem<Barangay>> _barangayItems = [];
 
-  // State
+  // Submission and verification state
   final ValueNotifier<bool> _isSubmitting = ValueNotifier<bool>(false);
   String _emailVerificationStatus = 'pending'; // pending | verified | expired
   String? _tempUserId; // Firestore doc ID for pending registration
   StreamSubscription<bool>? _verificationSub;
 
-  // Agreement flag
-  bool _agreed = false; // NEW
+  // Tracks user agreement to terms and privacy policy
+  bool _agreed = false;
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize controllers and focus nodes for all form fields
     _controllers = {
       'firstName': TextEditingController(),
       'middleName': TextEditingController(),
@@ -89,6 +90,7 @@ class _RegisterState extends State<Register> {
     _loadBarangays();
   }
 
+  /// Loads barangay data and populates dropdown items.
   Future<void> _loadBarangays() async {
     try {
       await _barangayService.loadBarangays();
@@ -123,6 +125,7 @@ class _RegisterState extends State<Register> {
     super.dispose();
   }
 
+  /// Returns the next registration step based on the current step.
   RegistrationStep _nextStep(RegistrationStep current) {
     switch (current) {
       case RegistrationStep.personal:
@@ -140,22 +143,23 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  /// Returns the index of the current registration step.
   int get _stepIndex => RegistrationStep.values.indexOf(_step);
 
+  /// Advances to the next registration step, validating input and handling logic for each step.
   Future<void> _next() async {
     FocusScope.of(context).unfocus();
     if (_isSubmitting.value) return;
     switch (_step) {
       case RegistrationStep.personal:
         if (!(_personalKey.currentState?.validate() ?? false)) return;
-        // Block if not agreed
+        // Prevent progression if user has not agreed to terms
         if (!_agreed) {
           await showSomethingWentWrongDialog(
             context: context,
             message:
                 'You need to read and agree to the Terms and Privacy Policy before continuing.',
             onRetry: () {
-              // Offer to open the agreement screen
               Navigator.of(context).pop();
               Navigator.of(
                 context,
@@ -167,6 +171,7 @@ class _RegisterState extends State<Register> {
         setState(() => _step = _nextStep(_step));
         break;
       case RegistrationStep.idCapture:
+        // Require both ID and selfie images before continuing
         if (_images['id'] == null || _images['selfie'] == null) {
           SnackbarUtils.showError(context, 'Please capture ID and selfie.');
           return;
@@ -174,10 +179,12 @@ class _RegisterState extends State<Register> {
         setState(() => _step = _nextStep(_step));
         break;
       case RegistrationStep.emailInput:
+        // Validate email input and send verification
         if (!(_emailKey.currentState?.validate() ?? false)) return;
         await _handleSendVerification();
         break;
       case RegistrationStep.emailStatus:
+        // Require email verification before continuing
         if (_emailVerificationStatus != 'verified') {
           SnackbarUtils.showInfo(context, 'Verify your email first.');
           return;
@@ -185,11 +192,12 @@ class _RegisterState extends State<Register> {
         setState(() => _step = _nextStep(_step));
         break;
       case RegistrationStep.password:
+        // Validate password and create account
         if (!(_authKey.currentState?.validate() ?? false)) return;
         await _handleCreateAccount();
         break;
       case RegistrationStep.confirmation:
-        // Navigate to login
+        // Registration complete, navigate to login
         if (mounted) {
           GoRouter.of(context).goNamed('login');
         }
@@ -203,10 +211,11 @@ class _RegisterState extends State<Register> {
     );
   }
 
+  /// Handles sending the email verification link and starts verification watcher.
   Future<void> _handleSendVerification() async {
     final email = _controllers['email']!.text.trim().toLowerCase();
     if (email.isEmpty) return;
-    if (_isSubmitting.value) return; // guard rapid taps
+    if (_isSubmitting.value) return;
 
     _isSubmitting.value = true;
 
@@ -258,6 +267,7 @@ class _RegisterState extends State<Register> {
     _isSubmitting.value = false;
   }
 
+  /// Handles account creation after password is set and all steps are complete.
   Future<void> _handleCreateAccount() async {
     _isSubmitting.value = true;
     try {
@@ -294,6 +304,7 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  /// Collects all form values into a map for submission.
   Map<String, String?> _collectFormValues() {
     return {
       'firstName': _controllers['firstName']!.text,
@@ -307,6 +318,7 @@ class _RegisterState extends State<Register> {
     };
   }
 
+  /// Handles navigation to the previous registration step.
   void _back() {
     if (_step == RegistrationStep.personal) {
       GoRouter.of(context).goNamed('login');
@@ -324,7 +336,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  // ✅ Missing handlers re-added
+  /// Updates the images map when ID or selfie images are changed.
   void _onImagesChanged(Map<String, dynamic> images) {
     setState(() {
       _images
@@ -333,6 +345,7 @@ class _RegisterState extends State<Register> {
     });
   }
 
+  /// Refreshes the email verification status.
   Future<void> _onRefreshEmailStatus() async {
     _isSubmitting.value = true;
     try {
@@ -361,7 +374,7 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  // Resend with throttling feedback.
+  /// Resends the email verification link, with throttling and error feedback.
   Future<void> _onResendEmail() async {
     if (_isSubmitting.value) return;
     _isSubmitting.value = true;
@@ -425,7 +438,7 @@ class _RegisterState extends State<Register> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header section with step indicator
             Container(
               width: double.infinity,
               constraints: BoxConstraints(maxWidth: maxWidth),
@@ -474,7 +487,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
 
-            // PageView
+            // PageView for registration steps
             Expanded(
               child: Center(
                 child: ConstrainedBox(
@@ -492,7 +505,6 @@ class _RegisterState extends State<Register> {
                               setState(() => _selectedBarangay = b),
                           barangayItems: _barangayItems,
                           focusNodes: _focusNodes,
-                          // NEW
                           agreed: _agreed,
                           onAgreedChanged: (v) => setState(() => _agreed = v),
                         ),
@@ -524,7 +536,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
 
-            // Footer
+            // Footer with navigation buttons
             Container(
               width: double.infinity,
               constraints: BoxConstraints(maxWidth: maxWidth),
@@ -546,7 +558,7 @@ class _RegisterState extends State<Register> {
                   };
                   return Row(
                     children: [
-                      if (!isConfirmation) // Hide Back/Cancel on confirmation
+                      if (!isConfirmation)
                         Expanded(
                           child: OutlinedButton(
                             onPressed: submitting ? null : _back,
