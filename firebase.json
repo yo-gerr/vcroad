@@ -1,101 +1,36 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "flutter": {
     "platforms": {
       "android": {
         "default": {
-          "projectId": "vcroad-a0022",
-          "appId": "1:1010169881408:android:5d612eec330b094a30d0a5",
+          "projectId": "vcroad-a76a1",
+          "appId": "1:161489494672:android:de98de44c75cc2e994ee15",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "vcroad-a0022",
+          "projectId": "vcroad-a76a1",
           "configurations": {
-            "android": "1:1010169881408:android:5d612eec330b094a30d0a5",
-            "ios": "1:1010169881408:ios:09447228c9c60edb30d0a5",
-            "macos": "1:1010169881408:ios:09447228c9c60edb30d0a5",
-            "web": "1:1010169881408:web:162de8c97603891c30d0a5",
-            "windows": "1:1010169881408:web:d5b721b96fcb515b30d0a5"
+            "android": "1:161489494672:android:de98de44c75cc2e994ee15",
+            "ios": "1:161489494672:ios:f774901c5cd2f77b94ee15",
+            "macos": "1:161489494672:ios:f774901c5cd2f77b94ee15",
+            "web": "1:161489494672:web:3d1b90fa14a53b9194ee15",
+            "windows": "1:161489494672:web:2701e73c4cf290a994ee15"
           }
         }
       }
     }
   },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "disallowLegacyRuntimeConfig": true,
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
-      ]
-    }
-  ],
-  "firestore": {
-    "indexes": "firestore.indexes.json"
-  },
   "hosting": {
     "public": "build/web",
-    "target": "vcroad",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "/index.html",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
-      },
-      {
-        "source": "/service-worker.js",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
-      },
-      {
-        "source": "/assets/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(js|css)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(png|jpg|jpeg|gif|svg|webp)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      }
     ],
     "rewrites": [
       {

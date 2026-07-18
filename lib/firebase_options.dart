@@ -41,48 +41,44 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBtsj7f5QCvU-aKQhdQB2RBGyZ_iE0lFa8',
-    appId: '1:1010169881408:web:af8bdbd356db732b30d0a5',
-    messagingSenderId: '1010169881408',
-    projectId: 'vcroad-a0022',
-    authDomain: 'vcroad-a0022.firebaseapp.com',
-    storageBucket: 'vcroad-a0022.firebasestorage.app',
-    measurementId: 'G-B115VW2NV8',
+    apiKey: 'AIzaSyDjzz7Q0MQyaMyoCVGRJ8fXXC0emdrpt_0',
+    appId: '1:161489494672:web:3d1b90fa14a53b9194ee15',
+    messagingSenderId: '161489494672',
+    projectId: 'vcroad-a76a1',
+    authDomain: 'vcroad-a76a1.firebaseapp.com',
+    storageBucket: 'vcroad-a76a1.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC3BcNF1piKBkBtNCCAVLHTqDtY0lveHBI',
-    appId: '1:1010169881408:android:7b6064a12395ab0d30d0a5',
-    messagingSenderId: '1010169881408',
-    projectId: 'vcroad-a0022',
-    storageBucket: 'vcroad-a0022.firebasestorage.app',
+    apiKey: 'AIzaSyDgz5W9kKxYynCsX4GeAbrGFENNCkwcHag',
+    appId: '1:161489494672:android:de98de44c75cc2e994ee15',
+    messagingSenderId: '161489494672',
+    projectId: 'vcroad-a76a1',
+    storageBucket: 'vcroad-a76a1.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAnh8CupQFByOi1eDVSz7jr8_UPeClxaaE',
-    appId: '1:1010169881408:ios:196d13294473ef8d30d0a5',
-    messagingSenderId: '1010169881408',
-    projectId: 'vcroad-a0022',
-    storageBucket: 'vcroad-a0022.firebasestorage.app',
+    apiKey: 'AIzaSyD7jps3S-CaW07ds2jK4_RDjJq-ipHS_Mg',
+    appId: '1:161489494672:ios:f774901c5cd2f77b94ee15',
+    messagingSenderId: '161489494672',
+    projectId: 'vcroad-a76a1',
+    storageBucket: 'vcroad-a76a1.firebasestorage.app',
     iosBundleId: 'com.example.vcroad',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAnh8CupQFByOi1eDVSz7jr8_UPeClxaaE',
-    appId: '1:1010169881408:ios:196d13294473ef8d30d0a5',
-    messagingSenderId: '1010169881408',
-    projectId: 'vcroad-a0022',
-    storageBucket: 'vcroad-a0022.firebasestorage.app',
+    apiKey: 'AIzaSyD7jps3S-CaW07ds2jK4_RDjJq-ipHS_Mg',
+    appId: '1:161489494672:ios:f774901c5cd2f77b94ee15',
+    messagingSenderId: '161489494672',
+    projectId: 'vcroad-a76a1',
+    storageBucket: 'vcroad-a76a1.firebasestorage.app',
     iosBundleId: 'com.example.vcroad',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBtsj7f5QCvU-aKQhdQB2RBGyZ_iE0lFa8',
-    appId: '1:1010169881408:web:162de8c97603891c30d0a5',
-    messagingSenderId: '1010169881408',
-    projectId: 'vcroad-a0022',
-    authDomain: 'vcroad-a0022.firebaseapp.com',
-    storageBucket: 'vcroad-a0022.firebasestorage.app',
-    measurementId: 'G-LK5S7EB6X2',
+    apiKey: 'AIzaSyDjzz7Q0MQyaMyoCVGRJ8fXXC0emdrpt_0',
+    appId: '1:161489494672:web:2701e73c4cf290a994ee15',
+    messagingSenderId: '161489494672',
+    projectId: 'vcroad-a76a1',
+    authDomain: 'vcroad-a76a1.firebaseapp.com',
+    storageBucket: 'vcroad-a76a1.firebasestorage.app',
   );
 }

@@ -1,0 +1,2633 @@
+﻿[
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "04452fa0-120e-4100-a9e0-12f3c5b10510",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Supplementary",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  7,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Provide additional information related to other warning signs",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Next ___ km",
+                                              "When Wet",
+                                              "55 km/h",
+                                              "For PUJ / Buses"
+                                          ],
+                              "id":  "13892af6-7dee-4c0f-9065-715d15442405",
+                              "type":  "multipleChoice",
+                              "question":  "A supplementary sign that indicates the recommended driving speed under normal weather conditions.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "a11de9f4-4bfe-4ae2-93cb-58ae152bcfd1",
+                              "type":  "trueFalse",
+                              "question":  "The When Wet supplementary sign is used together with the Slippery Road warning sign to remind drivers to slow down during wet conditions."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "On Side Road",
+                              "id":  "655eba43-2188-4a4a-b5b2-d521809b4812",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign gives additional information about roadwork or intersections located along a side road."
+                          },
+                          {
+                              "id":  "21bb8189-56ab-489b-9d0f-13e1f0fa556d",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902995743.jpg?alt=media\u0026token=0dccdcde-51db-4bc3-83a9-03f4d4440b63"
+                                                                  },
+                                                        "meaning":  "Shows the preferred maximum speed under normal traffic conditions."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902995746.jpg?alt=media\u0026token=d04efa0e-463c-4372-a5ef-cd7df1b7e418"
+                                                                  },
+                                                        "meaning":  "Used with the Slippery Road sign to caution drivers in wet conditions."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902995747.jpg?alt=media\u0026token=ab5e1683-cd27-4f32-b16f-a664f36b7027"
+                                                                  },
+                                                        "meaning":  "Indicates the distance to the next hazard or affected section."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902995748.jpg?alt=media\u0026token=52fd80d5-26ab-4186-9363-5e9511b81cc4"
+                                                                  },
+                                                        "meaning":  "Provides added information about roadworks or intersections along a side road."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "050b0a13-c33e-44f2-8339-9a573117a439",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Tourist Information and Tourist Destination",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Show directions or information about tourist spots.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Service Signs",
+                                              "Tourist Information and Tourist Destination Sign",
+                                              "Refreshment Sign",
+                                              "Gasoline Station Sign"
+                                          ],
+                              "id":  "2a4d4b1f-dccc-4aad-a849-8022c71161ef",
+                              "type":  "multipleChoice",
+                              "question":  "A brown guide sign that directs motorists toward historical and tourist destinations such as landmarks or museums.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "0653d448-8c96-4d76-80ab-619aa407066b",
+                              "type":  "trueFalse",
+                              "question":  "Tourist Information and Tourist Destination Signs are typically brown with white text and are used to identify points of interest."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Scenic Lookout Sign",
+                              "id":  "b5ec7940-ca9d-45f7-b038-c906dba5ebfe",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign informs drivers of a scenic viewing area or lookout point, such as Scenic Lookout 300 m on Right."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Taal Lake Sign",
+                              "id":  "c8ec8ea6-df3e-4a05-a9dd-32f1155d12c3",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign indicates the direction to a natural attraction such as Taal Lake."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "07d213c5-a34d-4515-a1ef-6bf0923892dc",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Fingerboard Direction",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  3,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Show road or street names that motorists are passing or entering.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Fingerboard \u0026 Direction Sign",
+                                              "Intersection Direction Sign with route number and road name",
+                                              "Reassurance Direction Sign with route number and road name",
+                                              "Intersection Direction Sign (left and right-facing)"
+                                          ],
+                              "id":  "3437dd5f-35ce-4bf2-a55b-e1d7704347a2",
+                              "type":  "multipleChoice",
+                              "question":  "A sign used to point toward a specific destination such as a city, town, or tourist attraction",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "8ef9c890-854e-4628-94ff-aa6f9ab5d62f",
+                              "type":  "trueFalse",
+                              "question":  "Fingerboard and Direction Signs provide information about road hazards and speed limits."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Fingerboard \u0026 Direction Sign",
+                              "id":  "9deaf5ac-7617-414f-9943-e343cd7af7ac",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign shows how far a driver is from key destinations along the current route."
+                          },
+                          {
+                              "options":  [
+                                              "Fingerboard \u0026 Direction Sign",
+                                              "Street Name Sign",
+                                              "Intersection Direction Sign (left and right-facing)",
+                                              "Reassurance Direction Sign with route number and road name"
+                                          ],
+                              "id":  "72812bbf-2f5b-43e3-bc46-cf503703cbee",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that displays the name of a road or street a driver is entering or currently traveling on.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "5e2d54fb-3293-4017-b3b8-43ee513bc8e2",
+                              "type":  "trueFalse",
+                              "question":  "Street Name Signs are primarily used to warn motorists of upcoming intersections or curves."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Street Name Sign",
+                              "id":  "5f69e441-7a15-465f-a879-f021f3fa8865",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign provides the name of the street or avenue that a driver is approaching or crossing."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "08b0e3bb-a387-4ee8-b7f8-2262db8d68df",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Start and End of Expressway Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs are installed to inform motorists of the beginning or end of an expressway section, ensuring proper speed adjustment and driving behavior.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Start of Expressway Sign",
+                                              "End of Expressway XX KM Sign",
+                                              "End of Expressway Sign",
+                                              "Exit Direction Sign (for numbered exits)"
+                                          ],
+                              "id":  "4d6649ef-8b79-427f-8c3b-0f00011fbd51",
+                              "type":  "multipleChoice",
+                              "question":  "This sign informs motorists that the expressway begins.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "b4940c66-3867-4043-87e8-c714a3956600",
+                              "type":  "trueFalse",
+                              "question":  "The END EXPRWAY 2 km sign is installed after leaving the expressway."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "End of Expressway XX KM",
+                              "id":  "e2468c47-adb6-49f1-947a-27fb45cfef42",
+                              "type":  "identification",
+                              "question":  "A green sign that indicates the expressway will end after a distance of ________."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "End of Expressway",
+                              "id":  "7ca5380c-9ed4-48d8-aa02-69453ec70c39",
+                              "type":  "identification",
+                              "question":  "A green sign with the words ________ EXPRWAY, placed at the end of the expressway."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "0a2dfdb0-5dff-4c5f-810f-3e215caeb09c",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Reassurance Direction",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  10,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Indicate the direction and approximate distance after intersections.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Reassurance Direction Sign",
+                                              "Reassurance Direction Sign with route number and road name",
+                                              "Intersection Direction Sign with route number and road name",
+                                              "Intersection Direction Sign (left and right-facing)"
+                                          ],
+                              "id":  "1b018817-dea8-4a8f-8d6c-88959d11f321",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that informs drivers about the remaining distance to major destinations such as cities or provinces.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "4a60add9-2d0c-4431-a49c-e96ad74da76e",
+                              "type":  "trueFalse",
+                              "question":  "The Reassurance Direction Sign with route number and road name includes both the highway identification and distance information for upcoming destinations."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Reassurance Direction Sign",
+                              "id":  "cbd4dbc6-5e8d-4904-bdc0-fde7c86caec3",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign shows how far a driver is from key destinations along the current route."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Reassurance Direction Sign with route number and road name",
+                              "id":  "1c2bfc6a-b7ce-4a9c-838a-e46c00eb4a57",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign displays the route number or highway name together with distance information."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "0a4908b3-498f-4904-8fa1-7d69b3935479",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Advance Direction",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  2,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Indicate the direction(s) a motorist should take before an intersection.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Stack Direction Sign (single destination)",
+                                              "Diagrammatic Direction Sign",
+                                              "Stack Direction Sign (multiple destinations)",
+                                              "Stack Direction Sign (with road/street name)"
+                                          ],
+                              "id":  "210b0541-05df-45ce-85ef-1bfbd6a7f4c2",
+                              "type":  "multipleChoice",
+                              "question":  "A guide sign that displays several destinations on one panel to help motorists determine the proper route before an intersection.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "75901531-6809-4cf6-9b20-832de5fa610c",
+                              "type":  "trueFalse",
+                              "question":  "Diagrammatic Direction Sign (for roundabout) provides visual lane guidance for approaching a rotunda or circular junction."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Stack Direction Sign (with road/street name)",
+                              "id":  "7d092186-5b70-4090-8869-6be0f290e7b4",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign includes the name of the road or street along with directional guidance for motorists."
+                          },
+                          {
+                              "id":  "bd5823b2-d108-484e-9c47-5fa744445e3f",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759890814041.jpg?alt=media\u0026token=ef18bceb-2539-4fec-a776-af340de0a722"
+                                                                  },
+                                                        "meaning":  "Stack Direction Sign (multiple destinations)"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759890814045.jpg?alt=media\u0026token=556d55b9-ab75-464b-9a03-54755044a267"
+                                                                  },
+                                                        "meaning":  "Stack Direction Sign (single destination)"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759890814046.jpg?alt=media\u0026token=b4619c7d-b1fc-46bc-b019-098c92c07dbd"
+                                                                  },
+                                                        "meaning":  "Stack Direction Sign (with road/street name)"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759890814054.jpg?alt=media\u0026token=9526faae-1bf5-4077-b982-c07235427c6c"
+                                                                  },
+                                                        "meaning":  "Diagrammatic Direction Sign"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "0e04ec52-02b3-439e-84a1-c3e4960bf4df",
+        "lessonNumber":  8,
+        "chapterCategory":  "Pavement Markings",
+        "title":  "Traverse Lines",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  4,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Placed across the road to regulate movement at intersections, pedestrian crossings, and roundabouts.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Give way or Holding Lines",
+                                              "Stop Line",
+                                              "Roundabout Holding Line",
+                                              "Pedestrian Intersection Signaled"
+                                          ],
+                              "id":  "da8e1873-cea6-478a-bf4b-a08f07650baa",
+                              "type":  "multipleChoice",
+                              "question":  "These lines mark a pedestrian crossing at intersections with traffic signals.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "ac3b9e78-e5a1-43a7-93dd-5ae77e9ba0b7",
+                              "type":  "trueFalse",
+                              "question":  "Stop lines are placed before pedestrian crossings or intersections to control vehicle stopping positions."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Stop",
+                              "id":  "6e6d663d-bc4a-406c-bdbc-90375d23bc1e",
+                              "type":  "identification",
+                              "question":  "A white line drawn across lanes indicating where vehicles must ________ at intersections or signals."
+                          },
+                          {
+                              "id":  "b5047be7-34a4-4777-8e28-dac6372074e0",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759848112900.jpg?alt=media\u0026token=1f40f97c-fd7b-4b87-abd6-6868fcd1b264"
+                                                                  },
+                                                        "meaning":  "Indicates where vehicles must stop before an intersection or crossing"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759848112902.jpg?alt=media\u0026token=36b145d5-e393-44c3-94f2-4d888f37810b"
+                                                                  },
+                                                        "meaning":  "Requires drivers to yield to oncoming traffic"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759848112903.jpg?alt=media\u0026token=6fa782ec-ddb7-468d-a4bf-0f1c3ca4e118"
+                                                                  },
+                                                        "meaning":  "Pedestrian crossing without traffic lights"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759848112904.jpg?alt=media\u0026token=2d4f5b7d-e3e4-4533-8f7a-1d34b82fa0ea"
+                                                                  },
+                                                        "meaning":  "Vehicles inside the roundabout have the right-of-way"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "12a9bda4-85c2-455a-a6f5-5d812e37e826",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Horizontal",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Indicate the type of road curve ahead",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "",
+                                              "Double Curve",
+                                              "Hairpin Head",
+                                              "Winding Road"
+                                          ],
+                              "id":  "be687b03-176e-455c-a25c-1badf5f0eea1",
+                              "type":  "multipleChoice",
+                              "question":  "A road sign that warns drivers of a series of continuous curves ahead requiring reduced speed and caution",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "22fee7eb-2723-4e79-94dc-1ba841af7da1",
+                              "type":  "trueFalse",
+                              "question":  "A Hairpin Bend warning sign indicates a very sharp change in direction on the road."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Double Curve",
+                              "id":  "dfba1c4e-acb3-4b52-b8c6-417714e50653",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign alerts motorists of two consecutive opposite turns ahead."
+                          },
+                          {
+                              "id":  "f2050496-3411-4b1e-9ab3-363db991c5c2",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899004667.jpg?alt=media\u0026token=ea94b808-d2ce-4798-8e26-de104ab7ee92"
+                                                                  },
+                                                        "meaning":  "Warns of a single sudden change in direction."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899004668.jpg?alt=media\u0026token=dd884d70-cc72-4bfb-8159-a797a0cc5ede"
+                                                                  },
+                                                        "meaning":  "Alerts drivers of a very sharp U-shaped curve ahead."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899004669.jpg?alt=media\u0026token=3973fa68-901a-4b00-b393-b0d68080f47d"
+                                                                  },
+                                                        "meaning":  "Indicates two sharp bends in opposite directions."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899004670.jpg?alt=media\u0026token=7016613c-eb91-4992-8683-18a85b5ba1a3"
+                                                                  },
+                                                        "meaning":  "Warns that the road has a series of continuous curves."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "142b058a-5aea-47a9-8df5-1d56c93d3c15",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Expressway Service Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  3,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs provide distance and direction information to rest areas and various expressway services such as gas stations, restaurants, and service centers",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Service Center Sign",
+                                              "To Expressway Sign",
+                                              "Rest Area Sign",
+                                              "Exit Direction Sign (for numbered exits)"
+                                          ],
+                              "id":  "6131402e-c427-4896-8f4f-3b83f67cc0d9",
+                              "type":  "multipleChoice",
+                              "question":  "This sign provides information about the location where motorists can stop and rest.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "2a4b3b03-1fd8-415e-bee7-dad5cf0af99e",
+                              "type":  "trueFalse",
+                              "question":  "Service center signs may include symbols for restaurants, fuel, and parking areas."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Rest Area Sign",
+                              "id":  "e6cfbed2-901c-4793-87f5-a33a15bfe7a7",
+                              "type":  "identification",
+                              "question":  "A blue sign used to guide motorists toward a rest area located 2 km ahead."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Service Center Next Exit Sign",
+                              "id":  "3a776644-e065-43e2-aad3-41d9855eb66e",
+                              "type":  "identification",
+                              "question":  "A blue sign that informs motorists about the availability of expressway services at the upcoming exit."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "1555a203-e6b0-4a3a-8e5d-0b9743f36a23",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Miscellaneous",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  4,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs that provide additional regulatory information not covered by other categories",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "No Blowing of Horns",
+                                              "No entry for vehicles with gross axle load of more than 2 tons",
+                                              "Fasten Seat Belt",
+                                              "Be aware of pedestrian crossing"
+                                          ],
+                              "id":  "0d96731c-5641-43b9-bdfc-3195ea138a40",
+                              "type":  "multipleChoice",
+                              "question":  "Which sign reminds drivers to wear a seat belt as required by law?",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "4701e49f-4bf1-4e25-851e-e721e58c529c",
+                              "type":  "trueFalse",
+                              "question":  "No Blowing of Horns sign means that drivers are prohibited from using their horn in certain areas to avoid noise pollution."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Bicycle Lane",
+                              "id":  "716cc2f8-dc55-41bb-97fe-3d826ac83e9b",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign indicates that a designated path or lane is provided for cyclists."
+                          },
+                          {
+                              "id":  "f65385de-2deb-4ea0-9352-8b2f45f23ff0",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759905150688.jpg?alt=media\u0026token=bdf04890-c165-45e8-b1f2-0352fc394b87"
+                                                                  },
+                                                        "meaning":  "Drivers must avoid honking in this area."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759905150689.jpg?alt=media\u0026token=d1266fa8-3dda-4452-8681-f199b9fc2a82"
+                                                                  },
+                                                        "meaning":  "Reminds motorists to wear seat belts under R.A. 8750."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759905150690.jpg?alt=media\u0026token=c1b2be86-b423-469d-abe2-ee9f55fd8cdc"
+                                                                  },
+                                                        "meaning":  "Warns drivers to watch for pedestrians on the road."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759905150691.jpg?alt=media\u0026token=282d7067-f660-4755-8d11-26c622e2e188"
+                                                                  },
+                                                        "meaning":  "Vehicles exceeding 2 tons are not allowed to enter."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "1cf3ae51-2ba7-45b2-8cf0-128c26143e1a",
+        "lessonNumber":  8,
+        "chapterCategory":  "Pavement Markings",
+        "title":  "Object Markings",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  5,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Used to alert drivers to physical obstructions or structures located on or near the roadway.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Markings on Curbs",
+                                              "Objects Within the Roadway",
+                                              "Objects Adjacent to the Roadway",
+                                              "Pedestrian Intersection Signaled"
+                                          ],
+                              "id":  "17ca797a-f603-427b-858d-74316fd192bb",
+                              "type":  "multipleChoice",
+                              "question":  "These markings are applied to the edges of roadways or sidewalks to alert drivers and pedestrians of restricted zones or curbs.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "feca8e16-e359-4967-896f-c5acac7aa02d",
+                              "type":  "trueFalse",
+                              "question":  "Object markings are used only for movable obstructions such as cones."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Markings on Curbs",
+                              "id":  "9cfeeb02-9c5f-41af-8bdc-cbde77d17cbe",
+                              "type":  "identification",
+                              "question":  "Striped paint or markings found on the edge of sidewalks or medians are known as ________."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Objects Adjacent to the Roadway",
+                              "id":  "64634fd7-980b-437c-bafd-89155b02d4c0",
+                              "type":  "identification",
+                              "question":  "Reflective or high-visibility markings applied to barriers or structures near the roadway are called ________."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "26c2d8fc-8c9c-4eb4-a7a6-355946a1354e",
+        "lessonNumber":  8,
+        "chapterCategory":  "Pavement Markings",
+        "title":  "Longitudinal Lines",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These markings provide additional guidance and regulation for specific types of road users and traffic conditions.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Broken Yellow Line",
+                                              "Single Solid Yellow Line",
+                                              "Center line or Separation Line",
+                                              "Continue Line"
+                                          ],
+                              "id":  "1b43a8b0-8315-4cb2-bfad-232ebdb71d9a",
+                              "type":  "multipleChoice",
+                              "question":  "This pavement marking allows passing or overtaking.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "d175fdc6-970c-4f4c-83f0-7935c8684f09",
+                              "type":  "trueFalse",
+                              "question":  "Continuity lines on the right side of the lane mean that the lane continues normally."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Broken Yellow Line",
+                              "id":  "b0ab0b93-20b0-4c5c-9da9-f01bec10a482",
+                              "type":  "identification",
+                              "question":  "A ________ line indicates that passing is allowed."
+                          },
+                          {
+                              "id":  "f03fd919-e8ab-4b2d-beab-ef99ff811023",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846155780.jpg?alt=media\u0026token=17ed0eb2-58ca-437c-abbd-b8f692fdd13d"
+                                                                  },
+                                                        "meaning":  "Divides lanes moving in the same direction; lane changes allowed"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846155782.jpg?alt=media\u0026token=6ba8edf8-1a7c-4738-8829-9ba83236e168"
+                                                                  },
+                                                        "meaning":  "Passing or overtaking permitted"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846155783.jpg?alt=media\u0026token=5b189351-89e8-4cdf-bf25-99668cf9a95d"
+                                                                  },
+                                                        "meaning":  "Overtaking allowed on one side only"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846155784.jpg?alt=media\u0026token=3a4ced01-7db6-49d0-9cca-bfb53664b079"
+                                                                  },
+                                                        "meaning":  "Guides vehicles past obstructions or lane changes"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "2d7e6804-5d83-4e75-a279-9ac3ae9dd907",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Advance Exit Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  4,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Placed in advance of an exit",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Exit Advance Sign (with distance)",
+                                              "Street Name Sign",
+                                              "To Expressway Sign",
+                                              "Toll Charges Sign"
+                                          ],
+                              "id":  "3d5eeb22-b1f9-4d20-baf0-df1720bf78bb",
+                              "type":  "multipleChoice",
+                              "question":  "This sign informs motorists that the Calamba Exit is 2 kilometers ahead.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "d445e151-f7cf-4566-a41a-81cfb125e7ac",
+                              "type":  "trueFalse",
+                              "question":  "The phrase NEXT EXIT sign is used on supplementary advance exit signs."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Supplementary Exit Advance Sign",
+                              "id":  "c9764faf-1110-41f8-888a-a505896ce0ca",
+                              "type":  "identification",
+                              "question":  "A green rectangular sign that reads Alabang NEXT EXIT."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Exit Advance Sign (with distance)",
+                              "id":  "99abaf55-18f8-4245-933c-d87f1238b0d7",
+                              "type":  "identification",
+                              "question":  "A green sign that states Calamba EXIT 2 km is an ________."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "349ac480-d7f3-46a1-bb81-032947824f4b",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Priority",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs that inform road users of traffic laws and regulations which, if disregarded, will constitute an offense",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Give Way Sign",
+                                              "Stop Sign",
+                                              "Left Turn Must Give Way",
+                                              "Vehicles May Pass Either Side"
+                                          ],
+                              "id":  "40ef6825-7913-474e-a90d-32bb0853b65e",
+                              "type":  "multipleChoice",
+                              "question":  "Driver must stop at designated STOP LINE. No parking within 6 meters.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "a7141fb7-0a9d-4e34-a6f4-0e07c5bb0b5a",
+                              "type":  "trueFalse",
+                              "question":  "You have the right of way when turning left at an intersection only if you signal at least 30 meters before and yield to approaching vehicles."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Give Way Sign",
+                              "id":  "fb383186-2461-4fa0-87b3-fdb2508d7a40",
+                              "type":  "identification",
+                              "question":  "The driver must yield to vehicles on the right side of the intersection."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Left Turner Must Give Way",
+                              "id":  "861a6d5c-0118-445b-b755-57036724890e",
+                              "type":  "identification",
+                              "question":  "The driver turning left must yield to vehicles going straight or turning right."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "58faa2d8-6ec7-45da-9239-e11a8ba16b63",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Expressway Information Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  5,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs provide regulatory and directional information to ensure safe and efficient use of expressways.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Toll Charges Sign",
+                                              "To Expressway Sign",
+                                              "Street Name Sign",
+                                              "Prohibited on Expressway"
+                                          ],
+                              "id":  "bc181a5f-3eac-4ead-92f7-45e6f5668bda",
+                              "type":  "multipleChoice",
+                              "question":  "This sign prohibits bicycles, low cc motorcycles, and similar vehicles from entering the expressway.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "1e666761-a133-4e68-893f-5f0d5f232873",
+                              "type":  "trueFalse",
+                              "question":  "Lane Direction signs help guide motorists to the proper lanes before an interchange."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Toll Charges Sign",
+                              "id":  "5a7820c0-4882-4cee-8ceb-dc321f060O",
+                              "type":  "identification",
+                              "question":  "A sign that displays the amount payable for different types of vehicles."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Expressway",
+                              "id":  "7c029392-f389-4ac3-b510-9f22d797c277",
+                              "type":  "identification",
+                              "question":  "A green rectangular sign stating Prohibited on ________ that restricts certain vehicles."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "6d48320c-a300-4a33-8e2e-8d7ec9ba827d",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Expressway Traffic Instruction and Regulatory Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  6,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs are used to regulate traffic movement and ensure compliance with expressway rules, including lane use, speed limits, and vehicle restrictions.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Stop At Toll Gates",
+                                              "Wrong Way Go Back",
+                                              "Check Brakes",
+                                              "Reduce Speed Now"
+                                          ],
+                              "id":  "224a5f49-1b4e-4a2a-854e-716923b0561a",
+                              "type":  "multipleChoice",
+                              "question":  "This sign instructs drivers to immediately lower their speed.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "5a42dd17-683b-4411-8a27-08f1d2cc4d01",
+                              "type":  "trueFalse",
+                              "question":  "Reduce Speed Now signs are only placed after the toll plaza."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Reduce Speed Now",
+                              "id":  "148cdcab-0fa5-477f-8309-edf0ce871ca9",
+                              "type":  "identification",
+                              "question":  "A black and white sign stating RIGHT LANE ________ MERGE LEFT"
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Toll",
+                              "id":  "57711c60-87e3-4b5a-8872-9204acc8ed20",
+                              "type":  "identification",
+                              "question":  "A red rectangular sign advising drivers to STOP AT ________ GATES."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "76083b0d-8715-4662-940e-1071f4111b4a",
+        "lessonNumber":  8,
+        "chapterCategory":  "Traffic Instruction Signs",
+        "title":  "Movement Instruction",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  2,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Tells drivers how they should navigate their vehicle through specific situations on the road by providing directions, rules, or mandatory commands.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Road Closed",
+                                              "No Through Road",
+                                              "Reduce Speed",
+                                              "Slow Vehicles Use Right Lane"
+                                          ],
+                              "id":  "cd57adbe-010a-49da-a583-3e4a99e133f9",
+                              "type":  "multipleChoice",
+                              "question":  "This sign instructs drivers to slow down to ensure safety, especially before curves or intersections.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "b721b2f8-e106-4353-90d3-12e59c892cdf",
+                              "type":  "trueFalse",
+                              "question":  "No Through Road sign means the road leads to a dead end."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Road Closed",
+                              "id":  "6f37d0f7-0468-4987-b339-350956e9b751",
+                              "type":  "identification",
+                              "question":  "A sign that informs motorists that the road ahead is closed to all traffic."
+                          },
+                          {
+                              "id":  "1d31a052-2802-4b43-afeb-0b836740a190",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  3,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884865884.jpg?alt=media\u0026token=984f316d-e464-4c90-9d87-f5d4793509f2"
+                                                                  },
+                                                        "meaning":  "Advises drivers to slow down for safety"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884865887.jpg?alt=media\u0026token=1f093387-7fd2-426d-a097-a4d845f30c86"
+                                                                  },
+                                                        "meaning":  "Prohibits turning right while traffic signal is red"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884865888.jpg?alt=media\u0026token=252ace4a-a8d3-4447-b87e-8037c837ee2e"
+                                                                  },
+                                                        "meaning":  "Directs slower vehicles to stay in the right lane"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "7b881932-1aa9-4060-8efe-81dd7c88b2fa",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Service Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  9,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Indicate available services like hospitals, gas stations, or parking areas.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Weighbridge Station",
+                                              "Service Sign (with name of service, symbols, and distance)",
+                                              "Gasoline Station Sign",
+                                              "Refreshment Sign"
+                                          ],
+                              "id":  "5d7414d4-80f6-4729-921b-962a708d46e5",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that shows the location, distance, and symbols of available facilities such as gas stations or restaurants.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "53c0d5c1-44ea-44a7-97ad-cb43f885a055",
+                              "type":  "trueFalse",
+                              "question":  "Service Signs are typically blue with white symbols to easily identify public services or facilities."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Gasoline Station Sign",
+                              "id":  "ebc6a6ba-219a-45e2-8ca5-ba9cb981820d",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign shows a gas pump symbol, representing a place where fuel is available."
+                          },
+                          {
+                              "id":  "86036b06-58f8-40bc-93c0-cee2fa31fa10",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1760950198142.jpg?alt=media\u0026token=7ec2010f-116f-4a8e-9bb1-f0c584c1d581"
+                                                                  },
+                                                        "meaning":  "Indicates the location of a medical or first-aid facility."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759893208879.jpg?alt=media\u0026token=e2bb5bc4-fae9-41ca-b261-c0deddc11999"
+                                                                  },
+                                                        "meaning":  "Shows the area where vehicles can refuel."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759893208880.jpg?alt=media\u0026token=59f05800-2ed9-4ea3-855b-e6082ec69e9f"
+                                                                  },
+                                                        "meaning":  "Displays a symbol for designated parking spaces."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759893208881.jpg?alt=media\u0026token=9f3e51ec-2c1d-41e7-9bc6-2d5b232a06de"
+                                                                  },
+                                                        "meaning":  "Indicates an area for weighing vehicles along highways"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "8096fab1-aaa8-4a08-8fee-072ef39148cd",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Pedestrian",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  6,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Warns drivers to be cautious of pedestrians, children, or persons with disabilities crossing.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Children Crossing Ahead",
+                                              "Bicycle Lane Ahead",
+                                              "Pedestrian Crossing Ahead",
+                                              "Persons with Disabilities (PWDs) crossing ahead"
+                                          ],
+                              "id":  "8685ea65-db09-48ac-9dd6-bd78484e1880",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign reminding drivers to slow down because pedestrians may be crossing ahead.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "696f8d30-86bb-4a8f-bcb7-9c69238c4647",
+                              "type":  "trueFalse",
+                              "question":  "The Bicycle Lane Ahead sign informs drivers that the road is for motor vehicles only and cyclists are not allowed."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Children Crossing Ahead",
+                              "id":  "a61ddddf-172f-49ea-9996-9dc8c831e617",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign alerts drivers to slow down because children may be crossing the road ahead."
+                          },
+                          {
+                              "id":  "41ffe79d-e064-4516-b527-3d1f871afa67",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902525578.jpg?alt=media\u0026token=87db8807-eefb-4faa-a75e-c0e558f9784a"
+                                                                  },
+                                                        "meaning":  "Warns that pedestrians may cross the road ahead."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902525579.jpg?alt=media\u0026token=21411c4f-c2a9-4629-970f-744750ed438d"
+                                                                  },
+                                                        "meaning":  "Alerts drivers of school children crossing the road."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902525580.jpg?alt=media\u0026token=311e523a-532c-4eef-abd7-100e853603c4"
+                                                                  },
+                                                        "meaning":  "Indicates a crossing area for persons with disabilities."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759902525581.jpg?alt=media\u0026token=9c255b98-c5eb-4d2a-abe7-4a7cb4e8a2b1"
+                                                                  },
+                                                        "meaning":  "Warns drivers to slow down and be aware of cyclists."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "860eaf9b-f8af-4a88-96e2-1e48c3a2e2b5",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Town Names and Geographical Feature",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  8,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Show general information such as boundaries or landmarks.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Province Name Sign",
+                                              "Town Name Sign",
+                                              "Geographical Feature Sign",
+                                              "Local Government Unit Boundary Sign"
+                                          ],
+                              "id":  "0b933d4c-efe3-439f-b861-a10ddcd0896c",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that indicates the name of the town or city a driver is entering or leaving.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "62866f27-d709-4f99-a7b6-922d2e73538a",
+                              "type":  "trueFalse",
+                              "question":  "Town Names \u0026 Geographical Feature Signs identify administrative or geographic areas, not regulatory instructions."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Geographical Feature Sign",
+                              "id":  "e587ed92-c0a9-44c2-9044-6cebd7b4b50a",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign indicates a natural or physical landmark, like LAGUNA DE BAY."
+                          },
+                          {
+                              "id":  "bd4b25a0-96e2-42ca-a080-cf8b40575cd0",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759892934120.jpg?alt=media\u0026token=8d057286-5be7-45ec-b5d6-8dd325defec0"
+                                                                  },
+                                                        "meaning":  "Displays the name of the town being entered or exited."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759892934121.jpg?alt=media\u0026token=e083fcfb-6f84-4d56-a234-a9d9339d3b41"
+                                                                  },
+                                                        "meaning":  "Indicates the name of the province along the route."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759892934122.jpg?alt=media\u0026token=1c9d85a8-78be-40cf-b7ad-828116915075"
+                                                                  },
+                                                        "meaning":  "Identifies a natural or geographical landmark."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759892934123.jpg?alt=media\u0026token=b9cc7c22-a3b8-40e1-a213-04ca74abd744"
+                                                                  },
+                                                        "meaning":  "Marks the border between two cities or municipalities."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "88989a39-d394-41ec-8b60-7a85ba8ab3c8",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Railway Level Crossing",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  9,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Warns of railway tracks or crossings where vehicles must stop or proceed with caution.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Alternative Railway Crossing",
+                                              "Railway Crossing Warning advanced (unsignaled)",
+                                              "Railroad Crossing",
+                                              "Railway Crossing Warning advanced (signaled)"
+                                          ],
+                              "id":  "5685df1f-f2e8-4161-963f-7a5dd6d26950",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign that reminds motorists to stop at the designated line or proceed carefully when approaching railway tracks.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "6c301fd0-29e8-4da6-ab29-28a288429ce8",
+                              "type":  "trueFalse",
+                              "question":  "Alternative Railway Crossing sign indicates that the crossing area is positioned in a location that offers clear visibility for drivers."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Railroad Crossing",
+                              "id":  "5c638364-b324-4b10-aecf-1c05ea4cb055",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign advises drivers to stop, look, and listen before crossing the railroad tracks."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Alternative Railway Crossing",
+                              "id":  "1dbd4bd8-47dc-4e7c-babf-f72645dad15d",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign indicates that a different or alternative railway crossing is located in an area that can be easily seen by approaching drivers."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "9ab66dab-9c02-4f39-bb63-fcd50f00af69",
+        "lessonNumber":  8,
+        "chapterCategory":  "Traffic Instruction Signs",
+        "title":  "Supplementary",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  3,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs provide additional instructions or information to drivers and pedestrians, usually placed below a main sign to clarify specific action",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Use Pedestrian Crossing",
+                                              "Use Overpass",
+                                              "Trucks Use Low Gear",
+                                              "Check Brakes"
+                                          ],
+                              "id":  "0afedb41-b31c-466d-a425-a153f413069a",
+                              "type":  "multipleChoice",
+                              "question":  "This sign informs pedestrians to cross only at the designated crosswalk.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "a6a4edd2-6857-4ea2-b052-9350f0978659",
+                              "type":  "trueFalse",
+                              "question":  "Trucks Use Low Gear helps prevent brake failure on downhill slopes."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Use Overpass",
+                              "id":  "ac92558c-6aa2-4292-8e70-ab7bd501cd83",
+                              "type":  "identification",
+                              "question":  "A regulatory sign that instructs pedestrians to cross safely using the designated overpass rather than the roadway."
+                          },
+                          {
+                              "id":  "27407095-e8ae-42f3-a67b-d586441d141d",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884477310.jpg?alt=media\u0026token=00bd3bcb-ea1a-4402-800b-d10162554703"
+                                                                  },
+                                                        "meaning":  "Advises pedestrians to cross using the footbridge"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884477313.jpg?alt=media\u0026token=a9a0fa7c-0449-41f5-9cc1-0ba211c65d91"
+                                                                  },
+                                                        "meaning":  "Directs pedestrians to cross at a designated crosswalk"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884477314.jpg?alt=media\u0026token=f911cd1d-afaf-44a0-aacd-86f7a89eff38"
+                                                                  },
+                                                        "meaning":  "Reminds truck drivers to shift gear on steep downhill roads"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884477315.jpg?alt=media\u0026token=5584fa9c-8e66-4c51-a321-b5b7d8098445"
+                                                                  },
+                                                        "meaning":  "Instructs motorists to ensure their brakes are working"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "a040cd57-8caa-4547-b3c2-beef2ed48e9f",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Advance Warning / Traffic Control Device",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  5,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Warns of the presence of traffic signals, stop, or give way signs ahead.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Narrow Bridge Ahead",
+                                              "Give way sign",
+                                              "Stop Sign Ahead",
+                                              "Traffic Lights Ahead"
+                                          ],
+                              "id":  "819b1144-4ede-4f14-92d0-2f03493c04b0",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign that alerts drivers of an approaching signalized intersection where parking or stopping within six (6) meters is prohibited",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "f3da2b5a-c942-41d7-be61-0e1e152a50d9",
+                              "type":  "trueFalse",
+                              "question":  "The Traffic Lights Ahead sign also reminds drivers to park or continue within six (5) meters of the sign to maintain visibility for other motorists."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Stop Sign Ahead",
+                              "id":  "82746885-692f-49dc-873a-671e91d3c5c9",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign warns drivers that a stop regulatory sign is placed ahead and they must prepare to stop."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Give Way Sign Ahead",
+                              "id":  "37acde7e-df17-4622-9f46-1d2b62f54330",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign alerts motorists that a give regulatory sign is coming up and they must be ready to yield."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "a4901f26-2523-428a-b3a7-8034ba152b20",
+        "lessonNumber":  8,
+        "chapterCategory":  "Pavement Markings",
+        "title":  "Other Markings",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  6,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These markings provide additional guidance and regulation for specific types of road users and traffic conditions.",
+        "questions":  [
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Rumble Strips",
+                              "id":  "72b4bfdd-e5da-4f99-97f8-608912bfbc9e",
+                              "type":  "identification",
+                              "question":  "Commonly known as __________, these raised reflectors guide drivers by marking lanes and road edges."
+                          },
+                          {
+                              "options":  [
+                                              "Pavement Arrows",
+                                              "Motorcycle Lane",
+                                              "Rumble Strips",
+                                              "Railroad Crossing Ahead"
+                                          ],
+                              "id":  "de95082d-7b4d-41a0-bb7d-cb467b55b504",
+                              "type":  "multipleChoice",
+                              "question":  "This pavement marking warns drivers of a nearby train crossing.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "fba85c44-6e31-49ac-9b5e-05ca74dd347a",
+                              "type":  "trueFalse",
+                              "question":  "Bus Lane markings help ensure buses travel in designated lanes."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Speed Limit at 60 KPH",
+                              "id":  "335f174a-f074-47ad-8b98-6edfd916b5d5",
+                              "type":  "identification",
+                              "question":  "A large number marking on the road reminding motorists of maximum allowable speed"
+                          },
+                          {
+                              "id":  "68a27b69-09da-49d8-b29e-ccdab3b60a76",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759883573821.jpg?alt=media\u0026token=8cb4f90e-5b4c-48bf-9d6b-87f9a9016c9c"
+                                                                  },
+                                                        "meaning":  "Directs drivers into turning lanes separated by an island"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759883573826.jpg?alt=media\u0026token=55453903-b872-41c8-a44e-7cea1f37ef2b"
+                                                                  },
+                                                        "meaning":  "Produces noise/vibration to warn inattentive drivers"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759883573827.jpg?alt=media\u0026token=dfca2ae8-c1c2-46af-af98-094e97a20980"
+                                                                  },
+                                                        "meaning":  "Marks lanes designated for public buses only"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759883573829.jpg?alt=media\u0026token=f18fd33e-6ca5-4955-baeb-31e3df9159b2"
+                                                                  },
+                                                        "meaning":  "Reminds motorists of the maximum speed limit"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "a82527cd-aa8f-476b-ba9f-53c36bf20281",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Parking and Stopping",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  5,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs that regulate where vehicles may or may not park, stop, load, or unload",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "No Parking Tow-Away Zone",
+                                              "No Stopping Anytime",
+                                              "No Loading and Unloading Zone",
+                                              "No Parking Fire Hydrant"
+                                          ],
+                              "id":  "c22ec678-01c7-401b-a732-2c841b85a99e",
+                              "type":  "multipleChoice",
+                              "question":  "Which sign means that no vehicle is allowed to stop and subject to be towed?",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "ccddaf64-8302-4173-80c0-3141bebf153e",
+                              "type":  "trueFalse",
+                              "question":  "No Parking on Fire Hydrant within 4 meters sign means vehicles may park as long as the driver stays inside."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "No loading and unloading zone",
+                              "id":  "42c90394-7a4f-4938-a1cd-d01221ce967e",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign tells drivers that parking is prohibited, but temporary loading or unloading is allowed."
+                          },
+                          {
+                              "id":  "09b6e9a3-9ee0-4444-af8d-b4c12c5f5a1b",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904892797.jpg?alt=media\u0026token=e4eaeffd-2e83-43d2-bdab-c3d820131085"
+                                                                  },
+                                                        "meaning":  "Drivers must not stay idle or wait in the designated area."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904892798.jpg?alt=media\u0026token=73aa5569-596e-41a0-a1fa-fef7288e3676"
+                                                                  },
+                                                        "meaning":  "Parking is prohibited during weekdays."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904892799.jpg?alt=media\u0026token=88a36e6a-80f1-4502-884f-00b622dc4d1e"
+                                                                  },
+                                                        "meaning":  "Temporary stopping is allowed only for loading or unloading."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904892799.jpg?alt=media\u0026token=88a36e6a-80f1-4502-884f-00b622dc4d1e"
+                                                                  },
+                                                        "meaning":  "Vehicles must not stop or park at any time."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "ab45cf89-4264-49f3-8f9d-af574e1078a5",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Other Warning Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  12,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Include special or situational warnings.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Slow Down Accident-Prone Area",
+                                              "Clearance ___ m",
+                                              "Lane Ends Merge Left",
+                                              "Slow Down Merging Traffic Ahead"
+                                          ],
+                              "id":  "92f3a1aa-e56a-4672-bae4-99570d4e475d",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign that indicates the maximum vertical clearance height allowed for vehicles passing under a bridge or structure.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "88b034ef-5b3a-49c2-9d66-f264574ac91e",
+                              "type":  "trueFalse",
+                              "question":  "The Slow Down Accident Prone Area sign is used to inform drivers that the section of the road has a lower clearance height."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Lane Ends Merge Left",
+                              "id":  "b24c17ac-226a-4619-9864-f04945c13af3",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign warns that the lane ahead will end and motorists must merge safely to the left."
+                          },
+                          {
+                              "id":  "d536bc70-ff2f-4b97-b4dc-c5954a8e770e",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759903641245.jpg?alt=media\u0026token=aa41e490-a8b6-44f7-aa54-10536f66c006"
+                                                                  },
+                                                        "meaning":  "Indicates the maximum vertical height allowed for vehicles."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759903641246.jpg?alt=media\u0026token=44b3c447-60f0-4a01-bb9a-8f3b10a51e11"
+                                                                  },
+                                                        "meaning":  "Warns drivers to reduce speed in accident-prone zones."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759903641247.jpg?alt=media\u0026token=a2cc132b-01ff-4355-a45b-1ca65ba15189"
+                                                                  },
+                                                        "meaning":  "Alerts motorists of merging lanes that require caution."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759903641248.jpg?alt=media\u0026token=5f6b681f-0a83-45d4-a229-697f45c20dfa"
+                                                                  },
+                                                        "meaning":  "Indicates that the right lane is ending and vehicles must merge left."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "abd0ee67-fd66-42e8-9a10-cac0d1635b6c",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Route Markers",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  5,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Identify route numbers of highways and their directions.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Route Marker Sign",
+                                              "Street Name Sign",
+                                              "Fingerboard Direction Sign",
+                                              "Service Sign"
+                                          ],
+                              "id":  "b63bf6e6-3f21-47d3-a2f0-97891fbc397c",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that shows the route number of a national highway and helps drivers follow the correct direction.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "2fd93263-56de-4009-ba90-d3e444b468e5",
+                              "type":  "trueFalse",
+                              "question":  "All route marker signs are circular in shape and use blue symbols."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Route Marker Sign",
+                              "id":  "36e1b873-2007-42dc-bc4c-2d3a24ca7760",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign shows the number assigned to a national or arterial highway, such as Route 95 or Route 52."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Kilometer Post",
+                              "id":  "a8cdca13-2b31-4e7b-bcc8-620951600d4a",
+                              "type":  "identification",
+                              "question":  "The ____________________ post indicates the distance in kilometers from the Zero Kilometer Post, such as KM 340 D."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "ace8a4aa-4789-4901-b8e8-739514895349",
+        "lessonNumber":  8,
+        "chapterCategory":  "Roadwork Signs",
+        "title":  "Roadwork Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs are used to warn and guide drivers and pedestrians when roadworks or maintenance activities are being carried out.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Deep Excavation",
+                                              "Men at Work",
+                                              "Chevron Sign",
+                                              "Slow Down"
+                                          ],
+                              "id":  "f348e98b-40bd-4287-ba93-b8b21866e25f",
+                              "type":  "multipleChoice",
+                              "question":  "This sign warns that construction or maintenance workers are on or near the roadway.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "6c765441-8be4-4bdb-8a08-b4416f72b201",
+                              "type":  "trueFalse",
+                              "question":  "Do Not Enter signs are used to instruct drivers to proceed slowly through work zones."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Do Not Enter",
+                              "id":  "291d94fe-1a28-47a9-9b1c-02e7f5b93301",
+                              "type":  "identification",
+                              "question":  "A red-bordered circular sign displaying __________ means vehicles are prohibited from entering the area."
+                          },
+                          {
+                              "id":  "fe949c5f-c56b-4690-8b03-9b068fd456c8",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846722096.jpg?alt=media\u0026token=74ea9a34-c8cd-440c-9e1f-fb9cc6bc6d6f"
+                                                                  },
+                                                        "meaning":  "Warns that workers are on or near the road"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846722099.jpg?alt=media\u0026token=34e3ec91-ac73-4a35-a41f-2775c88bdc4d"
+                                                                  },
+                                                        "meaning":  "Prohibits entry into the construction or restricted area"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846722101.jpg?alt=media\u0026token=813cfc84-3cc1-4efc-a38b-ad9e5c054214"
+                                                                  },
+                                                        "meaning":  "Instructs motorists to reduce speed near roadwork zones"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759846722111.jpg?alt=media\u0026token=4af6718d-1497-4a78-ac52-81425342d17c"
+                                                                  },
+                                                        "meaning":  "Alerts drivers to open pits or deep digging ahead"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "ad86d5a0-c6a5-4f2c-8d96-f339cd3e712b",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Prohibitive / Restrictive",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  2,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs that prohibit or restrict certain types of vehicles or maneuvers on the road",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "No Entry",
+                                              "No Jeepneys",
+                                              "No Vehicles with Trailer",
+                                              "No Motorcycle"
+                                          ],
+                              "id":  "85670b60-1dcc-48a3-b565-9ff88bc6caf0",
+                              "type":  "multipleChoice",
+                              "question":  "Which sign means that no vehicle of any type is allowed to enter?",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "d062b535-2974-4d35-b5da-5023ff5a4e4b",
+                              "type":  "trueFalse",
+                              "question":  "The No Overtaking Zone sign allows overtaking only during light traffic conditions."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "No Pedestrian Crossing",
+                              "id":  "71d3b40f-7b26-47f2-b7db-66e671c4f5bc",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign means pedestrians must not cross the roadway."
+                          },
+                          {
+                              "id":  "94f5146b-2880-4c98-9ff9-9ddcee90d506",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904296484.jpg?alt=media\u0026token=3e02bb4e-06a4-4419-8d0b-ebeb64402c89"
+                                                                  },
+                                                        "meaning":  "Vehicles are not allowed to turn left"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904296484.jpg?alt=media\u0026token=3e02bb4e-06a4-4419-8d0b-ebeb64402c89"
+                                                                  },
+                                                        "meaning":  "Vehicles are not allowed to make a U-turn"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904296485.jpg?alt=media\u0026token=ad2e8aa9-61e1-4804-b0ca-984a42fe21c1"
+                                                                  },
+                                                        "meaning":  "NO OVERTAKING ZONE"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904296486.jpg?alt=media\u0026token=d8409e12-6753-47c4-9a3b-193e71815860"
+                                                                  },
+                                                        "meaning":  "Vehicles are not allowed to turn right."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "b806bfb0-e9f0-46b9-a71e-648680ada6cd",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Directional",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  3,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "These signs indicate the direction(s) in which the motorist is obliged to follow",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Keep Right",
+                                              "Turn Right Ahead",
+                                              "Merging Traffic",
+                                              "Vehicles May Pass Either Side"
+                                          ],
+                              "id":  "9b6f0d4f-5a81-4037-853c-8f9243e8a320",
+                              "type":  "multipleChoice",
+                              "question":  "Which of the following signs means that vehicles are allowed to pass on either side?",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "afe687b0-6fa9-4227-9aec-89809d360de1",
+                              "type":  "trueFalse",
+                              "question":  "A left-turning driver must give way to incoming traffic."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "No Turns",
+                              "id":  "851c5235-1d9b-491f-a3a9-696ed7073366",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign tells drivers that turning in any direction is not allowed."
+                          },
+                          {
+                              "id":  "b27b5c1e-f6a0-40d7-b669-510b9c683d4c",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904131165.jpg?alt=media\u0026token=c28a996a-45ab-4eb0-9f59-11ceb5b2e4e2"
+                                                                  },
+                                                        "meaning":  "Vehicles must keep to the left side of the road."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1761035110916.jpg?alt=media\u0026token=c6b5f9bf-a1a8-4c64-af7a-e31d5eb52d30"
+                                                                  },
+                                                        "meaning":  "Traffic is allowed to move in only one direction."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904131166.jpg?alt=media\u0026token=121e0e8f-5f03-4394-a193-e71aeaf94d29"
+                                                                  },
+                                                        "meaning":  "Drivers must prepare to turn right at the next intersection."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759904131167.jpg?alt=media\u0026token=45c86e67-95c4-4989-b553-f3143e335969"
+                                                                  },
+                                                        "meaning":  "Two traffic lanes will join ahead; proceed with caution."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "c4860293-58d0-472c-90b2-246ee898e89b",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Expressway Approach Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  2,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Installed in advance or at the nearest intersection or interchange leading to the expressway",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Fingerboard Direction Sign",
+                                              "Service Sign",
+                                              "Street Name Sign",
+                                              "To North Luzon Expressway sign"
+                                          ],
+                              "id":  "d2c1be3f-fc21-4d03-8e0e-c93685fb32b1",
+                              "type":  "multipleChoice",
+                              "question":  "This sign indicates the direction leading to the North Luzon Expressway.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "ddf2d25a-67c5-423f-9f21-f4f76390bf95",
+                              "type":  "trueFalse",
+                              "question":  "The phrase To Expressway may appear on signs located before an interchange."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "To Expressway Sign",
+                              "id":  "fec855c9-39ec-49fe-8ff1-9a6b243accbd",
+                              "type":  "identification",
+                              "question":  "A sign used to show the way toward the nearest interchange of the expressway."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "North Luzon",
+                              "id":  "476ece68-7584-42fb-b057-9d1b39f15ac3",
+                              "type":  "identification",
+                              "question":  "A green rectangular sign with white text that says To ______ Expressway."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "c88aa7db-a86f-47e8-9610-da62d46e20d6",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Intersection Direction",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  4,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Placed before intersections to guide drivers to desired destinations.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Intersection Direction Sign (left-facing)",
+                                              "Intersection Direction Sign (right-facing)",
+                                              "Intersection Direction Sign (left and right-facing)",
+                                              "Intersection Direction Sign with route number and road name"
+                                          ],
+                              "id":  "a5e7ab5a-92be-4b6b-bf3e-8789b79521cf",
+                              "type":  "multipleChoice",
+                              "question":  "A guide sign that points to the right, showing the direction to a city or province located in that direction.",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "e0110b6b-7e7f-4a05-a312-ea97fd7c5760",
+                              "type":  "trueFalse",
+                              "question":  "Intersection Direction Sign (left-facing) shows destinations located to the right side of the intersection"
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "left-facing",
+                              "id":  "7a503679-de64-4b33-80b8-1416f97680fc",
+                              "type":  "identification",
+                              "question":  "The Intersection Direction Sign (___________) sign guides drivers toward a city or province to the left side of an approaching intersection."
+                          },
+                          {
+                              "id":  "08a7d453-bca0-4a30-bd2f-915db5090b4e",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759891612429.jpg?alt=media\u0026token=8470dc67-cb36-41eb-96d3-613819039a56"
+                                                                  },
+                                                        "meaning":  "Indicates destinations or routes to the right side of an intersection."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759891612432.jpg?alt=media\u0026token=2eb766f4-b28c-4745-ba8c-e6eefc2a882a"
+                                                                  },
+                                                        "meaning":  "Indicates destinations located to the left side of an intersection."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759891612433.jpg?alt=media\u0026token=92ced35e-c9fc-4744-ba5f-bf379c0cf741"
+                                                                  },
+                                                        "meaning":  "Shows destinations pointing in both directions."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759891612434.jpg?alt=media\u0026token=9837b973-ff82-4abd-a7d0-642e9aa28bdb"
+                                                                  },
+                                                        "meaning":  "Displays the highway or route number with direction."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "cee33587-a7d4-4a78-a59a-65c1cccdb32e",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Road Width",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  2,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Alerts drivers about narrowing roads, bridges, or divided roads ahead.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Road narrows ahead",
+                                              "Narrow Bridge Ahead",
+                                              "Divided Road Ahead",
+                                              "End of Divided Road Ahead"
+                                          ],
+                              "id":  "98eeea03-1532-48b4-84f6-f2506f4ad7d8",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign that informs motorists the roadway will become narrower ahead, requiring reduced speed and caution.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "b77ee76f-c42c-46cf-9976-780cf94668e9",
+                              "type":  "trueFalse",
+                              "question":  "Narrow Bridge Ahead sign indicates that the bridge\u0027s width is limited, and oncoming traffic may need to give way."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Divided Road Ahead",
+                              "id":  "875734e8-6c88-4633-892d-af184e5e9551",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign indicates that the highway will soon be separated into two carriageways."
+                          },
+                          {
+                              "id":  "93659d7f-40ad-469a-b5f8-90646c889e17",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901004409.jpg?alt=media\u0026token=516b3769-2020-4a94-b9a4-706cc8d0bfc5"
+                                                                  },
+                                                        "meaning":  "Indicates the end of the divided section of the road"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901004410.jpg?alt=media\u0026token=fdce863d-10d7-4fdf-8a6e-ae5deaad18bf"
+                                                                  },
+                                                        "meaning":  "Shows that the road will divide into two separate carriageways."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901004411.jpg?alt=media\u0026token=0b69e392-2351-4818-9f5b-9bf0e801b529"
+                                                                  },
+                                                        "meaning":  "Indicates the bridge ahead is narrower than the road approach."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901004412.jpg?alt=media\u0026token=8ca637b0-6c7d-4784-9796-3e32f4d1dd09"
+                                                                  },
+                                                        "meaning":  "Warns that the road ahead will become narrower."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "d036217b-eb6a-416f-b2cf-c415692bd819",
+        "lessonNumber":  8,
+        "chapterCategory":  "Signs on Expressways",
+        "title":  "Expressway Exit Direction Signs",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  7,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs posted overhead before the exit ramp of an interchange for directions.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "To Expressway Sign",
+                                              "Next Exit XX km",
+                                              "Toll Charges Sign",
+                                              "Exit Direction Sign (for numbered exits)"
+                                          ],
+                              "id":  "7d9c9489-20e6-47f2-aa35-9ef61a07e2ae",
+                              "type":  "multipleChoice",
+                              "question":  "A green EXIT sign that includes a white box for an exit number.",
+                              "points":  1,
+                              "correctIndex":  3
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "955a4212-05bc-4225-8570-aeab92bed35d",
+                              "type":  "trueFalse",
+                              "question":  "Exit direction signs are placed after the exit ramp to show the way out."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Exit Direction Sign (for numbered exits)",
+                              "id":  "3bf4fa25-72bd-48b1-b2aa-f33204c519dc",
+                              "type":  "identification",
+                              "question":  "A green sign with a blank white box for numbering."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Exit",
+                              "id":  "88d72db9-5f4b-47b1-a61d-8d5a06c90193",
+                              "type":  "identification",
+                              "question":  "A rectangular green sign with NEXT _______ 15 km."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "d0871b55-1985-457f-b68b-c0fbea44e5e4",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Road Obstacles",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  4,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Warns of physical hazards like humps, uneven roads, or landslide-prone areas.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Downhill sign",
+                                              "Slippery Road",
+                                              "Hump Ahead",
+                                              "Landslide-prone"
+                                          ],
+                              "id":  "6bc23199-73ab-4690-a6a3-dbfd5d6d967a",
+                              "type":  "multipleChoice",
+                              "question":  "A warning sign that alerts drivers of a raised section of pavement where vehicles must reduce speed.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "7a1946e1-1899-4733-8cc0-2bca405dc26c",
+                              "type":  "trueFalse",
+                              "question":  "The Slippery Road sign warns motorists to speed up, especially when the pavement is wet or oily."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Flood-Prone Area",
+                              "id":  "889e8681-b066-4090-84db-25594593846d",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign warns motorists that the road ahead may be temporarily covered by water due to flooding."
+                          },
+                          {
+                              "id":  "cbd9cc4c-d8ba-4258-a21e-bd5cceb4a781",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901688346.jpg?alt=media\u0026token=7ebf279f-4090-4174-b340-e21caf1e8301"
+                                                                  },
+                                                        "meaning":  "Alerts motorists that aircraft may fly at low altitude near the road."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901688349.jpg?alt=media\u0026token=49817128-a6ab-4137-9bc1-9a2cc9556561"
+                                                                  },
+                                                        "meaning":  "Warns drivers of possible falling rocks or soil."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901688350.jpg?alt=media\u0026token=2b4cc310-ace7-45e6-bcde-5523e2ec0652"
+                                                                  },
+                                                        "meaning":  "Indicates a steep downward slope requiring reduced speed."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759901688351.jpg?alt=media\u0026token=c83c72ec-865a-4f8b-9b7f-5d56c5aab166"
+                                                                  },
+                                                        "meaning":  "Warns of a bridge that may open to allow watercraft passage."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "de5acec8-6654-4443-88f2-03bd7f493329",
+        "lessonNumber":  8,
+        "chapterCategory":  "Regulatory Signs",
+        "title":  "Speed",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  6,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Signs that indicate the maximum, minimum, or end of speed restrictions on a given road or area.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Minimum Speed Restrictions",
+                                              "End of speed restrictions",
+                                              "Maximum Speed Restriction",
+                                              "No Overtaking"
+                                          ],
+                              "id":  "6d519169-3faf-410e-b390-e7f4dabca439",
+                              "type":  "multipleChoice",
+                              "question":  "Which sign indicates the fastest speed a driver is legally allowed to travel?",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "def87b1e-a25e-45e9-8d32-f0ed9102b8ea",
+                              "type":  "trueFalse",
+                              "question":  "The Minimum Speed Restriction sign means that drivers must travel at least the speed shown on the sign."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "End of speed restrictions",
+                              "id":  "cd845992-3ae8-4d78-aaf9-90dd3e1bf1cf",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign tells drivers that the previous speed limit has ended and normal road speed now applies."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Maximum speed restrictions",
+                              "id":  "e65158ca-9f37-441d-be1c-6a50ad7f2761",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign reminds motorists to observe the highest speed allowed for safety."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "e2439491-4f81-4010-860d-16a3755618c2",
+        "lessonNumber":  8,
+        "chapterCategory":  "Warning Signs",
+        "title":  "Intersection",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  3,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Installed before intersections or junctions to warn of approaching crossings",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "T-Junction Ahead",
+                                              "Roundabout ahead (Rotunda)",
+                                              "Y - Junction Ahead",
+                                              "Approach to intersection merging traffic"
+                                          ],
+                              "id":  "3bee68f3-20ee-48d9-a9e3-cfe037156798",
+                              "type":  "multipleChoice",
+                              "question":  "A sign that warns motorists of a circular intersection where vehicles must slow down and yield to traffic already inside",
+                              "points":  1,
+                              "correctIndex":  1
+                          },
+                          {
+                              "correctBool":  true,
+                              "points":  1,
+                              "id":  "186c1d53-e0a8-4585-91db-3f5237d8b006",
+                              "type":  "trueFalse",
+                              "question":  "Approach to Intersection sign reminds drivers to slow down because a junction is near."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Side road junction ahead",
+                              "id":  "d1ab0dae-60fa-4dc1-a8e5-8beb65318c6a",
+                              "type":  "identification",
+                              "question":  "The ____________________ sign warns that another road will join from the side, and drivers should be cautious of incoming vehicles."
+                          },
+                          {
+                              "id":  "879800e3-445d-4ec9-b7bf-9c73d75c909b",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899694849.jpg?alt=media\u0026token=5f4c0e29-b3b0-41fd-9147-4d07e8807595"
+                                                                  },
+                                                        "meaning":  "Warns that another lane of vehicles will join the traffic flow ahead."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899694852.jpg?alt=media\u0026token=811d11ce-102d-44f5-9e58-41d9ed886074"
+                                                                  },
+                                                        "meaning":  "Alerts motorists that a junction is near and to reduce speed."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899694853.jpg?alt=media\u0026token=455bfda4-2fc4-4272-bd11-c55a6eb2e60c"
+                                                                  },
+                                                        "meaning":  "Indicates that the road ends and connects to another forming a T-Junction."
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759899694854.jpg?alt=media\u0026token=1c784dd9-f15a-4586-bf06-8829768a8826"
+                                                                  },
+                                                        "meaning":  "Warns that a crossroad is approaching."
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "e29f6210-a337-44e0-8a8a-b9208a281daf",
+        "lessonNumber":  8,
+        "chapterCategory":  "Guide / Informative Signs",
+        "title":  "Asian Highway Route Markers",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  6,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Show designated Asian Highway route numbers",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Advance direction along the Asian Highway route",
+                                              "Fingerboard Direction Sign",
+                                              "Service Sign",
+                                              "Street Name Sign"
+                                          ],
+                              "id":  "f41cfeb0-b701-42a5-993f-541f55e11c97",
+                              "type":  "multipleChoice",
+                              "question":  "A green directional sign with the Asian Highway shield symbol (AH26) indicates ____.",
+                              "points":  1,
+                              "correctIndex":  0
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "fcffea35-cea5-4b48-b549-5d569b6c2a44",
+                              "type":  "trueFalse",
+                              "question":  "Asian Highway Route Markers in the Philippines use the code AH26 and display a blue shield-shaped sign."
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Route Marker Shield",
+                              "id":  "ba3ecabc-efec-43b7-bb55-cd90b5914187",
+                              "type":  "identification",
+                              "question":  "The Advance Directional Sign with _________ sign provides advance directional guidance using the route marker shield, usually in green color."
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    },
+    {
+        "updatedBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "id":  "f2f3960e-3fc6-4e4e-9e5f-16ba1b3ea4d1",
+        "lessonNumber":  8,
+        "chapterCategory":  "Hazard Markers",
+        "title":  "Hazard Markers",
+        "tags":  [
+
+                 ],
+        "chapterOrder":  1,
+        "createdBy":  "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+        "description":  "Reflective safety signs with black and yellow striped patterns designed to alert drivers to permanent obstructions, curves, or other potentially dangerous conditions on or near the roadway.",
+        "questions":  [
+                          {
+                              "options":  [
+                                              "Obstruction Marker",
+                                              "Chevron Sign",
+                                              "One-Way Hazard Marker",
+                                              "Two-Way Hazard Marker"
+                                          ],
+                              "id":  "a4aa93f7-6ffd-4a81-957e-c71abf7fb8ae",
+                              "type":  "multipleChoice",
+                              "question":  "This hazard marker indicates to the approaching driver the only direction allowed at the end of the road.",
+                              "points":  1,
+                              "correctIndex":  2
+                          },
+                          {
+                              "points":  1,
+                              "correctAnswer":  "Two-way hazard marker",
+                              "id":  "353ae3f1-011a-45b6-b74f-35fee6a93312",
+                              "type":  "identification",
+                              "question":  "A hazard sign that alerts drivers to an approaching change in road alignment or curvature."
+                          },
+                          {
+                              "correctBool":  false,
+                              "points":  1,
+                              "id":  "3e5eee25-febd-468c-9a05-aede48701268",
+                              "type":  "trueFalse",
+                              "question":  "Two-Way Hazard Markers are used only for pedestrian crossings."
+                          },
+                          {
+                              "id":  "6bb872d7-73c3-4124-b457-73f635fe79bd",
+                              "type":  "matchingType",
+                              "question":  "",
+                              "points":  4,
+                              "matchingPairs":  [
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884198484.jpg?alt=media\u0026token=9a14319e-8e38-4ba7-8e91-1a58b1bbcaa1"
+                                                                  },
+                                                        "meaning":  "Warns of narrowing lanes or clearance reduction"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884198489.jpg?alt=media\u0026token=cd4d1aeb-3c78-4cce-bc24-446f15887d70"
+                                                                  },
+                                                        "meaning":  "Guides drivers through horizontal curves"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884198490.jpg?alt=media\u0026token=acaadea0-087b-4639-899f-06b91131f031"
+                                                                  },
+                                                        "meaning":  "Warns that the road ahead changes direction"
+                                                    },
+                                                    {
+                                                        "image":  {
+                                                                      "remoteUrl":  "https://firebasestorage.googleapis.com/v0/b/vcroad-a0022.firebasestorage.app/o/lesson_images%2F1759884198492.jpg?alt=media\u0026token=006a797f-e5ce-4423-ae99-3391a23e6cae"
+                                                                  },
+                                                        "meaning":  "Indicates the only direction allowed at the end of a road"
+                                                    }
+                                                ]
+                          }
+                      ],
+        "durationMinutes":  10,
+        "createdAt":  "2024-01-15T10:00:00.000",
+        "updatedAt":  "2024-01-15T10:00:00.000",
+        "isPublished":  true
+    }
+]

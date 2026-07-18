@@ -1,4 +1,4 @@
-name: vcroad_v2
+name: vcroad
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.12.2
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,41 +31,68 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  # ──────────────────────────────────────────────
+  # Core / Architecture
+  # ──────────────────────────────────────────────
+  provider: ^6.1.5+1            # State management (presentation layer)
+  go_router: ^16.3.0             # Declarative routing
+  url_strategy: ^0.3.0           # Web URL strategy (hashless)
   cupertino_icons: ^1.0.8
-  firebase_core: ^4.2.1
-  firebase_auth: ^6.1.2
-  cloud_firestore: ^6.1.0
-  firebase_storage: ^13.0.4
-  carousel_slider: ^5.1.1
-  dropdown_button2: ^2.3.9
-  go_router: ^16.3.0
-  lottie: ^3.3.2
-  google_maps_flutter: ^2.14.0
-  url_strategy: ^0.3.0
-  image_picker: ^1.2.1
-  file_picker: ^10.3.3
-  shared_preferences: ^2.5.3
-  image: ^4.5.4
-  http: ^1.5.0
-  cloud_functions: ^6.0.4
-  provider: ^6.1.5+1
-  device_info_plus: ^12.2.0
-  intl: ^0.20.2
-  geolocator: ^14.0.2
-  permission_handler: ^12.0.1
-  video_player: ^2.10.0
-  algoliasearch: ^1.41.0
-  cached_network_image: ^3.4.1
+
+  # ──────────────────────────────────────────────
+  # Data — LOCAL (optional / archived)
+  # ──────────────────────────────────────────────
+  # sqflite: ^2.3.0              # Unused — kept as reference
+  # path_provider: ^2.1.0        # Unused — kept as reference
+  shared_preferences: ^2.5.3     # Key-value prefs (keep for settings)
   path: ^1.9.1
-  uuid: ^4.5.2
-  confetti: ^0.8.0
-  flutter_image_compress: ^2.4.0
+
+  # ──────────────────────────────────────────────
+  # Data — EXTERNAL (Firebase Spark free tier)
+  # ──────────────────────────────────────────────
+  firebase_core: ^4.12.1
+  firebase_auth: ^6.5.6
+  cloud_firestore: ^6.7.1
+  
+
+  # ──────────────────────────────────────────────
+  # Maps & Location — ACTIVE
+  # ──────────────────────────────────────────────
+  flutter_map: ^6.1.0            # OpenStreetMap (Google Maps replacement)
+  latlong2: ^0.9.0               # Coordinate types for flutter_map
+  geolocator: ^14.0.2            # Keep (works with any map provider)
+  permission_handler: ^12.0.1    # Keep (platform-agnostic)
+  http: ^1.5.0                   # Keep (HTTP client for OSM APIs)
+
+  # ──────────────────────────────────────────────
+  # UI Components
+  # ──────────────────────────────────────────────
+  lottie: ^3.3.2                 # Lottie animations (keep)
+  carousel_slider: ^5.1.1        # Image carousel (keep)
+  dropdown_button2: ^2.3.9       # Styled dropdown (keep)
+  confetti: ^0.8.0               # Celebration effects (keep)
+  introduction_screen: ^4.0.0    # Onboarding / tutorial full-screen pages
+  cached_network_image: ^3.4.1   # Network image caching (keep)
   flutter_launcher_icons: ^0.14.4
-  url_launcher: ^6.3.2
-  mime: ^2.0.0
-  video_thumbnail: ^0.5.6
+
+  # ──────────────────────────────────────────────
+  # Input / Media
+  # ──────────────────────────────────────────────
+  image_picker: ^1.2.1           # Media capture (keep)
+  file_picker: ^10.3.3           # File picker (keep)
+  image: ^4.5.4                  # Image compression (keep)
+  flutter_image_compress: ^2.4.0 # Lossy compression (keep)
+  video_player: ^2.10.0          # Video playback (keep)
+  video_thumbnail: ^0.5.6        # Thumbnail extraction (keep)
+  mime: ^2.0.0                   # MIME type detection (keep)
+  url_launcher: ^6.3.2           # Open external URLs (keep)
+
+  # ──────────────────────────────────────────────
+  # Utilities
+  # ──────────────────────────────────────────────
+  device_info_plus: ^12.2.0      # Device info (keep)
+  intl: ^0.20.2                  # i18n / date formatting (keep)
+  uuid: ^4.5.2                   # UUID generation (keep)
 
 dev_dependencies:
   flutter_test:
@@ -76,7 +103,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -100,6 +127,7 @@ flutter:
     - assets/icons/
     - assets/texts/
     - assets/images/
+    - assets/database/
     - assets/barangays/
     - assets/downloads/
 
@@ -130,11 +158,11 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   fonts:
-    - family: Poppins
-      fonts:       
-      - asset: assets/fonts/Poppins-Regular.ttf
-      - asset: assets/fonts/Poppins-Bold.ttf
-        weight: 700
+      - family: Poppins
+        fonts:       
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
 
 flutter_launcher_icons:
   android: true

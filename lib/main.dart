@@ -1,29 +1,31 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:vcroad_v2/app/app.dart';
-import 'package:vcroad_v2/features/register.dart';
-import 'package:vcroad_v2/features/reset.dart';
-import 'package:vcroad_v2/shared/models/user.dart';
-import 'package:vcroad_v2/shared/providers/advisory.dart';
-import 'package:vcroad_v2/shared/providers/user.dart';
-import 'package:vcroad_v2/shared/providers/account.dart';
-import 'package:vcroad_v2/shared/providers/lesson.dart';
-import 'package:vcroad_v2/shared/providers/learning.dart';
-import 'package:vcroad_v2/shared/providers/report.dart';
-import 'package:vcroad_v2/shared/providers/location.dart'; // <--- add
-import 'package:vcroad_v2/shared/services/auth.dart';
-import 'package:vcroad_v2/shared/services/image.dart';
-import 'package:vcroad_v2/shared/services/session.dart';
-import 'package:vcroad_v2/shared/utils/responsive/responsive_scope.dart';
-import 'package:vcroad_v2/shared/utils/snackbar/snackbar.dart';
-import 'package:vcroad_v2/app/splash.dart';
-import 'package:vcroad_v2/features/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vcroad/presentation/app/app_shell.dart';
+import 'package:vcroad/presentation/features/onboarding/screens/onboarding_screen.dart';
+import 'package:vcroad/presentation/features/auth/screens/register_screen.dart';
+import 'package:vcroad/presentation/features/auth/screens/reset_password_screen.dart';
+import 'package:vcroad/data/models/user.dart';
+import 'package:vcroad/presentation/providers/advisory.dart';
+import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/presentation/providers/account.dart';
+import 'package:vcroad/presentation/providers/lesson.dart';
+import 'package:vcroad/presentation/providers/learning.dart';
+import 'package:vcroad/presentation/providers/report.dart';
+import 'package:vcroad/presentation/providers/location.dart';
+import 'package:vcroad/presentation/providers/theme.dart';
+import 'package:vcroad/data/repositories/auth.dart';
+import 'package:vcroad/data/repositories/session.dart';
+import 'package:vcroad/core/theme/app_theme.dart';
+import 'package:vcroad/core/utils/responsive/responsive_scope.dart';
+import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
+import 'package:vcroad/presentation/app/splash_screen.dart';
+import 'package:vcroad/presentation/features/auth/screens/login_screen.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'firebase_options.dart';
 
@@ -118,24 +120,12 @@ class _MyAppState extends State<MyApp> {
 
     userProvider.setUser(details);
 
-    // Read session from Firestore
-    final sessionSnap = await FirebaseFirestore.instance
-        .doc('sessions/$uid')
-        .get();
-    final firestoreSessionId =
-        sessionSnap.data()?['activeSessionId'] as String?;
+    // Ensure a session exists (reuse existing or create new)
+    final sessionId = await SessionService.instance.ensureSession(uid);
+    _startSessionMonitoring(uid, sessionId);
 
-    if (firestoreSessionId != null) {
-      SessionService.instance.currentSessionId = firestoreSessionId;
-      _startSessionMonitoring(uid, firestoreSessionId);
-    } else {
-      // No session exists, create one
-      final newSid = await SessionService.instance.createSession(uid);
-      _startSessionMonitoring(uid, newSid);
-    }
-
-    // Prefetch avatar URL in background (non-blocking)
-    unawaited(ImageService.prefetchDownloadUrls([details.selfiePath]));
+    // Commented out: prefetchDownloadUrls uses firebase_storage
+    // unawaited(ImageService.prefetchDownloadUrls([details.selfiePath]));
     return details;
   }
 
@@ -224,6 +214,26 @@ class _MyAppState extends State<MyApp> {
           return '/login';
         }
 
+        // Role verification: redirect to the correct role-based route
+        if (isSignedIn) {
+          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          final user = userProvider.user;
+          if (user != null) {
+            final userRoute = switch (user.role) {
+              UserRole.user => '/roaduser',
+              UserRole.admin => '/barangayadmin',
+              UserRole.sysadmin => '/superadmin',
+            };
+            final isOnRootOrAuthPage = currentPath == '/' ||
+                currentPath == '/login' ||
+                currentPath == '/register' ||
+                currentPath == '/reset';
+            if (!isOnRootOrAuthPage && currentPath != userRoute) {
+              return userRoute;
+            }
+          }
+        }
+
         // No redirect needed
         return null;
       },
@@ -249,18 +259,16 @@ class _MyAppState extends State<MyApp> {
                         listen: false,
                       ).setUser(userDetails);
 
-                      // Start session monitoring
                       final sessionId = await SessionService.instance
                           .createSession(user.uid);
 
-                      // Prefetch avatar URL before navigation (no UI stall).
-                      await ImageService.prefetchDownloadUrls([
-                        userDetails.selfiePath,
-                      ]);
+                      // Commented out: prefetchDownloadUrls uses firebase_storage
+                      // await ImageService.prefetchDownloadUrls([
+                      //   userDetails.selfiePath,
+                      // ]);
 
                       _startSessionMonitoring(user.uid, sessionId);
 
-                      // Route based on role — DO NOT pass complex extra object
                       switch (userDetails.role) {
                         case UserRole.user:
                           _router.goNamed('roaduser');
@@ -274,9 +282,23 @@ class _MyAppState extends State<MyApp> {
                       }
                     }
                   }
+                  // Signed in but no users/ doc — check for pending registration
+                  final pending =
+                      await auth.getPendingRegistration(user.uid);
+                  if (context.mounted) {
+                    if (pending != null) {
+                      _stopSessionMonitoring();
+                      _router.goNamed(
+                        'register',
+                        queryParameters: {'uid': user.uid},
+                      );
+                      return;
+                    }
+                    // No pending doc either — orphaned Auth account; clean up
+                    await auth.signOut();
+                  }
                 }
               }
-              // If not signed in, stop monitoring and go to login
               _stopSessionMonitoring();
               if (context.mounted) {
                 _router.goNamed('login');
@@ -303,7 +325,8 @@ class _MyAppState extends State<MyApp> {
           name: 'register',
           builder: (context, state) {
             _stopSessionMonitoring();
-            return const Register();
+            final resumeUid = state.uri.queryParameters['uid'];
+            return Register(resumeUid: resumeUid);
           },
         ),
         GoRoute(
@@ -320,18 +343,17 @@ class _MyAppState extends State<MyApp> {
           builder: (context, state) {
             final provider = Provider.of<UserProvider>(context, listen: false);
             if (provider.user != null) {
-              return AppScreen(role: UserRole.user, userDetails: provider.user);
+              return _RoadUserScreen(user: provider.user!);
             }
             return FutureBuilder<UserDetails?>(
               future: _ensureUserHydrated(context),
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) {
-                  // Use your custom splash loading here
                   return SplashScreen(
                     assetImagesToPrecache: const ['assets/images/vcroad.webp'],
                     minDisplay: const Duration(milliseconds: 800),
-                    onFinish: () {}, // No navigation, just loading
-                    child: const SizedBox.shrink(), // fallback if lottie fails
+                    onFinish: () {},
+                    child: const SizedBox.shrink(),
                   );
                 }
                 final details = snap.data;
@@ -341,7 +363,7 @@ class _MyAppState extends State<MyApp> {
                   });
                   return const SizedBox.shrink();
                 }
-                return AppScreen(role: UserRole.user, userDetails: details);
+                return _RoadUserScreen(user: details);
               },
             );
           },
@@ -429,76 +451,84 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => LearningProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
         ChangeNotifierProvider(create: (_) => LocationProvider()),
+        ChangeNotifierProvider(create: (_) {
+          final tp = ThemeProvider();
+          tp.load();
+          return tp;
+        }),
       ],
-      child: MaterialApp.router(
-        title: 'VCRoad',
-        routerConfig: _router,
-        theme: ThemeData(
-          fontFamily: 'Poppins',
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF001278)),
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          textTheme: Typography.material2018().black.apply(
-            fontFamily: 'Poppins',
-          ),
-          primaryTextTheme: Typography.material2018().black.apply(
-            fontFamily: 'Poppins',
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: const Color(0xFF001278),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFBDBDBD), width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF001278), width: 2),
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              textStyle: const TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              textStyle: const TextStyle(fontFamily: 'Poppins'),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              textStyle: const TextStyle(fontFamily: 'Poppins'),
-            ),
-          ),
-          appBarTheme: const AppBarTheme(elevation: 0, centerTitle: true),
-        ),
-        builder: (context, child) {
-          // Start/stop monitoring when user state changes
-          final user = context.select<UserProvider, UserDetails?>(
-            (p) => p.user,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp.router(
+            title: 'VCRoad',
+            routerConfig: _router,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeProvider.themeMode,
+            builder: (context, child) {
+              // Start/stop monitoring when user state changes
+              final user = context.select<UserProvider, UserDetails?>(
+                (p) => p.user,
+              );
+              final sid = SessionService.instance.currentSessionId;
+
+              if (user == null) {
+                if (_sessionSubscription != null) _stopSessionMonitoring();
+              } else if (_sessionSubscription == null && sid != null) {
+                _startSessionMonitoring(user.userId, sid);
+              }
+
+              return ResponsiveBuilder(child: child ?? const SizedBox());
+            },
           );
-          final sid = SessionService.instance.currentSessionId;
-
-          if (user == null) {
-            if (_sessionSubscription != null) _stopSessionMonitoring();
-          } else if (_sessionSubscription == null && sid != null) {
-            _startSessionMonitoring(user.userId, sid);
-          }
-
-          return ResponsiveBuilder(child: child ?? const SizedBox());
         },
       ),
     );
+  }
+}
+
+/// Gated road-user screen that checks onboarding before showing the app.
+class _RoadUserScreen extends StatefulWidget {
+  final UserDetails user;
+  const _RoadUserScreen({required this.user});
+
+  @override
+  State<_RoadUserScreen> createState() => _RoadUserScreenState();
+}
+
+class _RoadUserScreenState extends State<_RoadUserScreen> {
+  bool? _needsOnboarding;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'hasSeenAppTutorial_${widget.user.userId}';
+    final seen = prefs.getBool(key) ?? false;
+    if (mounted) setState(() => _needsOnboarding = !seen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_needsOnboarding == null) {
+      return SplashScreen(
+        assetImagesToPrecache: const ['assets/images/vcroad.webp'],
+        minDisplay: const Duration(milliseconds: 800),
+        onFinish: () {},
+        child: const SizedBox.shrink(),
+      );
+    }
+    if (_needsOnboarding == true) {
+      return OnboardingScreen(
+        userId: widget.user.userId,
+        onComplete: () => setState(() => _needsOnboarding = false),
+      );
+    }
+    return AppScreen(role: UserRole.user, userDetails: widget.user);
   }
 }
 

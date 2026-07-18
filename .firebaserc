@@ -1,15 +1,5 @@
 {
   "projects": {
-    "default": "vcroad-a0022"
-  },
-  "targets": {
-    "vcroad-a0022": {
-      "hosting": {
-        "vcroad": [
-          "vcroad"
-        ]
-      }
-    }
-  },
-  "etags": {}
+    "default": "vcroad-a76a1"
+  }
 }

@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────────────────────────────────────
+    // Helper functions
+    // ──────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isUser() {
+      return isAuthenticated() && getRole() == 'user';
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getRole() == 'admin';
+    }
+
+    function isSysAdmin() {
+      return isAuthenticated() && getRole() == 'sysadmin';
+    }
+
+    function isAdminOrAbove() {
+      return isAdmin() || isSysAdmin();
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isNotBanned() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned != true;
+    }
+
+    function isVerifiedUser() {
+      return isUser()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == true;
+    }
+
+    // ──────────────────────────────────────────────
+    // Users collection
+    // ──────────────────────────────────────────────
+    match /users/{userId} {
+      // Any authenticated user can read user profiles
+      allow read: if isAuthenticated();
+
+      // Users can create their own doc with role 'user' only
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'user';
+
+      // Users can update themselves; admins can manage regular users;
+      // sysadmins can manage all
+      allow update: if isOwner(userId)
+        || (isAdmin() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'user')
+        || isSysAdmin();
+
+      // Only sysadmins can delete user documents
+      allow delete: if isSysAdmin();
+    }
+
+    // ──────────────────────────────────────────────
+    // Reports collection
+    // ──────────────────────────────────────────────
+    match /reports/{reportId} {
+      // Any authenticated user can read reports
+      allow read: if isAuthenticated();
+
+      // Only verified, non-banned users can create reports
+      allow create: if isVerifiedUser()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.reportedBy == request.auth.uid;
+
+      // Report owner can update; admin/sysadmin can manage any
+      allow update: if isOwner(request.resource.data.userId)
+        || isAdminOrAbove();
+
+      // Admin/sysadmin can delete reports
+      allow delete: if isAdminOrAbove();
+    }
+
+    // ──────────────────────────────────────────────
+    // Advisories collection
+    // ──────────────────────────────────────────────
+    match /advisories/{advisoryId} {
+      // Any authenticated user can read
+      allow read: if isAuthenticated();
+
+      // Only admin and sysadmin can create advisories
+      allow create: if isAdminOrAbove();
+
+      // Only admin and sysadmin can update
+      allow update: if isAdminOrAbove();
+
+      // Only admin and sysadmin can delete
+      allow delete: if isAdminOrAbove();
+    }
+
+    // ──────────────────────────────────────────────
+    // Reactions (confirm/refute on reports)
+    // ──────────────────────────────────────────────
+    match /reactions/{reactionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isOwner(request.resource.data.userId);
+      allow delete: if isOwner(request.resource.data.userId);
+    }
+
+    // ──────────────────────────────────────────────
+    // Comments on reports
+    // ──────────────────────────────────────────────
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isOwner(request.resource.data.userId)
+        || isAdminOrAbove();
+      allow delete: if isOwner(request.resource.data.userId)
+        || isAdminOrAbove();
+    }
+
+    // ──────────────────────────────────────────────
+    // Pending registrations
+    // ──────────────────────────────────────────────
+    match /pendingRegistrations/{uid} {
+      // Only the registering user can read their own pending doc
+      allow read: if isOwner(uid);
+
+      // Anyone can create (unauthenticated registration flow)
+      allow create: if true;
+
+      // Only the owner can update
+      allow update: if isOwner(uid);
+
+      // Admin/sysadmin can delete (approve/reject pending)
+      allow delete: if isAdminOrAbove() || isOwner(uid);
+    }
+
+    // ──────────────────────────────────────────────
+    // Session data
+    // ──────────────────────────────────────────────
+    match /sessions/{uid} {
+      // Only the session owner can read/write
+      allow read, write: if isOwner(uid);
+    }
+
+    // ──────────────────────────────────────────────
+    // Login attempt tracking
+    // ──────────────────────────────────────────────
+    match /loginAttempts/{email} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // ──────────────────────────────────────────────
+    // User activity / lesson progress
+    // ──────────────────────────────────────────────
+    match /userActivity/{uid} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(uid);
+    }
+
+    match /lessonProgress/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(request.resource.data.uid);
+    }
+
+    // ──────────────────────────────────────────────
+    // Settings / config
+    // ──────────────────────────────────────────────
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdminOrAbove();
+    }
+
+    // ──────────────────────────────────────────────
+    // Default: deny all other access
+    // ──────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

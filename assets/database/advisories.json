@@ -1,0 +1,39 @@
+[
+  {
+    "advisoryId": "adv-001",
+    "advisoryType": "road_closure",
+    "reason": "Road maintenance and repair work",
+    "startDate": "2025-02-01T08:00:00.000",
+    "endDate": "2025-02-28T17:00:00.000",
+    "barangay": "Barangay 1",
+    "scheduleType": "oneTime",
+    "affectedRoads": [],
+    "alternateRoutes": [],
+    "contractor": "DPWH - Metro Manila",
+    "contractorContact": "02-1234-5678",
+    "createdAt": "2025-01-20T10:00:00.000",
+    "updatedAt": "2025-01-20T10:00:00.000",
+    "createdBy": "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+    "updatedBy": "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+    "status": "active",
+    "imageUrl": "assets/images/advisory-images/1763279646064_1763279646064.png",
+    "placeName": "EDSA-Guadalupe Bridge",
+    "version": 1
+  },
+  {
+    "advisoryId": "adv-002",
+    "advisoryType": "one_way",
+    "reason": "Temporary traffic scheme for pipe laying",
+    "startDate": "2025-02-05T06:00:00.000",
+    "endDate": "2025-02-20T22:00:00.000",
+    "barangay": "Barangay 5",
+    "scheduleType": "oneTime",
+    "center": {"lat": 14.56, "lng": 121.02},
+    "createdAt": "2025-01-22T10:00:00.000",
+    "updatedAt": "2025-01-22T10:00:00.000",
+    "createdBy": "UDb2pmXbwOdh0d3uidulwSLtBSx2",
+    "status": "scheduled",
+    "placeName": "Mayhaligue Street",
+    "version": 1
+  }
+]

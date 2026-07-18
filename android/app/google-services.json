@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1010169881408",
-    "project_id": "vcroad-a0022",
-    "storage_bucket": "vcroad-a0022.firebasestorage.app"
+    "project_number": "161489494672",
+    "project_id": "vcroad-a76a1",
+    "storage_bucket": "vcroad-a76a1.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1010169881408:android:7b6064a12395ab0d30d0a5",
+        "mobilesdk_app_id": "1:161489494672:android:de98de44c75cc2e994ee15",
         "android_client_info": {
           "package_name": "com.example.vcroad"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC3BcNF1piKBkBtNCCAVLHTqDtY0lveHBI"
+          "current_key": "AIzaSyDgz5W9kKxYynCsX4GeAbrGFENNCkwcHag"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1010169881408:android:5d612eec330b094a30d0a5",
+        "mobilesdk_app_id": "1:161489494672:android:a28c65a24911015a94ee15",
         "android_client_info": {
           "package_name": "com.example.vcroad_v2"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC3BcNF1piKBkBtNCCAVLHTqDtY0lveHBI"
+          "current_key": "AIzaSyDgz5W9kKxYynCsX4GeAbrGFENNCkwcHag"
         }
       ],
       "services": {
