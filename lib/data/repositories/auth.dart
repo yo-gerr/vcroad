@@ -86,6 +86,7 @@ class AuthService {
     required String uid,
     required Map<String, String?> formValues,
     required Barangay barangay,
+    DateTime? agreedToTermsAt,
   }) async {
     var user = _auth.currentUser;
     if (user == null || user.uid != uid) {
@@ -137,6 +138,7 @@ class AuthService {
       verifiedReportsCount: 0,
       flaggedReportsCount: 0,
       lessonsFinishedCount: 0,
+      agreedToTermsAt: agreedToTermsAt,
     );
 
     final batch = _firestore.batch();

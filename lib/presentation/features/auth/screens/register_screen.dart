@@ -49,6 +49,7 @@ class _RegisterState extends State<Register> {
   StreamSubscription<bool>? _verificationSub;
 
   bool _agreed = false;
+  DateTime? _agreedAt;
   bool _isResuming = false;
 
   @override
@@ -326,6 +327,7 @@ class _RegisterState extends State<Register> {
         uid: _tempUserId!,
         formValues: _collectFormValues(),
         barangay: _selectedBarangay!,
+        agreedToTermsAt: _agreedAt,
       );
 
       debugPrint('Registration completed: ${details.userId}');
@@ -529,7 +531,7 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: info.scaleFont(13),
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: info.scale(12)),
@@ -585,7 +587,10 @@ class _RegisterState extends State<Register> {
                           barangayItems: _barangayItems,
                           focusNodes: _focusNodes,
                           agreed: _agreed,
-                          onAgreedChanged: (v) => setState(() => _agreed = v),
+                          onAgreedChanged: (v) => setState(() {
+                            _agreed = v;
+                            if (v) _agreedAt = DateTime.now();
+                          }),
                         ),
                         const RegistrationConfirmation(),
                       ],

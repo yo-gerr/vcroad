@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
-import 'package:vcroad/core/utils/input/input_style.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 
 class AgreementCheckbox extends StatefulWidget {
@@ -41,15 +40,16 @@ class _AgreementCheckboxState extends State<AgreementCheckbox> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Semantics(
       label: 'Agreement checkbox',
       hint: 'Check to agree with Terms and Privacy Policy',
       child: Container(
         decoration: BoxDecoration(
-          color: InputStyles.inputFillColor,
-          borderRadius: BorderRadius.circular(InputStyles.borderRadiusValue),
+          color: cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: InputStyles.focusedBorderColor,
+            color: cs.outline,
             width: 1.25,
           ),
         ),
@@ -63,23 +63,23 @@ class _AgreementCheckboxState extends State<AgreementCheckbox> {
                 setState(() => agreed = v);
                 widget.onChanged(v);
               },
-              activeColor: Colors.white,
-              checkColor: Colors.black,
-              side: const BorderSide(color: Colors.white),
             ),
             Expanded(
               child: GestureDetector(
                 onTap: _openAgreementScreen,
                 behavior: HitTestBehavior.translucent,
                 child: RichText(
-                  text: const TextSpan(
-                    style: InputStyles.labelStyle,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: cs.onSurfaceVariant,
+                    ),
                     children: [
                       TextSpan(text: 'I agree to the '),
                       TextSpan(
                         text: 'Terms and Privacy Policy',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: cs.primary,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -91,7 +91,7 @@ class _AgreementCheckboxState extends State<AgreementCheckbox> {
             IconButton(
               tooltip: 'View Agreement',
               onPressed: _openAgreementScreen,
-              icon: const Icon(Icons.info_outline, color: Colors.white),
+              icon: Icon(Icons.info_outline, color: cs.onSurfaceVariant),
             ),
           ],
         ),
@@ -152,6 +152,7 @@ class _UserAgreementState extends State<UserAgreement> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final responsive = context.responsive;
     final titleFontSize = responsive.scaleFont(18);
     final contentFontSize = responsive.isDesktop ? 18.0 : 14.0;
@@ -177,7 +178,7 @@ class _UserAgreementState extends State<UserAgreement> {
             padding: EdgeInsets.all(responsive.scale(8)),
             iconSize: responsive.scale(32),
             icon: Image.asset(
-              'assets/icons/return.webp', // same asset used in Register
+              'assets/icons/return.webp',
               width: responsive.scale(24),
               height: responsive.scale(24),
               fit: BoxFit.contain,
@@ -189,7 +190,7 @@ class _UserAgreementState extends State<UserAgreement> {
             ),
           ),
         ),
-        centerTitle: true, // match Register
+        centerTitle: true,
         actions: [
           Padding(
             padding: EdgeInsets.only(right: responsive.scale(8)),
@@ -231,10 +232,10 @@ class _UserAgreementState extends State<UserAgreement> {
               ),
             )
           : Scrollbar(
-              controller: _scrollController, // Attach controller here
+              controller: _scrollController,
               thumbVisibility: true,
               child: SingleChildScrollView(
-                controller: _scrollController, // Attach controller here
+                controller: _scrollController,
                 padding: EdgeInsets.symmetric(
                   horizontal: responsive.horizontalPadding,
                   vertical: responsive.verticalPadding,
@@ -247,17 +248,16 @@ class _UserAgreementState extends State<UserAgreement> {
                     child: Container(
                       padding: EdgeInsets.all(responsive.horizontalPadding),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cs.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.primaryDark,
-                          width: 6,
+                          color: cs.outlineVariant,
+                          width: 1.5,
                         ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title
                           SizedBox(
                             width: double.infinity,
                             child: Text(
@@ -265,7 +265,7 @@ class _UserAgreementState extends State<UserAgreement> {
                                   ? 'END-USER LICENSE AGREEMENT (EULA) FOR VCROAD'
                                   : 'KASUNDUAN SA LISENSYA NG END-USER (EULA) PARA SA VCROAD',
                               style: TextStyle(
-                                color: AppColors.primaryDark,
+                                color: cs.onSurface,
                                 fontSize: titleFontSize.clamp(18, 28),
                                 fontWeight: FontWeight.bold,
                               ),
@@ -273,11 +273,10 @@ class _UserAgreementState extends State<UserAgreement> {
                             ),
                           ),
                           const SizedBox(height: 15),
-                          // Agreement Text
                           SelectableText(
                             _currentText!,
                             style: TextStyle(
-                              color: AppColors.primaryDark,
+                              color: cs.onSurface,
                               fontSize: contentFontSize.clamp(12, 20),
                               height: 1.6,
                             ),
@@ -291,8 +290,8 @@ class _UserAgreementState extends State<UserAgreement> {
                                 icon: const Icon(Icons.check_circle_outline),
                                 onPressed: () => Navigator.pop(context),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: cs.primary,
+                                  foregroundColor: cs.onPrimary,
                                   padding: EdgeInsets.symmetric(
                                     horizontal: responsive.scale(28),
                                     vertical: responsive.scale(14),

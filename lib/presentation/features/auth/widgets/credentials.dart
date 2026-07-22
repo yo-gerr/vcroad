@@ -5,6 +5,7 @@ import 'package:vcroad/core/utils/input/input_style.dart';
 import 'package:vcroad/core/utils/input/input_validation.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/data/repositories/auth.dart';
+import 'package:vcroad/presentation/features/auth/widgets/agreement.dart';
 
 class CredentialsStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -119,7 +120,7 @@ class _CredentialsStepState extends State<CredentialsStep>
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: responsive.scaleFont(14),
-                  color: Colors.black54,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: responsive.scale(24)),
@@ -310,12 +311,32 @@ class _CredentialsStepState extends State<CredentialsStep>
                 },
               ),
               SizedBox(height: responsive.scale(24)),
-              Text(
-                'By creating an account, you agree to our Terms and Privacy Policy.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: responsive.scaleFont(12),
-                  color: Colors.grey.shade600,
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UserAgreement(showConfirmButton: false),
+                  ),
+                ),
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: responsive.scaleFont(12),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    children: [
+                      const TextSpan(text: 'By creating an account, you agree to our '),
+                      TextSpan(
+                        text: 'Terms and Privacy Policy',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
                 ),
               ),
             ],

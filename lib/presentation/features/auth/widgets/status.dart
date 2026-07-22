@@ -65,10 +65,10 @@ class VerificationStatus extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: responsive.scaleFont(14),
-            color: Colors.black54,
-          ),
+            style: TextStyle(
+              fontSize: responsive.scaleFont(14),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
         ),
       ],
     );
@@ -133,7 +133,7 @@ class VerificationStatus extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: responsive.scaleFont(12),
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),

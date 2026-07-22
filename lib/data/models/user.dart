@@ -54,6 +54,9 @@ class UserDetails {
   // Last login timestamp
   final DateTime? lastLoginAt;
 
+  // Terms consent
+  final DateTime? agreedToTermsAt;
+
   const UserDetails({
     required this.userId,
     required this.firstName,
@@ -90,6 +93,7 @@ class UserDetails {
     this.flaggedReportsCount = 0,
     this.lessonsFinishedCount = 0,
     this.lastLoginAt,
+    this.agreedToTermsAt,
   });
 
   /// --- Helpers ---
@@ -177,6 +181,7 @@ class UserDetails {
       flaggedReportsCount: json['flaggedReportsCount'] as int? ?? 0,
       lessonsFinishedCount: json['lessonsFinishedCount'] as int? ?? 0,
       lastLoginAt: _toDateTime(json['lastLoginAt']),
+      agreedToTermsAt: _toDateTime(json['agreedToTermsAt']),
     );
   }
 
@@ -217,6 +222,7 @@ class UserDetails {
       'flaggedReportsCount': flaggedReportsCount,
       'lessonsFinishedCount': lessonsFinishedCount,
       'lastLoginAt': _toTimestamp(lastLoginAt),
+      'agreedToTermsAt': _toTimestamp(agreedToTermsAt),
     };
   }
 
@@ -258,6 +264,7 @@ class UserDetails {
     int? flaggedReportsCount,
     int? lessonsFinishedCount,
     DateTime? lastLoginAt,
+    DateTime? agreedToTermsAt,
   }) {
     return UserDetails(
       userId: userId ?? this.userId,
@@ -299,6 +306,7 @@ class UserDetails {
       flaggedReportsCount: flaggedReportsCount ?? this.flaggedReportsCount,
       lessonsFinishedCount: lessonsFinishedCount ?? this.lessonsFinishedCount,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      agreedToTermsAt: agreedToTermsAt ?? this.agreedToTermsAt,
     );
   }
 }
@@ -337,6 +345,7 @@ extension UserDetailsJsonSafe on UserDetails {
       'verifiedReportsCount': verifiedReportsCount,
       'flaggedReportsCount': flaggedReportsCount,
       'lessonsFinishedCount': lessonsFinishedCount,
+      'agreedToTermsAt': agreedToTermsAt?.toIso8601String(),
     };
   }
 }

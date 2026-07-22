@@ -46,7 +46,7 @@ Future<void> showSomethingWentWrongDialog({
                 message,
                 style: TextStyle(
                   fontSize: responsive.scaleFont(15),
-                  color: Colors.black54,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -76,7 +76,12 @@ Future<void> showSomethingWentWrongDialog({
                   ),
                   SizedBox(width: responsive.scale(12)),
                   TextButton(
-                    child: Text('Dismiss'),
+                    child: Text(
+                      'Dismiss',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
