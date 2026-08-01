@@ -3,6 +3,7 @@ import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/data/repositories/image.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/utils/format/text.dart';
+import 'package:vcroad/presentation/features/profile/widgets/badges.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserDetails user;
@@ -29,7 +30,6 @@ class ProfileHeader extends StatelessWidget {
     );
 
     final String? selfiePath = user.selfiePath;
-    final String? cachedUrl = ImageService.peekCachedUrl(selfiePath);
 
     // For admin/sysadmin show branded asset instead of user selfie.
     final bool useBrandAvatar =
@@ -58,11 +58,16 @@ class ProfileHeader extends StatelessWidget {
         ),
       );
     } else {
-      avatarWidget = ImageService.buildCachedAvatar(
-        imageUrl: cachedUrl,
-        radius: avatarSize / 2,
-        placeholderAsset: brandAsset,
-        cacheWidth: avatarSize.toInt(),
+      avatarWidget = FutureBuilder<String?>(
+        future: ImageService.getDownloadUrlCached(selfiePath),
+        builder: (context, snap) {
+          return ImageService.buildCachedAvatar(
+            imageUrl: snap.data,
+            radius: avatarSize / 2,
+            placeholderAsset: brandAsset,
+            cacheWidth: avatarSize.toInt(),
+          );
+        },
       );
     }
 
@@ -73,7 +78,11 @@ class ProfileHeader extends StatelessWidget {
           child: SizedBox(
             width: avatarSize,
             height: avatarSize,
-            child: avatarWidget,
+            child: Semantics(
+              label: 'Profile photo',
+              image: true,
+              child: avatarWidget,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -92,125 +101,14 @@ class ProfileHeader extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _RoleBadge(role: user.role),
+            RoleBadge(role: user.role),
             if (user.isVerified)
-              _VerificationBadge()
+              const VerificationBadge()
             else
-              _UnverifiedBadge(),
+              const UnverifiedBadge(),
           ],
         ),
       ],
-    );
-  }
-}
-
-class _RoleBadge extends StatelessWidget {
-  final UserRole role;
-  const _RoleBadge({required this.role});
-
-  @override
-  Widget build(BuildContext context) {
-    final (Color bg, Color fg, IconData icon, String label) = switch (role) {
-      UserRole.user => (
-        Colors.blue.shade50,
-        Colors.blue.shade700,
-        Icons.person_outline,
-        'Road User',
-      ),
-      UserRole.admin => (
-        Colors.orange.shade50,
-        Colors.orange.shade800,
-        Icons.admin_panel_settings_outlined,
-        'Barangay Admin',
-      ),
-      UserRole.sysadmin => (
-        Colors.purple.shade50,
-        Colors.purple.shade700,
-        Icons.security_outlined,
-        'Super Admin',
-      ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fg.withAlpha(77)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VerificationBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.shade300),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.verified, size: 16, color: Colors.green.shade700),
-          const SizedBox(width: 4),
-          Text(
-            'Verified',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.green.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UnverifiedBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.orange.shade300),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.verified_outlined, size: 16, color: Colors.orange.shade700),
-          const SizedBox(width: 4),
-          Text(
-            'Unverified',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.orange.shade700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

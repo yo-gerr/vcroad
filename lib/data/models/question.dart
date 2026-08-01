@@ -1,11 +1,9 @@
-// lib/shared/models/questions.dart
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 enum QuestionType { multipleChoice, trueFalse, identification, matchingType }
 
-/// Enum extension for safer (de)serialization
 extension QuestionTypeX on QuestionType {
   String get name => toString().split('.').last;
 
@@ -16,7 +14,6 @@ extension QuestionTypeX on QuestionType {
     );
   }
 
-  // Add display names for UI
   String get displayName {
     switch (this) {
       case QuestionType.multipleChoice:
@@ -29,35 +26,16 @@ extension QuestionTypeX on QuestionType {
         return 'Matching Type';
     }
   }
-
-  // Add icons for UI
-  String get iconName {
-    switch (this) {
-      case QuestionType.multipleChoice:
-        return 'radio_button_checked';
-      case QuestionType.trueFalse:
-        return 'check_circle';
-      case QuestionType.identification:
-        return 'edit';
-      case QuestionType.matchingType:
-        return 'compare_arrows';
-    }
-  }
 }
 
-/// Validation result with optional error message
 class ValidationResult {
   final bool isValid;
   final String? message;
 
   const ValidationResult.valid() : isValid = true, message = null;
   const ValidationResult.invalid(this.message) : isValid = false;
-
-  @override
-  String toString() => isValid ? 'Valid' : 'Invalid: $message';
 }
 
-/// Image reference with support for local and remote URLs
 class ImageRef {
   final String? localPath;
   final String? remoteUrl;
@@ -73,7 +51,6 @@ class ImageRef {
 
   bool get isEmpty => !hasLocal && !hasRemote;
 
-  // Get displayable URL/path for preview
   String? get previewPath => remoteUrl ?? localPath;
 
   ImageRef copyWith({
@@ -116,7 +93,6 @@ class ImageRef {
   int get hashCode => localPath.hashCode ^ remoteUrl.hashCode;
 }
 
-/// Strongly typed pair for Matching questions
 class MatchingPair {
   final String id;
   final ImageRef image;
@@ -180,32 +156,27 @@ class MatchingPair {
 
 class QuizQuestion {
   final String id;
+  final String lessonId;
   final QuestionType type;
-  final String question;
-  final ImageRef? questionImage; // Separate question image
-
-  // Multiple Choice fields
+  final String questionText;
+  final ImageRef? questionImage;
   final List<String>? options;
   final List<ImageRef?>? optionImages;
   final int? correctIndex;
-
-  // True/False fields
   final bool? correctBool;
-
-  // Identification fields
   final String? correctAnswer;
-
-  // Matching Type fields
   final List<MatchingPair>? matchingPairs;
-
-  // Metadata
-  final int points; // Points for this question
-  final String? explanation; // Optional explanation for correct answer
+  final int points;
+  final String? explanation;
+  final int order;
+  final int timesAnswered;
+  final int timesCorrect;
 
   QuizQuestion({
     String? id,
+    required this.lessonId,
     required this.type,
-    required this.question,
+    required this.questionText,
     this.questionImage,
     this.options,
     this.optionImages,
@@ -215,12 +186,16 @@ class QuizQuestion {
     this.matchingPairs,
     this.points = 1,
     this.explanation,
+    this.order = 0,
+    this.timesAnswered = 0,
+    this.timesCorrect = 0,
   }) : id = id ?? const Uuid().v4();
 
   QuizQuestion copyWith({
     String? id,
+    String? lessonId,
     QuestionType? type,
-    String? question,
+    String? questionText,
     ImageRef? questionImage,
     List<String>? options,
     List<ImageRef?>? optionImages,
@@ -230,11 +205,15 @@ class QuizQuestion {
     List<MatchingPair>? matchingPairs,
     int? points,
     String? explanation,
+    int? order,
+    int? timesAnswered,
+    int? timesCorrect,
   }) {
     return QuizQuestion(
       id: id ?? this.id,
+      lessonId: lessonId ?? this.lessonId,
       type: type ?? this.type,
-      question: question ?? this.question,
+      questionText: questionText ?? this.questionText,
       questionImage: questionImage ?? this.questionImage,
       options: options ?? this.options,
       optionImages: optionImages ?? this.optionImages,
@@ -244,13 +223,14 @@ class QuizQuestion {
       matchingPairs: matchingPairs ?? this.matchingPairs,
       points: points ?? this.points,
       explanation: explanation ?? this.explanation,
+      order: order ?? this.order,
+      timesAnswered: timesAnswered ?? this.timesAnswered,
+      timesCorrect: timesCorrect ?? this.timesCorrect,
     );
   }
 
-  /// Validation depending on type
   ValidationResult validate() {
-    // Skip question text check for matching type
-    if (type != QuestionType.matchingType && question.trim().isEmpty) {
+    if (type != QuestionType.matchingType && questionText.trim().isEmpty) {
       return const ValidationResult.invalid("Question text is required");
     }
 
@@ -259,8 +239,6 @@ class QuizQuestion {
         if (options == null || options!.length < 2) {
           return const ValidationResult.invalid("At least 2 options required");
         }
-
-        // Check if at least one option has content
         bool hasContent = false;
         for (int i = 0; i < options!.length; i++) {
           final hasText = options![i].trim().isNotEmpty;
@@ -269,18 +247,15 @@ class QuizQuestion {
               i < optionImages!.length &&
               optionImages![i] != null &&
               !optionImages![i]!.isEmpty;
-
           if (hasText || hasImage) {
             hasContent = true;
           }
         }
-
         if (!hasContent) {
           return const ValidationResult.invalid(
             "At least one option must have text or image",
           );
         }
-
         if (correctIndex == null ||
             correctIndex! < 0 ||
             correctIndex! >= options!.length) {
@@ -308,7 +283,6 @@ class QuizQuestion {
             "At least 2 matching pairs required",
           );
         }
-
         for (int i = 0; i < matchingPairs!.length; i++) {
           if (!matchingPairs![i].isValid) {
             return ValidationResult.invalid(
@@ -316,15 +290,12 @@ class QuizQuestion {
             );
           }
         }
-
-        // Check for duplicate meanings
         final meanings = matchingPairs!.map((p) => p.meaning.trim()).toSet();
         if (meanings.length != matchingPairs!.length) {
           return const ValidationResult.invalid(
             "Duplicate meanings not allowed",
           );
         }
-
         return const ValidationResult.valid();
     }
   }
@@ -332,13 +303,17 @@ class QuizQuestion {
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{
       'id': id,
+      'lessonId': lessonId,
       'type': type.name,
-      'question': question,
+      'questionText': questionText,
       'points': points,
+      'order': order,
+      'timesAnswered': timesAnswered,
+      'timesCorrect': timesCorrect,
     };
 
     if (questionImage != null && !questionImage!.isEmpty) {
-      data['questionImage'] = questionImage!.toJson();
+      data['questionImageUrl'] = questionImage!.remoteUrl;
     }
 
     if (explanation != null && explanation!.isNotEmpty) {
@@ -349,27 +324,21 @@ class QuizQuestion {
       case QuestionType.multipleChoice:
         data.addAll({'options': options, 'correctIndex': correctIndex});
         if (optionImages != null && optionImages!.isNotEmpty) {
-          data['optionImages'] = optionImages!
-              .map((img) => img?.toJson() ?? {})
+          data['optionImageUrls'] = optionImages!
+              .map((img) => img?.remoteUrl)
+              .whereType<String>()
               .toList(growable: false);
         }
-        break;
-
       case QuestionType.trueFalse:
         data.addAll({'correctBool': correctBool});
-        break;
-
       case QuestionType.identification:
         data.addAll({'correctAnswer': correctAnswer});
-        break;
-
       case QuestionType.matchingType:
         data.addAll({
           'matchingPairs': matchingPairs
               ?.map((p) => p.toJson())
               .toList(growable: false),
         });
-        break;
     }
 
     return data;
@@ -380,14 +349,22 @@ class QuizQuestion {
     final type = QuestionTypeX.fromName(typeStr);
 
     ImageRef? questionImage;
-    if (json['questionImage'] != null) {
+    if (json['questionImageUrl'] != null) {
+      questionImage = ImageRef(
+        remoteUrl: json['questionImageUrl'] as String,
+      );
+    } else if (json['questionImage'] != null) {
       questionImage = ImageRef.fromJson(
         Map<String, dynamic>.from(json['questionImage']),
       );
     }
 
     List<ImageRef?>? optionImages;
-    if (json['optionImages'] != null) {
+    if (json['optionImageUrls'] != null) {
+      optionImages = (json['optionImageUrls'] as List<dynamic>)
+          .map((e) => e != null ? ImageRef(remoteUrl: e.toString()) : null)
+          .toList();
+    } else if (json['optionImages'] != null) {
       optionImages = (json['optionImages'] as List<dynamic>).map((e) {
         if (e == null || (e is Map && e.isEmpty)) return null;
         return ImageRef.fromJson(Map<String, dynamic>.from(e));
@@ -396,8 +373,9 @@ class QuizQuestion {
 
     return QuizQuestion(
       id: json['id'] as String?,
+      lessonId: (json['lessonId'] as String?) ?? '',
       type: type,
-      question: (json['question'] as String?) ?? '',
+      questionText: (json['questionText'] as String?) ?? json['question'] as String? ?? '',
       questionImage: questionImage,
       options: (json['options'] as List?)?.map((o) => o.toString()).toList(),
       optionImages: optionImages,
@@ -413,8 +391,14 @@ class QuizQuestion {
           .toList(),
       points: (json['points'] as num?)?.toInt() ?? 1,
       explanation: json['explanation'] as String?,
+      order: (json['order'] as num?)?.toInt() ?? 0,
+      timesAnswered: (json['timesAnswered'] as num?)?.toInt() ?? 0,
+      timesCorrect: (json['timesCorrect'] as num?)?.toInt() ?? 0,
     );
   }
+
+  String get imageUrl =>
+      questionImage?.remoteUrl ?? questionImage?.localPath ?? '';
 
   @override
   bool operator ==(Object other) =>

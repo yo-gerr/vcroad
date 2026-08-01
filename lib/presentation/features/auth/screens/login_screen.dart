@@ -6,16 +6,17 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
 import 'package:vcroad/data/repositories/auth.dart';
 import 'package:vcroad/data/repositories/session.dart';
 import 'package:vcroad/presentation/shared/dialogs/session_conflict.dart';
 import 'package:vcroad/presentation/shared/dialogs/deletion.dart';
 import 'package:vcroad/core/utils/exception/try_catch.dart';
 import 'package:vcroad/presentation/features/auth/widgets/logo.dart';
+import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/presentation/features/auth/widgets/background.dart';
 import 'package:vcroad/presentation/features/auth/widgets/login_form.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
-import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/core/utils/routing/role_router.dart';
 import 'package:vcroad/presentation/shared/dialogs/loading.dart';
 
@@ -148,13 +149,12 @@ class _LoginState extends State<Login> {
     return '${minutes}m ${seconds}s';
   }
 
-  Future<void> _finalizeLoginAndNavigate(UserDetails userDetails) async {
+  Future<void> _handlePostLogin(UserDetails userDetails) async {
     if (!mounted) return;
-    Provider.of<UserProvider>(context, listen: false).setUser(userDetails);
-    SnackbarUtils.showSuccess(
-      context,
-      'Welcome back, ${userDetails.firstName}!',
-    );
+    Provider.of<UserProvider>(context, listen: false)
+      ..setUser(userDetails)
+      ..justLoggedIn = true;
+    context.read<OnboardingProvider>().setUserId(userDetails.userId);
     RoleRouter.navigate(context, userDetails.role, userDetails: userDetails);
   }
 
@@ -235,7 +235,7 @@ class _LoginState extends State<Login> {
                   userDetails.userId,
                   proposedSessionId,
                 );
-                await _finalizeLoginAndNavigate(userDetails);
+                await _handlePostLogin(userDetails);
               } finally {
                 if (mounted && Navigator.canPop(context)) {
                   Navigator.of(context).pop();
@@ -251,7 +251,7 @@ class _LoginState extends State<Login> {
             userDetails.userId,
             proposedSessionId,
           );
-          await _finalizeLoginAndNavigate(userDetails);
+          await _handlePostLogin(userDetails);
         } on FirebaseAuthException catch (e) {
           if (e.code == 'user-data-not-found') {
             final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -360,7 +360,7 @@ class _LoginState extends State<Login> {
             userDetails.userId,
             proposedSessionId,
           );
-          _proceedWithLogin(userDetails);
+          await _handlePostLogin(userDetails);
         }
       } catch (e) {
         if (mounted) {
@@ -372,16 +372,6 @@ class _LoginState extends State<Login> {
     } else {
       await _authService.signOut();
     }
-  }
-
-  void _proceedWithLogin(UserDetails userDetails) async {
-    if (!mounted) return;
-    Provider.of<UserProvider>(context, listen: false).setUser(userDetails);
-    SnackbarUtils.showSuccess(
-      context,
-      'Welcome back, ${userDetails.firstName}!',
-    );
-    RoleRouter.navigate(context, userDetails.role, userDetails: userDetails);
   }
 
   void _onForgotPassword() {

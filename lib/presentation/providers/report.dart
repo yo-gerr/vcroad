@@ -195,34 +195,32 @@ class ReportProvider extends ChangeNotifier {
     error = null;
     notifyListeners();
 
-    // Commented out: submit report with media upload (uses firebase_storage via uploadReportMedia)
-    // try {
-    //   final docRef = FirebaseFirestore.instance.collection('reports').doc();
-    //   final reportId = docRef.id;
-    //   final upload = await ReportService.instance.uploadReportMedia(
-    //     userId: userId, reportId: reportId, mediaType: mediaType,
-    //     mediaData: mediaData is String ? mediaData : (mediaData is Uint8List ? mediaData : null),
-    //   );
-    //   final now = DateTime.now();
-    //   final report = ReportData(
-    //     reportId: reportId, userId: userId, firstName: firstName, middleName: middleName,
-    //     lastName: lastName, suffix: suffix, email: email, phoneNumber: phoneNumber,
-    //     category: category, mediaType: mediaType, mediaPath: upload['mediaPath']!,
-    //     mediaUrl: upload['mediaUrl'], latitude: location.latitude, longitude: location.longitude,
-    //     address: address, barangay: barangay, isVerified: false, isResolved: false, isFlagged: false,
-    //     createdAt: now, updatedAt: now,
-    //   );
-    //   await ReportService.instance.submitReport(report);
-    //   isSubmitting = false;
-    //   notifyListeners();
-    //   return reportId;
-    // } catch (e) {
-    //   error = e.toString();
-    //   isSubmitting = false;
-    //   notifyListeners();
-    //   rethrow;
-    // }
-    throw UnsupportedError('submitReport is not available (firebase_storage dependency removed)');
+    try {
+      final docRef = FirebaseFirestore.instance.collection('reports').doc();
+      final reportId = docRef.id;
+      final upload = await ReportService.instance.uploadReportMedia(
+        userId: userId, reportId: reportId, mediaType: mediaType,
+        mediaData: mediaData is String ? mediaData : (mediaData is Uint8List ? mediaData : null),
+      );
+      final now = DateTime.now();
+      final report = ReportData(
+        reportId: reportId, userId: userId, firstName: firstName, middleName: middleName,
+        lastName: lastName, suffix: suffix, email: email, phoneNumber: phoneNumber,
+        category: category, mediaType: mediaType, mediaPath: upload['mediaPath']!,
+        mediaUrl: upload['mediaUrl'], latitude: location.latitude, longitude: location.longitude,
+        address: address, barangay: barangay, isVerified: false, isResolved: false, isFlagged: false,
+        createdAt: now, updatedAt: now,
+      );
+      await ReportService.instance.submitReport(report);
+      isSubmitting = false;
+      notifyListeners();
+      return reportId;
+    } catch (e) {
+      error = e.toString();
+      isSubmitting = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   // Confirm/refute interactions (no-ops for own/flagged/resolved)
@@ -244,9 +242,8 @@ class ReportProvider extends ChangeNotifier {
   Future<void> incrementView(String reportId) =>
       ReportService.instance.incrementViewCount(reportId);
 
-  // Commented out: getDownloadUrl uses firebase_storage
-  // Future<String?> getMediaUrl(String mediaPath) =>
-  //     ReportService.instance.getDownloadUrl(mediaPath);
+  Future<String?> getMediaUrl(String mediaPath) =>
+      ReportService.instance.getDownloadUrl(mediaPath);
 
   // Admin actions
   Future<void> verify(String reportId, String adminId) =>

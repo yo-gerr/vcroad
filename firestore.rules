@@ -157,16 +157,52 @@ service cloud.firestore {
     }
 
     // ──────────────────────────────────────────────
-    // User activity / lesson progress
+    // Lessons collection
+    // ──────────────────────────────────────────────
+    match /lessons/{lessonId} {
+      allow read: if isAuthenticated();
+      allow create: if isSysAdmin();
+      allow update: if isSysAdmin();
+      allow delete: if isSysAdmin();
+    }
+
+    // ──────────────────────────────────────────────
+    // Questions collection
+    // ──────────────────────────────────────────────
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create: if isSysAdmin();
+      allow update: if isSysAdmin()
+        || (isAuthenticated()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['timesAnswered', 'timesCorrect']));
+      allow delete: if isSysAdmin();
+    }
+
+    // ──────────────────────────────────────────────
+    // Chapters collection
+    // ──────────────────────────────────────────────
+    match /chapters/{chapterId} {
+      allow read: if isAuthenticated();
+      allow write: if isSysAdmin();
+    }
+
+    // ──────────────────────────────────────────────
+    // Lesson progress
+    // ──────────────────────────────────────────────
+    match /lesson_progress/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if false;
+    }
+
+    // ──────────────────────────────────────────────
+    // User activity 
     // ──────────────────────────────────────────────
     match /userActivity/{uid} {
       allow read: if isAuthenticated();
       allow write: if isOwner(uid);
-    }
-
-    match /lessonProgress/{docId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(request.resource.data.uid);
     }
 
     // ──────────────────────────────────────────────

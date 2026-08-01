@@ -17,15 +17,16 @@ class CategoryToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = context.responsive;
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
       padding: EdgeInsets.all(info.scale(4)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: cs.shadow.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -34,11 +35,11 @@ class CategoryToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildToggleButton(context, 'All', MapCategory.all, info),
+          _buildToggleButton(context, 'All', MapCategory.all, info, cs),
           SizedBox(width: info.scale(4)),
-          _buildToggleButton(context, 'Report', MapCategory.report, info),
+          _buildToggleButton(context, 'Report', MapCategory.report, info, cs),
           SizedBox(width: info.scale(4)),
-          _buildToggleButton(context, 'Advisory', MapCategory.advisory, info),
+          _buildToggleButton(context, 'Advisory', MapCategory.advisory, info, cs),
         ],
       ),
     );
@@ -49,6 +50,7 @@ class CategoryToggle extends StatelessWidget {
     String label,
     MapCategory category,
     ResponsiveInfo info,
+    ColorScheme cs,
   ) {
     final isSelected = selectedCategory == category;
 
@@ -60,13 +62,13 @@ class CategoryToggle extends StatelessWidget {
           vertical: info.scale(10),
         ),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1565C0) : Colors.transparent,
+          color: isSelected ? cs.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey.shade700,
+            color: isSelected ? cs.onPrimary : cs.onSurfaceVariant,
             fontSize: info.scaleFont(14),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

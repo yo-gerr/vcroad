@@ -34,21 +34,25 @@ class RoleNavigationShell extends StatelessWidget {
             Positioned(
               right: -6,
               top: -6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                child: Center(
-                  child: Text(
-                    count > 99 ? '99+' : '$count',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+              child: Semantics(
+                label: '$count pending reports',
+                liveRegion: true,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                  child: Center(
+                    child: Text(
+                      count > 99 ? '99+' : '$count',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

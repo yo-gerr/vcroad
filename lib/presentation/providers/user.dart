@@ -3,6 +3,7 @@ import 'package:vcroad/data/models/user.dart';
 
 class UserProvider with ChangeNotifier {
   UserDetails? _user;
+  bool _justLoggedIn = false;
 
   UserDetails? get user => _user;
   UserRole? get role => _user?.role;
@@ -13,6 +14,13 @@ class UserProvider with ChangeNotifier {
 
   bool get isVerified => _user?.isVerified ?? false;
   bool get isBanned => _user?.isBanned ?? false;
+
+  bool get justLoggedIn => _justLoggedIn;
+
+  set justLoggedIn(bool v) {
+    _justLoggedIn = v;
+    if (!v) notifyListeners();
+  }
 
   // Only regular users (role == user), verified, and not banned can file reports.
   bool get canReport {

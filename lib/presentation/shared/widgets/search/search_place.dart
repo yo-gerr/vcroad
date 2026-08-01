@@ -4,18 +4,11 @@ import 'package:vcroad/presentation/features/home/widgets/category.dart';
 import 'package:vcroad/data/repositories/place.dart';
 import 'package:vcroad/core/utils/debouncer/debouncer.dart';
 
-/// Reusable map search bar with autocomplete overlay and category toggle.
-///
-/// Place this widget anywhere. For map-overlay behavior, put it inside a Stack
-/// and position it as needed (e.g. Positioned(top:16, left:16, right:16, child: MapSearchBar(...))).
 class MapSearch extends StatefulWidget {
-  final MapCategory? selectedCategory; // now optional
-  // made optional to allow embedding the search bar without category toggle callbacks
+  final MapCategory? selectedCategory;
   final ValueChanged<MapCategory>? onCategoryChanged;
   final Function(PlaceSuggestion) onSuggestionSelected;
-  // vertical spacing before the search bar (useful when overlaying on map)
   final double topSpacing;
-  // horizontal padding from screen edges (left/right)
   final double horizontalPadding;
   final String hintText;
   final double elevation;
@@ -53,7 +46,7 @@ class _MapSearchState extends State<MapSearch> {
   OverlayEntry? _autocompleteOverlay;
   final GlobalKey _searchKey = GlobalKey();
   List<PlaceSuggestion> _prevSuggestions = const [];
-  bool _isTapInProgress = false; // <-- Add this flag
+  bool _isTapInProgress = false;
 
   @override
   void initState() {
@@ -74,7 +67,6 @@ class _MapSearchState extends State<MapSearch> {
 
   void _onFocusChanged() {
     if (!_searchFocus.hasFocus) {
-      // Don't remove overlay if a tap is in progress
       Future.delayed(const Duration(milliseconds: 250), () {
         if (!_searchFocus.hasFocus && mounted && !_isTapInProgress) {
           _removeAutocompleteOverlay();
@@ -113,7 +105,6 @@ class _MapSearchState extends State<MapSearch> {
       _removeAutocompleteOverlay();
       return;
     }
-    // Only rebuild overlay if suggestions actually changed
     if (_autocompleteOverlay != null &&
         listEquals(_prevSuggestions, _suggestions)) {
       return;
@@ -121,7 +112,6 @@ class _MapSearchState extends State<MapSearch> {
     _prevSuggestions = List<PlaceSuggestion>.from(_suggestions);
     _autocompleteOverlay?.remove();
     _autocompleteOverlay = _createAutocompleteOverlay();
-    // Use rootOverlay: false to keep overlay within current Navigator context
     Overlay.of(context, rootOverlay: false).insert(_autocompleteOverlay!);
   }
 
@@ -138,6 +128,7 @@ class _MapSearchState extends State<MapSearch> {
 
     return OverlayEntry(
       builder: (context) {
+        final cs = Theme.of(context).colorScheme;
         return Positioned(
           left: offset.dx,
           top: offset.dy + size.height + 8,
@@ -145,6 +136,7 @@ class _MapSearchState extends State<MapSearch> {
           child: Material(
             elevation: widget.elevation,
             borderRadius: BorderRadius.circular(widget.borderRadius),
+            color: cs.surface,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 320),
               child: ListView.separated(
@@ -152,12 +144,12 @@ class _MapSearchState extends State<MapSearch> {
                 shrinkWrap: true,
                 itemCount: _suggestions.length,
                 separatorBuilder: (_, _) =>
-                    Divider(height: 1, color: Colors.grey.shade200),
+                    Divider(height: 1, color: cs.outlineVariant),
                 itemBuilder: (context, index) {
                   final s = _suggestions[index];
                   return ListTile(
                     dense: true,
-                    leading: Icon(Icons.place, color: Colors.grey.shade700),
+                    leading: Icon(Icons.place, color: cs.onSurfaceVariant),
                     title: Text(
                       s.description,
                       maxLines: 2,
@@ -165,14 +157,13 @@ class _MapSearchState extends State<MapSearch> {
                       style: const TextStyle(fontSize: 14),
                     ),
                     onTap: () async {
-                      _isTapInProgress = true; // <-- Set flag before processing
+                      _isTapInProgress = true;
                       _removeAutocompleteOverlay();
                       widget.onSuggestionSelected(s);
                       if (mounted) {
                         setState(() => _suggestions = const []);
                       }
                       _searchFocus.unfocus();
-                      // Reset flag after a short delay
                       await Future.delayed(const Duration(milliseconds: 100));
                       _isTapInProgress = false;
                     },
@@ -188,16 +179,15 @@ class _MapSearchState extends State<MapSearch> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // external top spacing so parent doesn't need to wrap/position
         SizedBox(height: widget.topSpacing),
-        // Horizontal padding so the search bar has space from left/right edges
         Padding(
           padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
           child:
-              // Search box
               Container(
                 key: _searchKey,
                 padding: const EdgeInsets.symmetric(
@@ -205,11 +195,11 @@ class _MapSearchState extends State<MapSearch> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cs.surface,
                   borderRadius: BorderRadius.circular(widget.borderRadius),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: cs.shadow.withValues(alpha: 0.08),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -217,7 +207,7 @@ class _MapSearchState extends State<MapSearch> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.grey.shade600, size: 20),
+                    Icon(Icons.search, color: cs.onSurfaceVariant, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
@@ -228,10 +218,10 @@ class _MapSearchState extends State<MapSearch> {
                           border: InputBorder.none,
                           isDense: true,
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: cs.surface,
                           contentPadding: EdgeInsets.zero,
-                          hintStyle: const TextStyle(
-                            color: Colors.grey,
+                          hintStyle: TextStyle(
+                            color: cs.onSurfaceVariant,
                             fontSize: 14,
                           ),
                           focusedBorder: InputBorder.none,
@@ -259,7 +249,7 @@ class _MapSearchState extends State<MapSearch> {
                           child: Icon(
                             Icons.close,
                             size: 18,
-                            color: Colors.grey.shade500,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -270,9 +260,6 @@ class _MapSearchState extends State<MapSearch> {
 
         const SizedBox(height: 8),
 
-        // Optional category toggle aligned to right.
-        // Only show when caller enabled the toggle AND provided a handler.
-        // show toggle only when handler provided; use fallback category when not specified
         if (widget.showCategoryToggle && widget.onCategoryChanged != null)
           Align(
             alignment: Alignment.centerRight,

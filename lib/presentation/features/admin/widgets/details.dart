@@ -1221,7 +1221,6 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       title: 'Activity & Stats',
       child: Column(
         children: [
-          _infoRow(context, 'Lessons Finished', '${user.lessonsFinishedCount}'),
           _infoRow(context, 'Verified Reports', '${user.verifiedReportsCount}'),
           _infoRow(context, 'Flagged Reports', '${user.flaggedReportsCount}'),
           _infoRow(

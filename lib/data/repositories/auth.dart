@@ -19,6 +19,7 @@ class AuthService {
 
   // Throttle resend interval.
   int _lastResendMs = 0;
+  int _lastPasswordResetMs = 0;
   static const int _minResendIntervalMs = 45 * 1000;
 
   /// Creates a Firebase Auth account with email+password, sends verification,
@@ -137,7 +138,6 @@ class AuthService {
       confirmReactionsCount: 0,
       verifiedReportsCount: 0,
       flaggedReportsCount: 0,
-      lessonsFinishedCount: 0,
       agreedToTermsAt: agreedToTermsAt,
     );
 
@@ -235,10 +235,30 @@ class AuthService {
     _lastResendMs = now;
   }
 
-  /// Sends a password reset email to the given address.
+  /// Sends a password reset email to the given address. Resends are
+  /// rate-limited to prevent Firebase `too-many-requests` throttling.
   Future<void> sendPasswordResetEmail(String email) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final diff = now - _lastPasswordResetMs;
+    if (diff < _minResendIntervalMs) {
+      final secs = ((_minResendIntervalMs - diff) / 1000).ceil();
+      throw FirebaseAuthException(
+        code: 'resend-throttled',
+        message: 'Please wait $secs second(s) before requesting another reset link.',
+      );
+    }
+
     final trimmedEmail = email.trim();
     await _auth.sendPasswordResetEmail(email: trimmedEmail);
+    _lastPasswordResetMs = now;
+  }
+
+  /// Remaining cooldown (in seconds) before another password reset link may be
+  /// requested. Returns `0` when a request is allowed.
+  int passwordResetCooldown() {
+    final diff = DateTime.now().millisecondsSinceEpoch - _lastPasswordResetMs;
+    if (diff >= _minResendIntervalMs) return 0;
+    return ((_minResendIntervalMs - diff) / 1000).ceil();
   }
 
   /// Check Firestore-based lockout before attempting login.

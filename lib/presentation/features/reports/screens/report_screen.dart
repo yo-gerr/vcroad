@@ -4,6 +4,8 @@ import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/report.dart';
 import 'package:vcroad/presentation/providers/report.dart';
 import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
+import 'package:vcroad/presentation/shared/widgets/location_prompt_card.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/presentation/shared/dialogs/report.dart';
 import 'package:vcroad/presentation/features/reports/widgets/history.dart';
@@ -147,14 +149,34 @@ class _ReportState extends State<Report> {
           final info = ctx.responsive;
           const tooltip = 'Report Traffic Issue';
 
+          void onPressed() async {
+            final onboarding = ctx.read<OnboardingProvider>();
+            if (!onboarding.hasSeenCoachMark('location_report')) {
+              await onboarding.markCoachMarkSeen('location_report');
+              if (!ctx.mounted) return;
+              await showDialog(
+                context: ctx,
+                builder: (dCtx) => Dialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: LocationPromptCard(
+                    title: 'Tag Reports to Your Barangay',
+                    body: 'Enable location to automatically tag your reports with the correct barangay for faster resolution.',
+                    onGranted: () => Navigator.pop(dCtx),
+                    onDismiss: () => Navigator.pop(dCtx),
+                  ),
+                ),
+              );
+            }
+            if (!ctx.mounted) return;
+            Navigator.of(ctx).push(
+              MaterialPageRoute(builder: (_) => const ReportStepsScreen()),
+            );
+          }
+
           if (info.isMobile) {
             return FloatingActionButton(
               heroTag: 'fab_report_steps',
-              onPressed: () {
-                Navigator.of(ctx).push(
-                  MaterialPageRoute(builder: (_) => const ReportStepsScreen()),
-                );
-              },
+              onPressed: onPressed,
               tooltip: tooltip,
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -164,11 +186,7 @@ class _ReportState extends State<Report> {
 
           return FloatingActionButton.extended(
             heroTag: 'fab_report_steps',
-            onPressed: () {
-              Navigator.of(ctx).push(
-                MaterialPageRoute(builder: (_) => const ReportStepsScreen()),
-              );
-            },
+            onPressed: onPressed,
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add),

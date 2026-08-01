@@ -46,10 +46,21 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 <details>
 <summary><b>📚 Road Safety Education</b></summary>
 
-- Interactive lessons with multiple question types: multiple choice, true/false, identification, matching
-- Progress tracking with lesson completion stats
-- Admin lesson management (create, edit, reorder, filter)
-- Confetti celebration on lesson completion
+- Interactive lessons with 4 question types: multiple choice, true/false, identification, matching type
+- Question images supported across all types (e.g., road-signage photos): question-level images for identification/true-false, per-option images for multiple choice, and image→meaning pairs for matching type
+- Admin question editor lets you attach images to any question or option (uploaded and compressed on save) — ideal for signage identification drills
+- Chapter-based lesson grouping with progress tracking per chapter
+- Spaced-repetition review system — intervals double on correct answers, reset on wrong
+- **Preview mode** — browse all lesson content with lessons unlocked, no quiz required
+- **XP system** with 5 levels (Student Driver → Road Master), streak tracking, and streak bonuses
+- **8 achievement badges** (First Steps, Perfect Score, On a Roll, Week Warrior, Chapter Master, Quick Learner, See It — Report It, Review Master)
+- Animated XP preview as final onboarding slide — shows level progression before entering the app
+- Rich lesson result screen with animated score circle, XP counter, level-up indicator, and badge awards
+- "Report It" prompt after lesson completion — encourages filing a road report tied to what was learned
+- Admin/sysadmin lesson management: create, edit, delete, publish/unpublish, and per-lesson question editor (lessons are auto-numbered; chapters and questions are drag-reorderable)
+- Chapter manager with drag-to-reorder chapters
+- Role-aware tutorial with animated widget previews (users: 5 slides including XP preview; admins: 3 slides with dashboard overview)
+- Location permission requested contextually at point of need (center-on-map or first report), not during onboarding
 </details>
 
 <details>
@@ -58,6 +69,7 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 - Three roles: `user`, `admin`, `sysadmin` enforced at both UI and Firestore rules level
 - Admin panel for user management, bans, and role elevation
 - Registration flow with identity verification (valid ID + selfie capture)
+- Profile details page: view/edit contact & address (phone, street, house number, barangay dropdown), read-only name & email, role/verification badges, selfie display, and an unsaved-changes guard when leaving while editing
 - Profile management with appearance settings (theme toggle)
 </details>
 
@@ -68,6 +80,7 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 - Brute force protection: Firestore-based per-email lockout (5 failed attempts → 15-min block) + local SharedPreferences cache
 - Single-device session enforcement: on login from a new device, the old device is notified and signed out
 - Persistent login via Firebase Auth local persistence
+- Password reset via email link with rate-limited resends (45s cooldown) and anti-enumeration messaging
 </details>
 
 <details>
@@ -76,6 +89,7 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 - Light and dark themes with a navy-based dark palette
 - Persistent theme toggle via SharedPreferences (Light / Dark / System)
 - Accessible from Profile → Appearance → Theme
+- Full dark-mode coverage, including the profile details page — surface cards, text, dividers, and outlined buttons adapt to the active theme while brand-blue header and input fields stay consistent
 </details>
 
 ---
@@ -125,7 +139,7 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 | Firebase | `firebase_core`, `firebase_auth`, `cloud_firestore` |
 | Maps & Location | `flutter_map`, `latlong2`, `geolocator`, `permission_handler` |
 | HTTP & APIs | `http` |
-| UI Components | `lottie`, `carousel_slider`, `introduction_screen`, `confetti`, `cached_network_image` |
+| UI Components | `lottie`, `carousel_slider`, `introduction_screen`, `cached_network_image` |
 | Media | `image_picker`, `file_picker`, `image`, `flutter_image_compress`, `video_player`, `video_thumbnail` |
 | Utilities | `shared_preferences`, `uuid`, `device_info_plus`, `intl`, `url_launcher` |
 | Fonts | Poppins (Regular + Bold) |
@@ -195,6 +209,10 @@ VCRoad follows **Clean Architecture** with **feature-first** organization, align
 git clone https://github.com/yo-gerr/vcroad.git
 cd vcroad
 
+# Configure environment variables
+cp .env.example .env
+#  -> Edit .env and fill in your Supabase project URL and anon/publishable key.
+
 # Install dependencies
 flutter pub get
 
@@ -206,6 +224,10 @@ flutter run -d ios        # iOS (macOS only)
 # Generate launcher icons (if needed)
 flutter pub run flutter_launcher_icons
 ```
+
+> **Note:** `.env` is gitignored and holds the Supabase credentials. The anon/publishable
+> key is **public by design** (it ships in the client binary), so production data security
+> relies on **Supabase RLS / storage-bucket policies**, not on keeping the key secret.
 </details>
 
 <details>
@@ -260,15 +282,15 @@ lib/
 │   └── repositories/                 # Repository/service implementations
 └── presentation/                     # UI layer
     ├── app/                          # App shell, splash screen
-    ├── providers/                    # 8 ChangeNotifier state managers
-    ├── shared/                       # Shared dialogs, snackbar, widgets
+    ├── providers/                    # 9 ChangeNotifier state managers
+    ├── shared/                       # Shared dialogs, snackbar, widgets (banner, location prompt, coach marks)
     └── features/                     # Feature modules
         ├── auth/                     # Login, Register, Reset Password
-        ├── onboarding/               # First-time tutorial
+        ├── onboarding/               # Role-aware tutorial with animated slides
         ├── home/                     # Map dashboard
         ├── reports/                  # Incident reporting wizard
         ├── advisories/               # Advisory management wizard
-        ├── learning/                 # Quiz/lesson system
+        ├── lesson/                   # Quiz/lesson system
         ├── admin/                    # User/account administration
         └── profile/                  # User profile & settings
 

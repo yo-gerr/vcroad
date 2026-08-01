@@ -26,13 +26,17 @@ class UserStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = context.responsive;
+    final cs = Theme.of(context).colorScheme;
     final double ratio = totalCount > 0 ? verifiedCount / totalCount : 0.0;
 
     return Container(
       padding: EdgeInsets.all(info.scale(20)),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1565C0), Color(0xFF0D47A1)],
+        gradient: LinearGradient(
+          colors: [
+            cs.primary.withValues(alpha: 0.85),
+            cs.primary,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -48,31 +52,27 @@ class UserStats extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           Text(
             title,
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onPrimary,
               fontSize: info.scaleFont(20),
               fontWeight: FontWeight.bold,
             ),
           ),
           SizedBox(height: info.scale(16)),
 
-          // Legend
           Row(
             children: [
-              _buildLegendItem('Verified', const Color(0xFF64B5F6), info),
+              _buildLegendItem('Verified', cs.primary.withValues(alpha: 0.7), info, cs.onPrimary),
               SizedBox(width: info.scale(16)),
-              _buildLegendItem('Unverified', const Color(0xFFE57373), info),
+              _buildLegendItem('Unverified', cs.error.withValues(alpha: 0.7), info, cs.onPrimary),
             ],
           ),
           SizedBox(height: info.scale(24)),
 
-          // Count and Donut Chart
           Row(
             children: [
-              // Total Count
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +80,7 @@ class UserStats extends StatelessWidget {
                     Text(
                       '$totalCount',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: cs.onPrimary,
                         fontSize: info.scaleFont(48),
                         fontWeight: FontWeight.bold,
                       ),
@@ -90,8 +90,8 @@ class UserStats extends StatelessWidget {
                       OutlinedButton(
                         onPressed: onBarangayTap,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
+                          foregroundColor: cs.onPrimary,
+                          side: BorderSide(color: cs.onPrimary),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -106,18 +106,18 @@ class UserStats extends StatelessWidget {
                         onPressed: () => onExportBarangay!(),
                         icon: Icon(
                           Icons.download_outlined,
-                          color: Colors.white,
+                          color: cs.onPrimary,
                           size: info.scale(16),
                         ),
                         label: Text(
                           'Export',
                           style: TextStyle(
                             fontSize: info.scaleFont(14),
-                            color: Colors.white,
+                            color: cs.onPrimary,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white),
+                          side: BorderSide(color: cs.onPrimary),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -127,7 +127,6 @@ class UserStats extends StatelessWidget {
                 ),
               ),
 
-              // Donut Chart (animated)
               SizedBox(
                 width: info.scale(120),
                 height: info.scale(120),
@@ -144,15 +143,14 @@ class UserStats extends StatelessWidget {
                           return CircularProgressIndicator(
                             value: animatedValue,
                             strokeWidth: info.scale(12),
-                            backgroundColor: const Color(0xFFE57373),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF64B5F6),
+                            backgroundColor: cs.error.withValues(alpha: 0.5),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              cs.onPrimary.withValues(alpha: 0.7),
                             ),
                           );
                         },
                       ),
                     ),
-                    // Animated verified count for smooth update
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
                       transitionBuilder: (child, anim) =>
@@ -164,7 +162,7 @@ class UserStats extends StatelessWidget {
                           Text(
                             '$verifiedCount',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: cs.onPrimary,
                               fontSize: info.scaleFont(24),
                               fontWeight: FontWeight.bold,
                             ),
@@ -173,7 +171,7 @@ class UserStats extends StatelessWidget {
                           Text(
                             'Verified',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: cs.onPrimary.withValues(alpha: 0.7),
                               fontSize: info.scaleFont(12),
                             ),
                           ),
@@ -187,11 +185,10 @@ class UserStats extends StatelessWidget {
           ),
           SizedBox(height: info.scale(16)),
 
-          // Timestamp
           Text(
             'as of ${DateFormatUtils.formatFriendly(timestamp)}',
             style: TextStyle(
-              color: Colors.white70,
+              color: cs.onPrimary.withValues(alpha: 0.7),
               fontSize: info.scaleFont(12),
             ),
           ),
@@ -200,7 +197,7 @@ class UserStats extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendItem(String label, Color color, ResponsiveInfo info) {
+  Widget _buildLegendItem(String label, Color color, ResponsiveInfo info, Color textColor) {
     return Row(
       children: [
         Container(
@@ -211,7 +208,7 @@ class UserStats extends StatelessWidget {
         SizedBox(width: info.scale(6)),
         Text(
           label,
-          style: TextStyle(color: Colors.white, fontSize: info.scaleFont(12)),
+          style: TextStyle(color: textColor, fontSize: info.scaleFont(12)),
         ),
       ],
     );

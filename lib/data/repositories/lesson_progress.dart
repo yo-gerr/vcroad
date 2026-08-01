@@ -3,78 +3,73 @@ import 'package:flutter/foundation.dart';
 import 'package:vcroad/data/models/lesson.dart';
 import 'package:vcroad/data/models/lesson_progress.dart';
 import 'package:vcroad/data/models/question.dart';
+import 'package:vcroad/data/repositories/xp_service.dart';
+import 'package:vcroad/data/repositories/badge_service.dart';
 
 class LessonProgressService {
-  // Allow injection of a Firestore instance for tests while keeping a singleton for production
-  LessonProgressService._internal([FirebaseFirestore? firestore])
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  static final LessonProgressService instance =
-      LessonProgressService._internal();
-
-  // Factory for tests to inject a mock Firestore
-  factory LessonProgressService.withFirestore(FirebaseFirestore firestore) =>
-      LessonProgressService._internal(firestore);
-
   final FirebaseFirestore _firestore;
+  final XpService _xpService;
+  final BadgeService _badgeService;
   final String _collection = 'lesson_progress';
 
-  // Initialize progress for a user when they first access lessons
+  LessonProgressService._({
+    FirebaseFirestore? firestore,
+    XpService? xpService,
+    BadgeService? badgeService,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _xpService = xpService ?? XpService.instance,
+        _badgeService = badgeService ?? BadgeService.instance;
+
+  static final LessonProgressService instance = LessonProgressService._();
+
+  factory LessonProgressService.withFirestore(FirebaseFirestore firestore) =>
+      LessonProgressService._(firestore: firestore);
+
   Future<void> initializeUserProgress(String userId) async {
     try {
       final lessonsSnapshot = await _firestore
           .collection('lessons')
           .where('isPublished', isEqualTo: true)
+          .orderBy('lessonNumber')
           .get();
 
-      final batch = _firestore.batch();
-      final now = DateTime.now();
-
-      // Sort lessons by chapter order and lesson number
-      final lessons = lessonsSnapshot.docs
-          .map((doc) => QuizMaterial.fromJson(doc.data()))
-          .toList();
-
-      lessons.sort((a, b) {
-        final orderCompare = a.chapterOrder.compareTo(b.chapterOrder);
-        if (orderCompare != 0) return orderCompare;
-        return (a.lessonNumber ?? 0).compareTo(b.lessonNumber ?? 0);
-      });
-
-      // Prefetch existing progress docs for this user to avoid per-lesson reads
-      final existingProgressSnapshot = await _firestore
+      final existingSnapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
           .get();
 
-      final existingLessonIds = existingProgressSnapshot.docs
+      final existingLessonIds = existingSnapshot.docs
           .map((d) => d.data()['lessonId'] as String?)
           .whereType<String>()
           .toSet();
+
+      final lessons = lessonsSnapshot.docs
+          .map((doc) => Lesson.fromJson(doc.data()))
+          .toList();
+
+      final batch = _firestore.batch();
+      final now = DateTime.now();
+      String? prevChapterId;
 
       for (int i = 0; i < lessons.length; i++) {
         final lesson = lessons[i];
         final progressId = '${userId}_${lesson.id}';
 
-        if (existingLessonIds.contains(lesson.id)) {
-          continue; // progress already exists
-        }
+        if (existingLessonIds.contains(lesson.id)) continue;
 
-        final totalPoints = lesson.questions.fold<int>(
-          0,
-          (acc, q) => acc + q.points,
-        );
+        final isFirstInChapter =
+            prevChapterId == null || prevChapterId != lesson.chapterId;
+        final isLocked = !(i == 0 || isFirstInChapter);
 
         final progress = LessonProgress(
           id: progressId,
           userId: userId,
           lessonId: lesson.id,
-          chapterCategory: lesson.chapterCategory,
-          chapterOrder: lesson.chapterOrder,
+          chapterId: lesson.chapterId,
           lessonNumber: lesson.lessonNumber,
-          isLocked: i != 0, // First lesson is unlocked
-          totalQuestions: lesson.questionCount,
-          totalPoints: totalPoints,
+          isLocked: isLocked,
+          totalQuestions: 0,
+          totalPoints: lesson.pointsAvailable,
           lastAccessedAt: now,
         );
 
@@ -82,6 +77,8 @@ class LessonProgressService {
           _firestore.collection(_collection).doc(progressId),
           progress.toJson(),
         );
+
+        prevChapterId = lesson.chapterId;
       }
 
       await batch.commit();
@@ -91,23 +88,19 @@ class LessonProgressService {
     }
   }
 
-  // Start a lesson run: set startedAt, bump attemptCount, reset run-specific counters (server-side).
   Future<void> startLesson(String userId, String lessonId) async {
     try {
       final progressId = '${userId}_$lessonId';
-      final docRef = _firestore.collection(_collection).doc(progressId);
       final now = Timestamp.now();
 
-      // Merge update: preserve historic attempts array and other metadata, but reset run-specific counters.
-      await docRef.set({
+      await _firestore.collection(_collection).doc(progressId).set({
         'startedAt': now,
         'lastAccessedAt': now,
         'attemptCount': FieldValue.increment(1),
-        // Reset run-specific counters so subsequent submitAnswer computes per-run totals
         'questionsAnswered': 0,
         'questionsCorrect': 0,
         'pointsEarned': 0,
-        'scorePercentage': 0.0,
+        'score': 0.0,
       }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('LessonProgressService.startLesson error: $e');
@@ -115,7 +108,6 @@ class LessonProgressService {
     }
   }
 
-  // Submit an answer
   Future<void> submitAnswer({
     required String userId,
     required String lessonId,
@@ -125,69 +117,84 @@ class LessonProgressService {
   }) async {
     try {
       final progressId = '${userId}_$lessonId';
-      final doc = await _firestore
-          .collection(_collection)
-          .doc(progressId)
-          .get();
+      final docRef = _firestore.collection(_collection).doc(progressId);
 
-      if (!doc.exists) {
-        return;
-      }
+      await _firestore.runTransaction((tx) async {
+        final snapshot = await tx.get(docRef);
+        if (!snapshot.exists) return;
 
-      final progress = LessonProgress.fromJson(doc.data()!);
-      final pointsEarned = isCorrect ? question.points : 0;
+        final progress = LessonProgress.fromJson(snapshot.data()!);
+        final pointsEarned = isCorrect ? question.points : 0;
 
-      final attempt = QuestionAttempt(
-        questionId: question.id,
-        userAnswer: userAnswer?.toString(),
-        isCorrect: isCorrect,
-        pointsEarned: pointsEarned,
-        attemptedAt: DateTime.now(),
-      );
+        final now = DateTime.now();
+        var interval = 1;
+        if (isCorrect) {
+          final prevAttempt = progress.attempts
+              .where((a) => a.questionId == question.id)
+              .toList();
+          if (prevAttempt.isNotEmpty && prevAttempt.last.isCorrect) {
+            interval = (prevAttempt.last.interval * 2).clamp(1, 168);
+          }
+        }
+        final nextReviewAt =
+            isCorrect ? now.add(Duration(hours: interval)) : now.add(
+              const Duration(hours: 1),
+            );
 
-      // Keep history (append)
-      final updatedAttempts = [...progress.attempts, attempt];
+        final attempt = QuestionAttempt(
+          questionId: question.id,
+          userAnswer: userAnswer?.toString(),
+          isCorrect: isCorrect,
+          pointsEarned: pointsEarned,
+          attemptedAt: now,
+          nextReviewAt: nextReviewAt,
+          interval: interval,
+        );
 
-      // Determine the start time for the current run/attempt.
-      // If startedAt is null, treat everything as current run to preserve behavior.
-      final runStart =
-          progress.startedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final updatedAttempts = [...progress.attempts, attempt];
+        final runStart =
+            progress.startedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final runAttempts = updatedAttempts
+            .where((a) => !a.attemptedAt.isBefore(runStart))
+            .toList();
 
-      // Filter attempts that belong to current run
-      final runAttempts = updatedAttempts
-          .where((a) => !a.attemptedAt.isBefore(runStart))
-          .toList();
+        final Map<String, int> bestPoints = {};
+        final Map<String, bool> correctByQuestion = {};
+        for (final a in runAttempts) {
+          final prev = bestPoints[a.questionId] ?? 0;
+          if (a.pointsEarned > prev) {
+            bestPoints[a.questionId] = a.pointsEarned;
+          }
+          correctByQuestion[a.questionId] =
+              (correctByQuestion[a.questionId] ?? false) || a.isCorrect;
+        }
 
-      // Compute per-question best points within the run (avoid double-counting repeated answers)
-      final Map<String, int> bestPointsByQuestion = {};
-      final Map<String, bool> correctByQuestion = {};
-      for (final a in runAttempts) {
-        final prev = bestPointsByQuestion[a.questionId] ?? 0;
-        if (a.pointsEarned > prev) {
-          bestPointsByQuestion[a.questionId] = a.pointsEarned;
-        } // record if any attempt for the question was correct (useful for questionsCorrect)
-        correctByQuestion[a.questionId] =
-            (correctByQuestion[a.questionId] ?? false) || a.isCorrect;
-      }
+        final questionsAnswered = bestPoints.length;
+        final questionsCorrect =
+            correctByQuestion.values.where((v) => v).length;
+        final totalPointsEarned =
+            bestPoints.values.fold<int>(0, (acc, v) => acc + v);
+        final score = progress.totalPoints > 0
+            ? (totalPointsEarned / progress.totalPoints) * 100
+            : 0.0;
 
-      final questionsAnswered = bestPointsByQuestion.length;
-      final questionsCorrect = correctByQuestion.values.where((v) => v).length;
-      final totalPointsEarned = bestPointsByQuestion.values.fold<int>(
-        0,
-        (acc, v) => acc + v,
-      );
+        final overallNextReviewAt = isCorrect ? nextReviewAt : null;
 
-      final scorePercentage = progress.totalPoints > 0
-          ? (totalPointsEarned / progress.totalPoints) * 100
-          : 0.0;
+        tx.update(docRef, {
+          'attempts': updatedAttempts.map((a) => a.toJson()).toList(),
+          'questionsAnswered': questionsAnswered,
+          'questionsCorrect': questionsCorrect,
+          'pointsEarned': totalPointsEarned,
+          'score': score,
+          'lastAccessedAt': Timestamp.now(),
+          if (overallNextReviewAt != null)
+            'nextReviewAt': Timestamp.fromDate(overallNextReviewAt),
+        });
+      });
 
-      await _firestore.collection(_collection).doc(progressId).update({
-        'attempts': updatedAttempts.map((a) => a.toJson()).toList(),
-        'questionsAnswered': questionsAnswered,
-        'questionsCorrect': questionsCorrect,
-        'pointsEarned': totalPointsEarned,
-        'scorePercentage': scorePercentage,
-        'lastAccessedAt': Timestamp.now(),
+      await _firestore.collection(_questionsCollection).doc(question.id).update({
+        'timesAnswered': FieldValue.increment(1),
+        if (isCorrect) 'timesCorrect': FieldValue.increment(1),
       });
     } catch (e) {
       debugPrint('LessonProgressService.submitAnswer error: $e');
@@ -195,30 +202,22 @@ class LessonProgressService {
     }
   }
 
-  // Complete a lesson
-  Future<void> completeLesson(String userId, String lessonId) async {
+  Future<Map<String, dynamic>> completeLesson(String userId, String lessonId) async {
     try {
       final progressId = '${userId}_$lessonId';
       final docRef = _firestore.collection(_collection).doc(progressId);
 
-      final now = DateTime.now();
-
-      // Use transaction to atomically mark completed only if passing criteria are met.
-      final bool wasAlreadyCompleted = await _firestore.runTransaction<bool>((
+      final result = await _firestore.runTransaction<Map<String, dynamic>?>((
         tx,
       ) async {
         final snapshot = await tx.get(docRef);
-        if (!snapshot.exists) {
-          // nothing to do; indicate it was not previously completed
-          return false;
-        }
+        if (!snapshot.exists) return null;
 
         final data = snapshot.data()!;
         final prevCompleted = data['isCompleted'] as bool? ?? false;
 
         if (!prevCompleted) {
-          // Determine if user passed the lesson run.
-          double score = (data['scorePercentage'] as num?)?.toDouble() ?? -1.0;
+          double score = (data['score'] as num?)?.toDouble() ?? -1.0;
           if (score < 0) {
             final totalPoints = (data['totalPoints'] as num?)?.toInt() ?? 0;
             final pointsEarned = (data['pointsEarned'] as num?)?.toInt() ?? 0;
@@ -230,92 +229,128 @@ class LessonProgressService {
           const double passThreshold = 70.0;
           final bool passed = score >= passThreshold;
 
+          final now = Timestamp.fromDate(DateTime.now());
+
           if (passed) {
-            // mark lesson completed and increment user's finished count atomically
             tx.update(docRef, {
               'isCompleted': true,
-              'completedAt': Timestamp.fromDate(now),
-              'lastAccessedAt': Timestamp.fromDate(now),
+              'completedAt': now,
+              'lastAccessedAt': now,
+              'score': score,
             });
 
             final userRef = _firestore.collection('users').doc(userId);
-            // use set with merge to allow missing user doc (safer than update)
             tx.set(userRef, {
-              'lessonsFinishedCount': FieldValue.increment(1),
-              'lastActivityAt': Timestamp.fromDate(now),
+              'learningStats.completedLessons': FieldValue.increment(1),
+              'learningStats.totalPointsEarned': FieldValue.increment(
+                (data['pointsEarned'] as num?)?.toInt() ?? 0,
+              ),
+              'learningStats.totalPointsAvailable': FieldValue.increment(
+                (data['totalPoints'] as num?)?.toInt() ?? 0,
+              ),
+              'learningStats.lastActivityDate': now,
+              'lastActivityAt': now,
             }, SetOptions(merge: true));
-          } else {
-            // Do not mark completed when not passed; update lastAccessedAt for recency.
-            tx.update(docRef, {'lastAccessedAt': Timestamp.fromDate(now)});
           }
 
-          return false; // we processed (was not previously completed)
+          return {'passed': passed, 'score': score};
         }
 
-        // already completed previously
-        return true;
+        return const <String, dynamic>{'alreadyCompleted': true};
       });
 
-      // Re-read updated progress to decide unlocking and further logic
+      if (result == null) return {};
+      if (result['alreadyCompleted'] == true) return result.cast<String, dynamic>();
+
       final updatedDoc = await docRef.get();
-      if (!updatedDoc.exists) return;
+      if (!updatedDoc.exists) return result.cast<String, dynamic>();
 
       final updatedProgress = LessonProgress.fromJson(updatedDoc.data()!);
-
-      // Only run unlock logic if the lesson was NOT already completed before this operation
-      // and the saved progress meets the passing criteria.
-      if (!wasAlreadyCompleted && updatedProgress.isPassed) {
+      if (updatedProgress.isPassed) {
         await _unlockNextLesson(userId, updatedProgress);
+
+        final lessonDoc =
+            await _firestore.collection('lessons').doc(lessonId).get();
+        final lesson =
+            lessonDoc.exists ? Lesson.fromJson(lessonDoc.data()!) : null;
+
+        final now = DateTime.now();
+        final secondsSpent = updatedProgress.startedAt != null
+            ? now.difference(updatedProgress.startedAt!).inSeconds
+            : 0;
+        final durationMinutes = lesson?.durationMinutes ?? 0;
+        final questionCount = updatedProgress.questionsAnswered;
+
+        final xpResult = await _xpService.awardLessonComplete(
+          userId: userId,
+          pointsEarned: updatedProgress.pointsEarned,
+          totalPoints: updatedProgress.totalPoints,
+          durationMinutes: durationMinutes,
+          secondsSpent: secondsSpent,
+          lessonId: lessonId,
+          isPerfectScore: updatedProgress.score >= 100,
+        );
+
+        final earnedBadges = await _badgeService.checkAndAward(
+          userId: userId,
+          lessonId: lessonId,
+          progress: updatedProgress,
+          durationMinutes: durationMinutes,
+          secondsSpent: secondsSpent,
+          questionCount: questionCount,
+        );
+
+        return {
+          'passed': true,
+          'score': result['score'],
+          'xpEarned': xpResult['xpEarned'],
+          'isQuickLearner': xpResult['isQuickLearner'],
+          'leveledUp': xpResult['leveledUp'],
+          'newLevel': xpResult['newLevel'],
+          'earnedBadges': earnedBadges,
+          'pointsEarned': updatedProgress.pointsEarned,
+          'totalPoints': updatedProgress.totalPoints,
+          'questionsCorrect': updatedProgress.questionsCorrect,
+          'questionsAnswered': updatedProgress.questionsAnswered,
+        };
       }
+
+      return result.cast<String, dynamic>();
     } catch (e) {
       debugPrint('LessonProgressService.completeLesson error: $e');
       rethrow;
     }
   }
 
-  // Unlock next lesson in sequence
   Future<void> _unlockNextLesson(
     String userId,
     LessonProgress currentProgress,
   ) async {
     try {
-      // Query only locked lessons for this user ordered by chapter/lesson.
       final snapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
           .where('isLocked', isEqualTo: true)
-          .orderBy('chapterOrder')
           .orderBy('lessonNumber')
-          .limit(50) // reasonable limit – adjust if you have very large content
+          .limit(1)
           .get();
 
-      // Find the first locked lesson that comes after the current one
-      for (final doc in snapshot.docs) {
-        final candidate = LessonProgress.fromJson(doc.data());
-        final afterCurrent =
-            (candidate.chapterOrder > currentProgress.chapterOrder) ||
-            (candidate.chapterOrder == currentProgress.chapterOrder &&
-                (candidate.lessonNumber ?? 0) >
-                    (currentProgress.lessonNumber ?? 0));
-        if (afterCurrent) {
-          await _firestore.collection(_collection).doc(candidate.id).update({
-            'isLocked': false,
-          });
-          break;
-        }
-      }
+      if (snapshot.docs.isEmpty) return;
+
+      final candidate = LessonProgress.fromJson(snapshot.docs.first.data());
+      await _firestore.collection(_collection).doc(candidate.id).update({
+        'isLocked': false,
+      });
     } catch (e) {
       debugPrint('LessonProgressService._unlockNextLesson error: $e');
     }
   }
 
-  // Get all progress for a user
   Future<List<LessonProgress>> getUserProgress(String userId) async {
     try {
       final snapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
-          .orderBy('chapterOrder')
           .orderBy('lessonNumber')
           .get();
 
@@ -328,7 +363,19 @@ class LessonProgressService {
     }
   }
 
-  // Get progress for a specific lesson
+  Stream<List<LessonProgress>> watchUserProgress(String userId) {
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: userId)
+        .orderBy('lessonNumber')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => LessonProgress.fromJson(doc.data()))
+          .toList();
+    });
+  }
+
   Future<LessonProgress?> getLessonProgress(
     String userId,
     String lessonId,
@@ -340,9 +387,7 @@ class LessonProgressService {
           .doc(progressId)
           .get();
 
-      if (!doc.exists) {
-        return null;
-      }
+      if (!doc.exists) return null;
       return LessonProgress.fromJson(doc.data()!);
     } catch (e) {
       debugPrint('LessonProgressService.getLessonProgress error: $e');
@@ -350,82 +395,40 @@ class LessonProgressService {
     }
   }
 
-  // Get user learning stats
   Future<UserLearningStats> getUserStats(String userId) async {
     try {
-      final snap = await _firestore
-          .collection(_collection)
-          .where('userId', isEqualTo: userId)
-          .get();
+      final userDoc =
+          await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) return UserLearningStats();
 
-      final dateSet = <DateTime>{};
-      int totalLessons = 0;
-      int lessonsCompleted = 0;
-      int lessonsInProgress = 0;
-      int totalPointsEarned = 0;
-      int totalPointsAvailable = 0;
-      double progressSum = 0.0;
+      final data = userDoc.data()!;
+      final statsData = data['learningStats'] as Map<String, dynamic>?;
 
-      for (final doc in snap.docs) {
-        final data = doc.data();
-        totalLessons++;
-        final last = (data['lastAccessedAt'] as Timestamp?)?.toDate();
-        if (last != null) {
-          dateSet.add(DateTime(last.year, last.month, last.day));
-        }
-        if ((data['isCompleted'] as bool?) == true) lessonsCompleted++;
-        if ((data['isLocked'] as bool?) != true &&
-            (data['isCompleted'] as bool?) != true) {
-          lessonsInProgress++;
-        }
-        totalPointsEarned += (data['pointsEarned'] as num?)?.toInt() ?? 0;
-        totalPointsAvailable += (data['totalPoints'] as num?)?.toInt() ?? 0;
-        progressSum += (data['scorePercentage'] as num?)?.toDouble() ?? 0.0;
+      if (statsData != null) {
+        return UserLearningStats.fromJson(statsData);
       }
 
-      final overallProgress = totalLessons > 0
-          ? progressSum / totalLessons
-          : 0.0;
-
-      int computeStreak(Set<DateTime> days, DateTime today) {
-        var streak = 0;
-        var d = DateTime(today.year, today.month, today.day);
-        while (days.contains(d)) {
-          streak++;
-          d = d.subtract(const Duration(days: 1));
-        }
-        return streak;
-      }
-
-      final streak = computeStreak(dateSet, DateTime.now());
-      final lastActivity = dateSet.isNotEmpty
-          ? dateSet.reduce((a, b) => a.isAfter(b) ? a : b)
-          : null;
-
-      return UserLearningStats(
-        totalLessonsAvailable: totalLessons,
-        lessonsCompleted: lessonsCompleted,
-        lessonsInProgress: lessonsInProgress,
-        totalPointsEarned: totalPointsEarned,
-        totalPointsAvailable: totalPointsAvailable,
-        overallProgress: overallProgress,
-        currentStreak: streak,
-        lastActivityDate: lastActivity,
-      );
+      return UserLearningStats();
     } catch (e) {
       debugPrint('LessonProgressService.getUserStats error: $e');
-      return UserLearningStats(
-        totalLessonsAvailable: 0,
-        lessonsCompleted: 0,
-        lessonsInProgress: 0,
-        totalPointsEarned: 0,
-        totalPointsAvailable: 0,
-        overallProgress: 0.0,
-      );
+      return UserLearningStats();
     }
   }
 
-  // Reset progress for a lesson (admin feature)
+  Future<Stream<UserLearningStats>> watchUserStats(String userId) async {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) return UserLearningStats();
+      final data = snapshot.data()!;
+      final statsData = data['learningStats'] as Map<String, dynamic>?;
+      if (statsData != null) return UserLearningStats.fromJson(statsData);
+      return UserLearningStats();
+    });
+  }
+
   Future<void> resetLessonProgress(String userId, String lessonId) async {
     try {
       final progressId = '${userId}_$lessonId';
@@ -434,15 +437,18 @@ class LessonProgressService {
         'questionsAnswered': 0,
         'questionsCorrect': 0,
         'pointsEarned': 0,
-        'scorePercentage': 0.0,
+        'score': 0.0,
         'attempts': [],
         'startedAt': null,
         'completedAt': null,
         'attemptCount': 0,
+        'nextReviewAt': null,
       });
     } catch (e) {
       debugPrint('LessonProgressService.resetLessonProgress error: $e');
       rethrow;
     }
   }
+
+  String get _questionsCollection => 'questions';
 }

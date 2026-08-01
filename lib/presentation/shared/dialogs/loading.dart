@@ -10,11 +10,12 @@ class LoadingDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = context.responsive;
+    final cs = Theme.of(context).colorScheme;
     final logoSize = (size ?? info.logoSize * 0.6).clamp(64.0, 220.0);
 
     return Dialog(
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: cs.surface,
       insetPadding: EdgeInsets.symmetric(
         horizontal: info.isDesktop ? 120 : 32,
         vertical: info.isDesktop ? 80 : 24,
@@ -48,7 +49,7 @@ class LoadingDialog extends StatelessWidget {
                 style: TextStyle(
                   fontSize: info.scaleFont(16),
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: cs.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),

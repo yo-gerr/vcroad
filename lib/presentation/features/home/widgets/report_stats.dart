@@ -32,7 +32,6 @@ class ReportStats extends StatelessWidget {
         cat = key;
       } else if (key is String) {
         final lower = key.toLowerCase().trim();
-        // try name match
         try {
           cat = ReportCategory.values.firstWhere(
             (e) =>
@@ -40,13 +39,11 @@ class ReportStats extends StatelessWidget {
                 e.name.toLowerCase() == lower.replaceAll('_', ''),
           );
         } catch (_) {
-          // try label match
           try {
             cat = ReportCategory.values.firstWhere(
               (e) => e.label.toLowerCase() == lower,
             );
           } catch (_) {
-            // ignore unknown
           }
         }
       }
@@ -64,39 +61,39 @@ class ReportStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = context.responsive;
+    final cs = Theme.of(context).colorScheme;
 
-    // Convert entries once
     final entries = reportCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     final titleStyle = TextStyle(
-      color: const Color(0xFF1565C0),
+      color: cs.primary,
       fontSize: info.scaleFont(20),
       fontWeight: FontWeight.bold,
     );
     final headerStyle = TextStyle(
       fontWeight: FontWeight.w600,
       fontSize: info.scaleFont(14),
-      color: Colors.grey.shade700,
+      color: cs.onSurfaceVariant,
     );
     final labelStyle = TextStyle(
       fontSize: info.scaleFont(14),
-      color: Colors.grey.shade800,
+      color: cs.onSurface,
     );
     final countStyle = TextStyle(
       fontSize: info.scaleFont(14),
       fontWeight: FontWeight.bold,
-      color: const Color(0xFF1565C0),
+      color: cs.primary,
     );
 
     return Container(
       padding: EdgeInsets.all(info.scale(20)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: cs.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -117,7 +114,6 @@ class ReportStats extends StatelessWidget {
           ...entries.map((e) {
             final cat = e.key;
             final count = e.value;
-            // Use Image.asset directly — make sure assets are precached in parent
             return Padding(
               padding: EdgeInsets.symmetric(vertical: info.scale(8)),
               child: Row(
@@ -135,7 +131,7 @@ class ReportStats extends StatelessWidget {
                       vertical: info.scale(4),
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                      color: cs.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text('$count', style: countStyle),
@@ -149,8 +145,8 @@ class ReportStats extends StatelessWidget {
             OutlinedButton(
               onPressed: onBarangayTap,
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1565C0),
-                side: const BorderSide(color: Color(0xFF1565C0)),
+                foregroundColor: cs.primary,
+                side: BorderSide(color: cs.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -166,17 +162,17 @@ class ReportStats extends StatelessWidget {
               icon: Icon(
                 Icons.download_outlined,
                 size: info.scale(16),
-                color: const Color(0xFF1565C0),
+                color: cs.primary,
               ),
               label: Text(
                 'Export',
                 style: TextStyle(
                   fontSize: info.scaleFont(14),
-                  color: const Color(0xFF1565C0),
+                  color: cs.primary,
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF1565C0)),
+                side: BorderSide(color: cs.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -186,7 +182,7 @@ class ReportStats extends StatelessWidget {
           Text(
             'as of ${DateFormatUtils.formatFriendly(timestamp)}',
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: cs.onSurfaceVariant,
               fontSize: info.scaleFont(12),
             ),
           ),

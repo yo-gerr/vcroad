@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vcroad/data/models/user.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 
 class ActivityBadges extends StatelessWidget {
@@ -22,7 +23,6 @@ class ActivityBadges extends StatelessWidget {
       required String title,
       required int count,
       required String assetPath,
-      required Color color,
     }) {
       return SizedBox(
         width: itemWidth,
@@ -60,7 +60,7 @@ class ActivityBadges extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -88,19 +88,11 @@ class ActivityBadges extends StatelessWidget {
           title: 'Confirm Reacts',
           count: user.confirmReactionsCount,
           assetPath: 'assets/images/react.webp',
-          color: Colors.red,
         ),
         buildBadge(
           title: 'Verified Reports',
           count: user.verifiedReportsCount,
           assetPath: 'assets/images/report.webp',
-          color: Colors.amber,
-        ),
-        buildBadge(
-          title: 'Lessons Done',
-          count: user.lessonsFinishedCount,
-          assetPath: 'assets/images/learn.webp',
-          color: Colors.green,
         ),
       ],
     );

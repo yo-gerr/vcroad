@@ -1,23 +1,23 @@
 import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vcroad/presentation/app/app_shell.dart';
-import 'package:vcroad/presentation/features/onboarding/screens/onboarding_screen.dart';
 import 'package:vcroad/presentation/features/auth/screens/register_screen.dart';
 import 'package:vcroad/presentation/features/auth/screens/reset_password_screen.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/providers/user.dart';
 import 'package:vcroad/presentation/providers/account.dart';
-import 'package:vcroad/presentation/providers/lesson.dart';
-import 'package:vcroad/presentation/providers/learning.dart';
 import 'package:vcroad/presentation/providers/report.dart';
 import 'package:vcroad/presentation/providers/location.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
 import 'package:vcroad/presentation/providers/theme.dart';
 import 'package:vcroad/data/repositories/auth.dart';
 import 'package:vcroad/data/repositories/session.dart';
@@ -26,7 +26,9 @@ import 'package:vcroad/core/utils/responsive/responsive_scope.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/presentation/app/splash_screen.dart';
 import 'package:vcroad/presentation/features/auth/screens/login_screen.dart';
+import 'package:vcroad/presentation/features/profile/widgets/details.dart';
 import 'package:url_strategy/url_strategy.dart';
+import 'package:vcroad/core/constants/config.dart';
 import 'firebase_options.dart';
 
 // One-time guard to ensure runApp is only executed once.
@@ -84,10 +86,32 @@ void main() async {
     if (kIsWeb) {
       setPathUrlStrategy();
       await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    } else {
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
     }
   } catch (e, s) {
     debugPrint('[main] Firebase.initializeApp failed: $e\n$s');
     // Continue — services can handle missing firebase gracefully.
+  }
+
+  // Load config from the gitignored .env file (bundled as an asset).
+  try {
+    await dotenv.load();
+  } catch (e) {
+    debugPrint('[main] .env load failed (using empty config fallback): $e');
+  }
+
+  // Initialize Supabase (storage backend).
+  try {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      publishableKey: AppConfig.supabaseAnonKey,
+    );
+  } catch (e, s) {
+    debugPrint('[main] Supabase.initialize failed: $e\n$s');
   }
 
   _appLaunched = true;
@@ -119,6 +143,8 @@ class _MyAppState extends State<MyApp> {
     if (details == null) return null;
 
     userProvider.setUser(details);
+    if (!context.mounted) return null;
+    await context.read<OnboardingProvider>().setUserId(details.userId);
 
     // Ensure a session exists (reuse existing or create new)
     final sessionId = await SessionService.instance.ensureSession(uid);
@@ -216,7 +242,10 @@ class _MyAppState extends State<MyApp> {
 
         // Role verification: redirect to the correct role-based route
         if (isSignedIn) {
-          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          final userProvider = Provider.of<UserProvider>(
+            context,
+            listen: false,
+          );
           final user = userProvider.user;
           if (user != null) {
             final userRoute = switch (user.role) {
@@ -224,10 +253,12 @@ class _MyAppState extends State<MyApp> {
               UserRole.admin => '/barangayadmin',
               UserRole.sysadmin => '/superadmin',
             };
-            final isOnRootOrAuthPage = currentPath == '/' ||
+            final isOnRootOrAuthPage =
+                currentPath == '/' ||
                 currentPath == '/login' ||
                 currentPath == '/register' ||
-                currentPath == '/reset';
+                currentPath == '/reset' ||
+                currentPath == '/profile-details';
             if (!isOnRootOrAuthPage && currentPath != userRoute) {
               return userRoute;
             }
@@ -258,6 +289,9 @@ class _MyAppState extends State<MyApp> {
                         context,
                         listen: false,
                       ).setUser(userDetails);
+                      await context.read<OnboardingProvider>().setUserId(
+                        userDetails.userId,
+                      );
 
                       final sessionId = await SessionService.instance
                           .createSession(user.uid);
@@ -283,8 +317,7 @@ class _MyAppState extends State<MyApp> {
                     }
                   }
                   // Signed in but no users/ doc — check for pending registration
-                  final pending =
-                      await auth.getPendingRegistration(user.uid);
+                  final pending = await auth.getPendingRegistration(user.uid);
                   if (context.mounted) {
                     if (pending != null) {
                       _stopSessionMonitoring();
@@ -336,6 +369,11 @@ class _MyAppState extends State<MyApp> {
             _stopSessionMonitoring();
             return const ResetPassword();
           },
+        ),
+        GoRoute(
+          path: '/profile-details',
+          name: 'profile-details',
+          builder: (context, state) => const ProfileDetails(),
         ),
         GoRoute(
           path: '/roaduser',
@@ -445,17 +483,18 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => OnboardingProvider()),
         ChangeNotifierProvider(create: (_) => AdvisoryProvider()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
-        ChangeNotifierProvider(create: (_) => LessonProvider()),
-        ChangeNotifierProvider(create: (_) => LearningProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
         ChangeNotifierProvider(create: (_) => LocationProvider()),
-        ChangeNotifierProvider(create: (_) {
-          final tp = ThemeProvider();
-          tp.load();
-          return tp;
-        }),
+        ChangeNotifierProvider(
+          create: (_) {
+            final tp = ThemeProvider();
+            tp.load();
+            return tp;
+          },
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -487,48 +526,15 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-/// Gated road-user screen that checks onboarding before showing the app.
-class _RoadUserScreen extends StatefulWidget {
+/// Gated road-user screen — delegates to AppScreen (onboarding is handled
+/// by AppScreen via OnboardingProvider).
+class _RoadUserScreen extends StatelessWidget {
   final UserDetails user;
   const _RoadUserScreen({required this.user});
 
   @override
-  State<_RoadUserScreen> createState() => _RoadUserScreenState();
-}
-
-class _RoadUserScreenState extends State<_RoadUserScreen> {
-  bool? _needsOnboarding;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkOnboarding();
-  }
-
-  Future<void> _checkOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = 'hasSeenAppTutorial_${widget.user.userId}';
-    final seen = prefs.getBool(key) ?? false;
-    if (mounted) setState(() => _needsOnboarding = !seen);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_needsOnboarding == null) {
-      return SplashScreen(
-        assetImagesToPrecache: const ['assets/images/vcroad.webp'],
-        minDisplay: const Duration(milliseconds: 800),
-        onFinish: () {},
-        child: const SizedBox.shrink(),
-      );
-    }
-    if (_needsOnboarding == true) {
-      return OnboardingScreen(
-        userId: widget.user.userId,
-        onComplete: () => setState(() => _needsOnboarding = false),
-      );
-    }
-    return AppScreen(role: UserRole.user, userDetails: widget.user);
+    return AppScreen(role: UserRole.user, userDetails: user);
   }
 }
 

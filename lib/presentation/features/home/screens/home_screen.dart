@@ -16,6 +16,9 @@ import 'package:vcroad/presentation/features/home/widgets/user_stats.dart';
 import 'package:vcroad/presentation/features/home/widgets/report_stats.dart';
 import 'package:vcroad/presentation/features/home/widgets/category.dart';
 import 'package:vcroad/data/models/report.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
+import 'package:vcroad/presentation/shared/widgets/reminder_banner.dart';
+import 'package:vcroad/presentation/shared/widgets/location_prompt_card.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/presentation/shared/widgets/search/search_place.dart';
 import 'package:vcroad/data/repositories/account.dart';
@@ -25,6 +28,7 @@ import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/shared/dialogs/advisory.dart';
 import 'package:vcroad/presentation/shared/dialogs/report.dart'; // add
 import 'package:vcroad/presentation/providers/report.dart'; // add
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/presentation/providers/location.dart';
 import 'package:vcroad/core/utils/debouncer/debouncer.dart'; // add
 import 'package:vcroad/presentation/features/home/widgets/barangay_report_stats.dart';
@@ -436,6 +440,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   // Center map on user; start provider if needed.
   Future<void> _centerOnUser() async {
     final locProv = context.read<LocationProvider>();
+    final onboarding = context.read<OnboardingProvider>();
     if (locProv.location != null) {
       _userLocation = locProv.location;
       if (_isMapReady) {
@@ -443,15 +448,37 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       } else {
         _animateToUserWhenMapReady = true;
       }
-    } else {
-      await locProv.start();
-      if (locProv.location != null) {
-        _userLocation = locProv.location;
-        if (_isMapReady) {
-          await _animateToUser(_userLocation!, zoom: _userZoom);
-        } else {
-          _animateToUserWhenMapReady = true;
-        }
+      return;
+    }
+
+    if (!onboarding.hasSeenCoachMark('location_center_map')) {
+      await onboarding.markCoachMarkSeen('location_center_map');
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: LocationPromptCard(
+            title: 'Find Your Location',
+            body: 'Allow location access to center the map on your current position and see nearby reports.',
+            onGranted: () {
+              Navigator.pop(ctx);
+              locProv.start();
+            },
+            onDismiss: () => Navigator.pop(ctx),
+          ),
+        ),
+      );
+      return;
+    }
+
+    await locProv.start();
+    if (locProv.location != null) {
+      _userLocation = locProv.location;
+      if (_isMapReady) {
+        await _animateToUser(_userLocation!, zoom: _userZoom);
+      } else {
+        _animateToUserWhenMapReady = true;
       }
     }
   }
@@ -601,9 +628,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF001278),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? AppColors.primary,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -617,22 +644,94 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         centerTitle: true,
         elevation: 0,
       ),
-      body: useSplitLayout
-          ? Row(
-              children: [
-                SizedBox(
-                  width: info.scale(380),
-                  child: _buildDesktopDashboard(
-                    info,
-                    now,
-                    showPerBarangayButtons: isSysAdminNow,
-                    isAdminViewing: isAdminNow,
-                  ),
-                ),
-                Expanded(
-                  child: Stack(
+      body: Column(
+        children: [
+          ?_buildReminderBanner(context),
+          Expanded(
+            child: useSplitLayout
+                ? Row(
                     children: [
-                      buildMap(gesturesEnabled: true),
+                      SizedBox(
+                        width: info.scale(380),
+                        child: _buildDesktopDashboard(
+                          info,
+                          now,
+                          showPerBarangayButtons: isSysAdminNow,
+                          isAdminViewing: isAdminNow,
+                        ),
+                      ),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            buildMap(gesturesEnabled: true),
+
+                            MapSearch(
+                              selectedCategory: _selectedCategory,
+                              onCategoryChanged: (c) {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedCategory = c;
+                                    _composeAndSetMarkers();
+                                  });
+                                }
+                              },
+                              onSuggestionSelected: (suggestion) async {
+                                await _selectSuggestion(suggestion);
+                              },
+                            ),
+
+                            AnimatedPositioned(
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeOut,
+                              right: info.scale(16),
+                              bottom: _computeMapControlsBottom(info, context),
+                              child: MapControls(
+                                isTrafficEnabled: _isTrafficEnabled,
+                                onToggleTraffic: _toggleTrafficLayer,
+                                onCenterOnUser: _centerOnUser,
+                                info: info,
+                              ),
+                            ),
+
+                            if (isLocating)
+                              Positioned(
+                                top: info.scale(80),
+                                left: info.scale(16),
+                                child: Material(
+                                  elevation: 4,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(info.scale(12)),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: info.scale(16),
+                                          height: info.scale(16),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                        SizedBox(width: info.scale(8)),
+                                        Text(
+                                          'Fetching location...',
+                                          style: TextStyle(
+                                            fontSize: info.scaleFont(12),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : Stack(
+                    children: [
+                      buildMap(gesturesEnabled: !_isPointerOverDashboard),
 
                       MapSearch(
                         selectedCategory: _selectedCategory,
@@ -662,10 +761,29 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         ),
                       ),
 
+                      if (_isSysAdmin) ...[
+                        if (isWideScreen)
+                          _buildDesktopDashboard(
+                            info,
+                            now,
+                            showPerBarangayButtons: true,
+                            isAdminViewing: false,
+                          )
+                        else
+                          _buildMobileDashboard(
+                            info,
+                            now,
+                            showPerBarangayButtons: true,
+                            isAdminViewing: false,
+                          ),
+                      ],
+
                       if (isLocating)
                         Positioned(
                           top: info.scale(80),
-                          left: info.scale(16),
+                          left: (isWideScreen && _isSysAdmin)
+                              ? info.scale(396 + 16)
+                              : info.scale(16),
                           child: Material(
                             elevation: 4,
                             borderRadius: BorderRadius.circular(8),
@@ -677,16 +795,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   SizedBox(
                                     width: info.scale(16),
                                     height: info.scale(16),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
                                   SizedBox(width: info.scale(8)),
                                   Text(
                                     'Fetching location...',
-                                    style: TextStyle(
-                                      fontSize: info.scaleFont(12),
-                                    ),
+                                    style: TextStyle(fontSize: info.scaleFont(12)),
                                   ),
                                 ],
                               ),
@@ -695,89 +809,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         ),
                     ],
                   ),
-                ),
-              ],
-            )
-          : Stack(
-              children: [
-                buildMap(gesturesEnabled: !_isPointerOverDashboard),
-
-                MapSearch(
-                  selectedCategory: _selectedCategory,
-                  onCategoryChanged: (c) {
-                    if (mounted) {
-                      setState(() {
-                        _selectedCategory = c;
-                        _composeAndSetMarkers();
-                      });
-                    }
-                  },
-                  onSuggestionSelected: (suggestion) async {
-                    await _selectSuggestion(suggestion);
-                  },
-                ),
-
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOut,
-                  right: info.scale(16),
-                  bottom: _computeMapControlsBottom(info, context),
-                  child: MapControls(
-                    isTrafficEnabled: _isTrafficEnabled,
-                    onToggleTraffic: _toggleTrafficLayer,
-                    onCenterOnUser: _centerOnUser,
-                    info: info,
-                  ),
-                ),
-
-                if (_isSysAdmin) ...[
-                  if (isWideScreen)
-                    _buildDesktopDashboard(
-                      info,
-                      now,
-                      showPerBarangayButtons: true,
-                      isAdminViewing: false,
-                    )
-                  else
-                    _buildMobileDashboard(
-                      info,
-                      now,
-                      showPerBarangayButtons: true,
-                      isAdminViewing: false,
-                    ),
-                ],
-
-                if (isLocating)
-                  Positioned(
-                    top: info.scale(80),
-                    left: (isWideScreen && _isSysAdmin)
-                        ? info.scale(396 + 16)
-                        : info.scale(16),
-                    child: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: EdgeInsets.all(info.scale(12)),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: info.scale(16),
-                              height: info.scale(16),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: info.scale(8)),
-                            Text(
-                              'Fetching location...',
-                              style: TextStyle(fontSize: info.scaleFont(12)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1095,7 +1129,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           }
         },
         child: Container(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).cardColor,
           child: Listener(
             behavior: HitTestBehavior.opaque,
             onPointerSignal: (event) {},
@@ -1110,10 +1144,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         _userStatsError!,
-                        style: TextStyle(color: Colors.red),
-                      ),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
-                  UserStats(
+                  ),
+                UserStats(
                     title: 'Total Users',
                     totalCount: _userStats?['total'] ?? 0,
                     verifiedCount: _userStats?['verified'] ?? 0,
@@ -1165,11 +1199,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: Theme.of(context).cardColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -1184,7 +1218,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   width: info.scale(40),
                   height: info.scale(4),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1194,7 +1228,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       _userStatsError!,
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                   ),
                 UserStats(
@@ -1226,6 +1260,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           ),
         );
       },
+    );
+  }
+
+  Widget? _buildReminderBanner(BuildContext context) {
+    final onboarding = context.watch<OnboardingProvider>();
+    if (!onboarding.shouldShowBannerToday) return null;
+    return ReminderBanner(
+      onDismiss: () => onboarding.markBannerShownToday(),
     );
   }
 

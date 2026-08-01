@@ -40,10 +40,8 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # ──────────────────────────────────────────────
-  # Data — LOCAL (optional / archived)
+  # Data — LOCAL
   # ──────────────────────────────────────────────
-  # sqflite: ^2.3.0              # Unused — kept as reference
-  # path_provider: ^2.1.0        # Unused — kept as reference
   shared_preferences: ^2.5.3     # Key-value prefs (keep for settings)
   path: ^1.9.1
 
@@ -81,7 +79,7 @@ dependencies:
   image_picker: ^1.2.1           # Media capture (keep)
   file_picker: ^10.3.3           # File picker (keep)
   image: ^4.5.4                  # Image compression (keep)
-  flutter_image_compress: ^2.4.0 # Lossy compression (keep)
+  flutter_image_compress: ^2.4.0 # Lossy compression (lesson images)
   video_player: ^2.10.0          # Video playback (keep)
   video_thumbnail: ^0.5.6        # Thumbnail extraction (keep)
   mime: ^2.0.0                   # MIME type detection (keep)
@@ -93,6 +91,8 @@ dependencies:
   device_info_plus: ^12.2.0      # Device info (keep)
   intl: ^0.20.2                  # i18n / date formatting (keep)
   uuid: ^4.5.2                   # UUID generation (keep)
+  flutter_dotenv: ^5.2.1         # Load .env config at runtime (gitignored)
+  supabase_flutter: ^2.16.0
 
 dev_dependencies:
   flutter_test:
@@ -130,6 +130,7 @@ flutter:
     - assets/database/
     - assets/barangays/
     - assets/downloads/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -49,8 +49,6 @@ class UserDetails {
   final int confirmReactionsCount;
   final int verifiedReportsCount;
   final int flaggedReportsCount;
-  final int lessonsFinishedCount;
-
   // Last login timestamp
   final DateTime? lastLoginAt;
 
@@ -91,7 +89,6 @@ class UserDetails {
     this.confirmReactionsCount = 0,
     this.verifiedReportsCount = 0,
     this.flaggedReportsCount = 0,
-    this.lessonsFinishedCount = 0,
     this.lastLoginAt,
     this.agreedToTermsAt,
   });
@@ -179,7 +176,6 @@ class UserDetails {
       confirmReactionsCount: json['confirmReactionsCount'] as int? ?? 0,
       verifiedReportsCount: json['verifiedReportsCount'] as int? ?? 0,
       flaggedReportsCount: json['flaggedReportsCount'] as int? ?? 0,
-      lessonsFinishedCount: json['lessonsFinishedCount'] as int? ?? 0,
       lastLoginAt: _toDateTime(json['lastLoginAt']),
       agreedToTermsAt: _toDateTime(json['agreedToTermsAt']),
     );
@@ -220,7 +216,6 @@ class UserDetails {
       'confirmReactionsCount': confirmReactionsCount,
       'verifiedReportsCount': verifiedReportsCount,
       'flaggedReportsCount': flaggedReportsCount,
-      'lessonsFinishedCount': lessonsFinishedCount,
       'lastLoginAt': _toTimestamp(lastLoginAt),
       'agreedToTermsAt': _toTimestamp(agreedToTermsAt),
     };
@@ -262,7 +257,6 @@ class UserDetails {
     int? confirmReactionsCount,
     int? verifiedReportsCount,
     int? flaggedReportsCount,
-    int? lessonsFinishedCount,
     DateTime? lastLoginAt,
     DateTime? agreedToTermsAt,
   }) {
@@ -304,7 +298,6 @@ class UserDetails {
           confirmReactionsCount ?? this.confirmReactionsCount,
       verifiedReportsCount: verifiedReportsCount ?? this.verifiedReportsCount,
       flaggedReportsCount: flaggedReportsCount ?? this.flaggedReportsCount,
-      lessonsFinishedCount: lessonsFinishedCount ?? this.lessonsFinishedCount,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       agreedToTermsAt: agreedToTermsAt ?? this.agreedToTermsAt,
     );
@@ -344,7 +337,6 @@ extension UserDetailsJsonSafe on UserDetails {
       'confirmReactionsCount': confirmReactionsCount,
       'verifiedReportsCount': verifiedReportsCount,
       'flaggedReportsCount': flaggedReportsCount,
-      'lessonsFinishedCount': lessonsFinishedCount,
       'agreedToTermsAt': agreedToTermsAt?.toIso8601String(),
     };
   }

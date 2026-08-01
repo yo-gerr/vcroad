@@ -1,275 +1,247 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/core/theme/app_text_styles.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
+import 'package:vcroad/data/models/user.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
+import 'package:vcroad/presentation/features/onboarding/widgets/slide_report.dart';
+import 'package:vcroad/presentation/features/onboarding/widgets/slide_track.dart';
+import 'package:vcroad/presentation/features/onboarding/widgets/slide_advisory.dart';
+import 'package:vcroad/presentation/features/onboarding/widgets/slide_learn.dart';
+import 'package:vcroad/presentation/features/onboarding/widgets/xp_preview.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final String? userId;
-  final VoidCallback onComplete;
+  final UserRole role;
+  final VoidCallback? onComplete;
 
-  const OnboardingScreen({
-    super.key,
-    this.userId,
-    required this.onComplete,
-  });
+  const OnboardingScreen({super.key, required this.role, this.onComplete});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  int? _startStep;
+  final _introKey = GlobalKey<IntroductionScreenState>();
 
-  @override
-  void initState() {
-    super.initState();
-    _determineStartStep();
-  }
-
-  Future<void> _determineStartStep() async {
-    final prefs = await SharedPreferences.getInstance();
-    final tutorialKey = widget.userId == null
-        ? 'hasSeenAppTutorial'
-        : 'hasSeenAppTutorial_${widget.userId}';
-    final tutorialSeen = prefs.getBool(tutorialKey) ?? false;
-
-    final rationaleSeen = prefs.getBool('location_rationale_shown') ?? false;
-
-    int step = 0;
-    if (tutorialSeen) step = 1;
-    if (rationaleSeen) step = 2;
-
-    if (step >= 2) {
-      widget.onComplete();
-      return;
+  List<PageViewModel> get _pages {
+    if (widget.role == UserRole.admin || widget.role == UserRole.sysadmin) {
+      return _adminPages();
     }
-
-    if (mounted) setState(() => _startStep = step);
+    return _userPages();
   }
 
-  Future<void> _markTutorialSeen() async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = widget.userId == null
-        ? 'hasSeenAppTutorial'
-        : 'hasSeenAppTutorial_${widget.userId}';
-    await prefs.setBool(key, true);
+  List<PageViewModel> _userPages() {
+    final theme = Theme.of(context);
+    final deco = PageDecoration(
+      titleTextStyle: AppTextStyles.displayMedium,
+      bodyTextStyle: AppTextStyles.bodyLarge,
+      bodyPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      pageColor: theme.scaffoldBackgroundColor,
+      imagePadding: EdgeInsets.zero,
+      titlePadding: const EdgeInsets.only(top: 16),
+    );
+    return [
+      PageViewModel(
+        title: 'Report Road Issues',
+        body: 'Capture and report road hazards, potholes, and other issues in your barangay.',
+        image: const SlideReport(),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: 'Track Your Reports',
+        body: 'View the status of your submitted reports and follow up on resolutions.',
+        image: const SlideTrack(),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: 'Stay Informed',
+        body: 'Get real-time traffic advisories and road condition updates for Valenzuela City.',
+        image: const SlideAdvisory(),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: 'Road Safety Education',
+        body: 'Learn road safety rules and earn XP through interactive lessons.',
+        image: const SlideLearn(),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: "You're Ready!",
+        body: 'Complete lessons, submit reports, and earn XP to unlock new levels and badges.',
+        image: const XpPreview(),
+        decoration: deco,
+      ),
+    ];
   }
 
-  Future<void> _markRationaleShown() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('location_rationale_shown', true);
+  List<PageViewModel> _adminPages() {
+    final theme = Theme.of(context);
+    final deco = PageDecoration(
+      titleTextStyle: AppTextStyles.displayMedium,
+      bodyTextStyle: AppTextStyles.bodyLarge,
+      bodyPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      pageColor: theme.scaffoldBackgroundColor,
+      imagePadding: EdgeInsets.zero,
+      titlePadding: const EdgeInsets.only(top: 16),
+    );
+    if (widget.role == UserRole.sysadmin) {
+      return [
+        PageViewModel(
+          title: 'System Overview',
+          body: 'Monitor all barangays, manage user accounts, and oversee platform operations.',
+          image: const _SysAdminSlide(),
+          decoration: deco,
+        ),
+        PageViewModel(
+          title: 'Platform Analytics',
+          body: 'Access reports, track resolution rates, and generate insights across the city.',
+          image: const SlideLearn(isAdmin: true),
+          decoration: deco,
+        ),
+        PageViewModel(
+          title: "You're All Set!",
+          body: 'Monitor your jurisdiction, manage reports, and keep Valenzuela City moving safely.',
+          image: const _ReadySlide(),
+          decoration: deco,
+        ),
+      ];
+    }
+    return [
+      PageViewModel(
+        title: 'Manage Reports',
+        body: 'View, assign, and resolve road hazard reports submitted in your barangay.',
+        image: const SlideTrack(),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: 'Barangay Dashboard',
+        body: 'Oversee your jurisdiction with real-time stats and team coordination tools.',
+        image: const SlideLearn(isAdmin: true),
+        decoration: deco,
+      ),
+      PageViewModel(
+        title: "You're All Set!",
+        body: 'Start managing reports and keeping your barangay roads safe.',
+        image: const _ReadySlide(),
+        decoration: deco,
+      ),
+    ];
   }
 
-  void _nextStep() {
-    setState(() => _startStep = (_startStep ?? 0) + 1);
+  Future<void> _onDone() async {
+    final provider = context.read<OnboardingProvider>();
+    await provider.markTutorialSeen();
+    widget.onComplete?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_startStep == null) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    switch (_startStep) {
-      case 0:
-        return _buildTutorial();
-      case 1:
-        return _buildLocationRationale();
-      default:
-        return _buildReadyScreen();
-    }
-  }
-
-  Widget _buildImage(String assetName) {
-    return Center(
-      child: Image.asset(assetName, fit: BoxFit.contain),
-    );
-  }
-
-  Widget _buildTutorial() {
     final theme = Theme.of(context);
-
-    final pageDecoration = PageDecoration(
-      titleTextStyle: AppTextStyles.displayMedium,
-      bodyTextStyle: AppTextStyles.bodyLarge,
-      bodyPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-      pageColor: theme.scaffoldBackgroundColor,
-      imagePadding: EdgeInsets.zero,
+    return Scaffold(
+      body: IntroductionScreen(
+        key: _introKey,
+        globalBackgroundColor: theme.scaffoldBackgroundColor,
+        allowImplicitScrolling: true,
+        pages: _pages,
+        onDone: _onDone,
+        onSkip: _onDone,
+        showSkipButton: true,
+        skipOrBackFlex: 0,
+        nextFlex: 0,
+        skip: const Text('Skip', style: AppTextStyles.label),
+        next: const Icon(Icons.arrow_forward),
+        done: const Text("Let's Go!", style: AppTextStyles.label),
+        curve: Curves.fastLinearToSlowEaseIn,
+        controlsMargin: const EdgeInsets.all(16),
+        controlsPadding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+        dotsDecorator: DotsDecorator(
+          size: const Size(10, 10),
+          color: AppColors.border,
+          activeColor: theme.colorScheme.primary,
+          activeSize: const Size(22, 10),
+          activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        ),
+      ),
     );
+  }
+}
 
-    return IntroductionScreen(
-      key: const ValueKey('tutorial'),
-      globalBackgroundColor: theme.scaffoldBackgroundColor,
-      allowImplicitScrolling: true,
-      pages: [
-        PageViewModel(
-          title: 'Report Road Issues',
-          body:
-              'Capture and report road hazards, potholes, and other issues in your barangay.',
-          image: _buildImage('assets/images/home_page.webp'),
-          decoration: pageDecoration,
+class _SysAdminSlide extends StatelessWidget {
+  const _SysAdminSlide();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.scale;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: s(100), height: s(100),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(s(24)),
+          ),
+          child: Icon(Icons.admin_panel_settings, size: s(48), color: Theme.of(context).colorScheme.primary),
         ),
-        PageViewModel(
-          title: 'Track Your Reports',
-          body:
-              'View the status of your submitted reports and follow up on resolutions.',
-          image: _buildImage('assets/images/report_page.webp'),
-          decoration: pageDecoration,
+        SizedBox(height: s(16)),
+        _statRow(context, 'Barangays', '32 Active'),
+        SizedBox(height: s(8)),
+        _statRow(context, 'Total Reports', '1,284 Resolved'),
+        SizedBox(height: s(8)),
+        _statRow(context, 'Field Workers', '48 Online'),
+      ],
+    );
+  }
+
+  Widget _statRow(BuildContext context, String label, String value) {
+    final s = context.scale;
+    return Container(
+      width: s(220),
+      padding: EdgeInsets.symmetric(horizontal: s(12), vertical: s(8)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(s(8)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: s(13), fontWeight: FontWeight.w500)),
+          Text(value, style: TextStyle(fontSize: s(13), color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReadySlide extends StatelessWidget {
+  const _ReadySlide();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.scale;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: s(80), height: s(80),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(s(20)),
+          ),
+          child: Icon(Icons.check_circle_rounded, size: s(44), color: Colors.green.shade600),
         ),
-        PageViewModel(
-          title: 'Stay Informed',
-          body:
-              'Get real-time traffic advisories and road condition updates for Valenzuela City.',
-          image: _buildImage('assets/images/advisory.webp'),
-          decoration: pageDecoration,
-        ),
-        PageViewModel(
-          title: 'Road Safety Education',
-          body:
-              'Learn road safety rules and best practices through interactive lessons.',
-          image: _buildImage('assets/images/learning.webp'),
-          decoration: pageDecoration,
+        SizedBox(height: s(16)),
+        Text('You\'re all set!', style: TextStyle(fontSize: s(22), fontWeight: FontWeight.bold)),
+        SizedBox(height: s(8)),
+        Text(
+          'Start exploring and help make our roads safer.',
+          style: TextStyle(fontSize: s(14), color: Theme.of(context).colorScheme.onSurfaceVariant),
+          textAlign: TextAlign.center,
         ),
       ],
-      onDone: () async {
-        await _markTutorialSeen();
-        _nextStep();
-      },
-      onSkip: () async {
-        await _markTutorialSeen();
-        _nextStep();
-      },
-      showSkipButton: true,
-      skipOrBackFlex: 0,
-      nextFlex: 0,
-      skip: const Text('Skip', style: AppTextStyles.label),
-      next: const Icon(Icons.arrow_forward),
-      done: const Text('Done', style: AppTextStyles.label),
-      curve: Curves.fastLinearToSlowEaseIn,
-      controlsMargin: const EdgeInsets.all(16),
-      controlsPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-      dotsDecorator: DotsDecorator(
-        size: const Size(10.0, 10.0),
-        color: AppColors.border,
-        activeColor: theme.colorScheme.primary,
-        activeSize: const Size(22.0, 10.0),
-        activeShape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25.0)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLocationRationale() {
-    final theme = Theme.of(context);
-    final info = context.responsive;
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: info.horizontalPadding),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              Icon(
-                Icons.location_on_rounded,
-                size: info.scale(72),
-                color: theme.colorScheme.primary,
-              ),
-              SizedBox(height: info.scale(24)),
-              Text(
-                'Location Access',
-                style: AppTextStyles.displayMedium,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: info.scale(12)),
-              Text(
-                'To show your position on the map and tag incident reports '
-                'with the correct barangay, VCRoad needs access to your '
-                "device's location.\n\n"
-                'Your location is used only while the app is open and is '
-                'never shared outside the app.',
-                style: AppTextStyles.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(flex: 2),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _markRationaleShown();
-                    _nextStep();
-                  },
-                  child: const Text('Continue'),
-                ),
-              ),
-              SizedBox(height: info.scale(16)),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () async {
-                    await _markRationaleShown();
-                    _nextStep();
-                  },
-                  child: const Text('Skip'),
-                ),
-              ),
-              const Spacer(flex: 1),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReadyScreen() {
-    final theme = Theme.of(context);
-    final info = context.responsive;
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: info.horizontalPadding),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              Icon(
-                Icons.check_circle_rounded,
-                size: info.scale(80),
-                color: AppColors.success,
-              ),
-              SizedBox(height: info.scale(24)),
-              Text(
-                "You're all set!",
-                style: AppTextStyles.displayMedium,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: info.scale(12)),
-              Text(
-                'Start exploring VCRoad and help make our roads safer.',
-                style: AppTextStyles.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(flex: 2),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: widget.onComplete,
-                  child: const Text("Let's Go"),
-                ),
-              ),
-              const Spacer(flex: 1),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

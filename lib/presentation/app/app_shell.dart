@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vcroad/data/models/user.dart';
-import 'package:vcroad/presentation/shared/dialogs/reminder.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/utils/responsive/responsive_scope.dart';
 import 'package:vcroad/core/utils/routing/role_config.dart';
@@ -13,7 +12,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vcroad/data/models/advisory.dart';
 import 'package:vcroad/presentation/shared/dialogs/advisory_alert.dart';
 import 'package:vcroad/presentation/providers/location.dart';
-import 'package:vcroad/data/repositories/permission.dart';
+import 'package:vcroad/presentation/providers/onboarding.dart';
+import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/presentation/features/onboarding/screens/onboarding_screen.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 
 class AppScreen extends StatefulWidget {
   final UserRole role;
@@ -43,21 +45,11 @@ class _AppScreenState extends State<AppScreen> {
   @override
   void initState() {
     super.initState();
-    // Show reminder on every launch, then location rationale.
-    // Tutorial is handled by the onboarding screen before AppScreen is built.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final role = widget.userDetails?.role;
-      if (role == UserRole.user) {
-        await showReminderOnLaunch(context);
-        if (!mounted) return;
-      }
-
-      // Location rationale (self-gated — shows at most once per device).
-      if (mounted) {
-        await PermissionService.showLocationRationale(context);
-        if (!mounted) return;
-        context.read<LocationProvider>().start();
-      }
+      await _checkOnboarding();
+      if (!mounted) return;
+      _showWelcomeIfNeeded();
+      context.read<LocationProvider>().start();
     });
 
     // If this session is admin (local admin) or sysadmin, subscribe to pending reports count.
@@ -113,10 +105,70 @@ class _AppScreenState extends State<AppScreen> {
     }
   }
 
+  String _timeGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  void _showWelcomeIfNeeded() {
+    final userProvider = context.read<UserProvider>();
+    if (!userProvider.justLoggedIn) return;
+
+    final name = userProvider.user?.firstName ?? '';
+    final greeting = '${_timeGreeting()}, $name!';
+    final theme = Theme.of(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.waving_hand,
+              color: theme.colorScheme.onPrimary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                greeting,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+
+    userProvider.justLoggedIn = false;
+  }
+
+  Future<void> _checkOnboarding() async {
+    final onboarding = context.read<OnboardingProvider>();
+    if (onboarding.isOnboardingComplete) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => OnboardingScreen(
+          role: widget.role,
+          onComplete: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _pendingSub?.cancel();
-    _newAdvSub?.cancel(); // <-- added
+    _newAdvSub?.cancel();
     super.dispose();
   }
 
@@ -216,10 +268,7 @@ class _AppScreenState extends State<AppScreen> {
           }
 
           // map to model
-          final advisory = Advisory.fromJson(
-            data,
-            advisoryId: id,
-          );
+          final advisory = Advisory.fromJson(data, advisoryId: id);
           _alertQueue.add(advisory);
         }
 
@@ -265,6 +314,9 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!context.watch<OnboardingProvider>().isOnboardingComplete) {
+      return _OnboardingGate();
+    }
     return ResponsiveBuilder(
       child: Builder(
         builder: (context) {
@@ -278,7 +330,9 @@ class _AppScreenState extends State<AppScreen> {
             bucket: _bucket,
             hasWideLayout: isWideLayout,
             // only pass badge count to shell; shell will render it on index 1
-            reportsBadgeCount: widget.role == UserRole.admin
+            reportsBadgeCount:
+                (widget.role == UserRole.admin ||
+                    widget.role == UserRole.sysadmin)
                 ? _pendingCount
                 : null,
           );
@@ -291,5 +345,28 @@ class _AppScreenState extends State<AppScreen> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+}
+
+class _OnboardingGate extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(
+        child: Semantics(
+          label: 'Loading',
+          child: Image.asset(
+            'assets/images/vcroad.webp',
+            width: 120,
+            errorBuilder: (_, _, _) => Icon(
+              Icons.traffic,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

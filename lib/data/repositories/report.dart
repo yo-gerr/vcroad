@@ -1,80 +1,72 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
 import 'package:vcroad/data/models/report.dart';
+import 'package:vcroad/data/repositories/storage.dart';
 
 class ReportService {
   ReportService._();
   static final instance = ReportService._();
 
   final _firestore = FirebaseFirestore.instance;
-  // final _storage = FirebaseStorage.instance; // commented out: firebase_storage
+  final SupabaseStorageService _storage = SupabaseStorageService.instance;
 
-  // In-memory cache for report URLs (path -> download URL)
+  // In-memory cache for report storage paths -> public URLs
   final Map<String, String> _urlCache = {};
 
-  // Commented out: uploadReportMedia uses firebase_storage
-  // Future<Map<String, String>> uploadReportMedia({
-  //   required String userId,
-  //   required String reportId,
-  //   required MediaType mediaType,
-  //   required dynamic mediaData,
-  //   int maxRetries = 3,
-  // }) async {
-  //   final ext = mediaType == MediaType.photo ? 'jpg' : 'mp4';
-  //   final path = 'reports/$userId/$reportId/media.$ext';
-  //   final ref = _storage.ref(path);
-  //   Uint8List? dataBytes;
-  //   if (mediaType == MediaType.photo) {
-  //     if (mediaData is Uint8List) {
-  //       dataBytes = mediaData;
-  //     } else if (mediaData is String) {
-  //       dataBytes = await compute<_CompressArgs, Uint8List?>(
-  //         _compressImageIsolate,
-  //         _CompressArgs(path: mediaData, quality: 80, maxWidth: 1920),
-  //       );
-  //     }
-  //   } else {
-  //     if (mediaData is Uint8List) {
-  //       dataBytes = mediaData;
-  //     } else if (mediaData is String) {
-  //       dataBytes = await compute<String, Uint8List?>(
-  //         _readFileAsBytesIsolate,
-  //         mediaData,
-  //       );
-  //     }
-  //   }
-  //   if (dataBytes == null) {
-  //     throw ArgumentError('Unsupported media data or compression failed');
-  //   }
-  //   int attempt = 0;
-  //   while (attempt < maxRetries) {
-  //     try {
-  //       UploadTask task;
-  //       final metadata = SettableMetadata(
-  //         contentType: mediaType == MediaType.photo
-  //             ? 'image/jpeg'
-  //             : 'video/mp4',
-  //         cacheControl: 'public, max-age=31536000',
-  //         customMetadata: {
-  //           'userId': userId,
-  //           'reportId': reportId,
-  //           'uploadedAt': DateTime.now().toIso8601String(),
-  //         },
-  //       );
-  //       task = ref.putData(dataBytes, metadata);
-  //       final snapshot = await task.whenComplete(() {});
-  //       final downloadUrl = await snapshot.ref.getDownloadURL();
-  //       _urlCache[path] = downloadUrl;
-  //       return {'mediaPath': path, 'mediaUrl': downloadUrl};
-  //     } catch (e) {
-  //       attempt++;
-  //       if (attempt >= maxRetries) rethrow;
-  //       await Future.delayed(Duration(seconds: attempt * 2));
-  //     }
-  //   }
-  //   throw Exception('Upload failed after $maxRetries attempts');
-  // }
+  Future<Map<String, String>> uploadReportMedia({
+    required String userId,
+    required String reportId,
+    required MediaType mediaType,
+    required dynamic mediaData,
+    int maxRetries = 3,
+  }) async {
+    final ext = mediaType == MediaType.photo ? 'jpg' : 'mp4';
+    final path = 'reports/$userId/$reportId/media.$ext';
+    Uint8List? dataBytes;
+    if (mediaType == MediaType.photo) {
+      if (mediaData is Uint8List) {
+        dataBytes = mediaData;
+      } else if (mediaData is String) {
+        dataBytes = await compute<_CompressArgs, Uint8List?>(
+          _compressImageIsolate,
+          _CompressArgs(path: mediaData, quality: 80, maxWidth: 1920),
+        );
+      }
+    } else {
+      if (mediaData is Uint8List) {
+        dataBytes = mediaData;
+      } else if (mediaData is String) {
+        dataBytes = await compute<String, Uint8List?>(
+          _readFileAsBytesIsolate,
+          mediaData,
+        );
+      }
+    }
+    if (dataBytes == null) {
+      throw ArgumentError('Unsupported media data or compression failed');
+    }
+    int attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        final contentType = mediaType == MediaType.photo ? 'image/jpeg' : 'video/mp4';
+        final publicUrl = await _storage.uploadBytes(
+          path: path,
+          bytes: dataBytes,
+          contentType: contentType,
+        );
+        _urlCache[path] = publicUrl;
+        return {'mediaPath': path, 'mediaUrl': publicUrl};
+      } catch (e) {
+        attempt++;
+        if (attempt >= maxRetries) rethrow;
+        await Future.delayed(Duration(seconds: attempt * 2));
+      }
+    }
+    throw Exception('Upload failed after $maxRetries attempts');
+  }
 
   /// Submit a new report with media upload
   Future<String> submitReport(ReportData report) async {
@@ -741,22 +733,21 @@ class ReportService {
     return _urlCache[mediaPath];
   }
 
-  // Commented out: getDownloadUrl uses firebase_storage
-  // Future<String?> getDownloadUrl(String mediaPath) async {
-  //   if (_urlCache.containsKey(mediaPath)) {
-  //     return _urlCache[mediaPath];
-  //   }
-  //   try {
-  //     final url = await _storage.ref(mediaPath).getDownloadURL();
-  //     _urlCache[mediaPath] = url;
-  //     return url;
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print('❌ Error fetching download URL: $e');
-  //     }
-  //     return null;
-  //   }
-  // }
+  Future<String?> getDownloadUrl(String mediaPath) async {
+    if (_urlCache.containsKey(mediaPath)) {
+      return _urlCache[mediaPath];
+    }
+    try {
+      final url = _storage.getPublicUrl(mediaPath);
+      _urlCache[mediaPath] = url;
+      return url;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error fetching download URL: $e');
+      }
+      return null;
+    }
+  }
 
   /// Get reports statistics
   Future<Map<String, int>> getReportsStatistics() async {
@@ -912,4 +903,34 @@ class ReportService {
   }
 }
 
+class _CompressArgs {
+  final String path;
+  final int quality;
+  final int maxWidth;
+  _CompressArgs({
+    required this.path,
+    required this.quality,
+    required this.maxWidth,
+  });
+}
+
+Uint8List? _compressImageIsolate(_CompressArgs args) {
+  try {
+    final bytes = File(args.path).readAsBytesSync();
+    final image = img.decodeImage(bytes);
+    if (image == null) return null;
+    final resized = img.copyResize(image, width: args.maxWidth);
+    return Uint8List.fromList(img.encodeJpg(resized, quality: args.quality));
+  } catch (_) {
+    return null;
+  }
+}
+
+Uint8List? _readFileAsBytesIsolate(String path) {
+  try {
+    return File(path).readAsBytesSync();
+  } catch (_) {
+    return null;
+  }
+}
 

@@ -15,7 +15,6 @@ class MapControls extends StatelessWidget {
     required this.info,
   });
 
-  // NOTE: positioning is now the caller's responsibility (e.g. AnimatedPositioned).
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -58,8 +57,10 @@ class _MapControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Material(
-      color: isActive ? const Color(0xFF1565C0) : Colors.white,
+      color: isActive ? cs.primary : cs.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 4,
       child: Tooltip(
@@ -79,7 +80,7 @@ class _MapControlButton extends StatelessWidget {
               child: Icon(
                 icon,
                 size: info.scale(24),
-                color: isActive ? Colors.white : const Color(0xFF1565C0),
+                color: isActive ? cs.onPrimary : cs.primary,
               ),
             ),
           ),

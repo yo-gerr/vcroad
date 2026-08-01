@@ -46,6 +46,7 @@ class InputStyles {
     fillColor: inputFillColor,
     labelStyle: labelStyle,
     hintStyle: TextStyle(color: Colors.white70),
+    helperStyle: TextStyle(color: Colors.white70, fontSize: 12),
     floatingLabelBehavior: FloatingLabelBehavior.never,
     border: border,
     enabledBorder: border,
@@ -60,6 +61,7 @@ class InputStyles {
   static InputDecoration decoration({
     String? label,
     String? hint,
+    String? helperText,
     Widget? prefix,
     Widget? suffix,
     Widget? suffixIcon,
@@ -74,6 +76,7 @@ class InputStyles {
     return baseDecoration.copyWith(
       labelText: label,
       hintText: hint,
+      helperText: helperText,
       prefix: prefix,
       suffix: suffix,
       prefixIcon: prefixIcon,

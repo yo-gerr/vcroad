@@ -52,6 +52,18 @@ class AppTheme {
       style: OutlinedButton.styleFrom(textStyle: const TextStyle(fontFamily: 'Poppins')),
     ),
     appBarTheme: const AppBarTheme(elevation: 0, centerTitle: true),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: Colors.grey,
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: Colors.white,
+      selectedIconTheme: const IconThemeData(color: AppColors.primary),
+      unselectedIconTheme: const IconThemeData(color: Colors.grey),
+      selectedLabelTextStyle: const TextStyle(color: AppColors.primary),
+      unselectedLabelTextStyle: const TextStyle(color: Colors.grey),
+    ),
   );
 
   static ThemeData dark() => ThemeData(

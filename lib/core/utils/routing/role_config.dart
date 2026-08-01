@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/presentation/features/home/screens/home_screen.dart';
 import 'package:vcroad/presentation/features/reports/screens/report_screen.dart';
 import 'package:vcroad/presentation/features/advisories/screens/advisory_screen.dart';
-import 'package:vcroad/presentation/features/learning/screens/learn_screen.dart';
-import 'package:vcroad/presentation/features/learning/screens/lesson_management_screen.dart';
 import 'package:vcroad/presentation/features/admin/screens/account_screen.dart';
+import 'package:vcroad/presentation/features/lesson/screens/lesson_browser_screen.dart';
+import 'package:vcroad/presentation/features/lesson/screens/lesson_list_screen.dart';
 import 'package:vcroad/presentation/features/profile/screens/profile_screen.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/core/utils/routing/role_ui_config.dart';
@@ -66,7 +67,13 @@ class RoleConfig {
           label: Text('Profile'),
         ),
       ],
-      screens: [Home(), Report(), AdvisoryScreen(), Learn(), Profile()],
+      screens: [
+        Home(),
+        Report(),
+        AdvisoryScreen(),
+        LessonBrowserScreen(),
+        Profile(),
+      ],
       drawerBuilder: (selectedIndex, onTap) => [
         const DrawerHeader(
           decoration: BoxDecoration(
@@ -98,7 +105,13 @@ class RoleConfig {
           selectedIndex,
           onTap,
         ),
-        _buildDrawerItem(Icons.school, 'Learn', 3, selectedIndex, onTap),
+        _buildDrawerItem(
+          Icons.school,
+          'Learn',
+          3,
+          selectedIndex,
+          onTap,
+        ),
         const Divider(),
         _buildDrawerItem(Icons.person, 'Profile', 4, selectedIndex, onTap),
       ],
@@ -119,6 +132,11 @@ class RoleConfig {
           icon: Icon(Icons.announcement_outlined),
           activeIcon: Icon(Icons.announcement),
           label: 'Advisory',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.school_outlined),
+          activeIcon: Icon(Icons.school),
+          label: 'Learn',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.manage_accounts_outlined),
@@ -148,6 +166,11 @@ class RoleConfig {
           label: Text('Advisory'),
         ),
         NavigationRailDestination(
+          icon: Icon(Icons.school_outlined),
+          selectedIcon: Icon(Icons.school),
+          label: Text('Learn'),
+        ),
+        NavigationRailDestination(
           icon: Icon(Icons.manage_accounts_outlined),
           selectedIcon: Icon(Icons.manage_accounts),
           label: Text('Accounts'),
@@ -159,9 +182,10 @@ class RoleConfig {
         ),
       ],
       screens: [
-        Home(), // Admin dashboard
+        Home(),
         Report(),
         AdvisoryScreen(),
+        LessonListScreen(),
         Account(),
         Profile(),
       ],
@@ -205,14 +229,21 @@ class RoleConfig {
           onTap,
         ),
         _buildDrawerItem(
-          Icons.manage_accounts,
-          'Accounts',
+          Icons.school,
+          'Learn',
           3,
           selectedIndex,
           onTap,
         ),
+        _buildDrawerItem(
+          Icons.manage_accounts,
+          'Accounts',
+          4,
+          selectedIndex,
+          onTap,
+        ),
         const Divider(),
-        _buildDrawerItem(Icons.person, 'Profile', 4, selectedIndex, onTap),
+        _buildDrawerItem(Icons.person, 'Profile', 5, selectedIndex, onTap),
       ],
     ),
     UserRole.sysadmin: RoleUIConfig(
@@ -235,7 +266,7 @@ class RoleConfig {
         BottomNavigationBarItem(
           icon: Icon(Icons.school_outlined),
           activeIcon: Icon(Icons.school),
-          label: 'Lessons',
+          label: 'Learn',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.manage_accounts_outlined),
@@ -267,7 +298,7 @@ class RoleConfig {
         NavigationRailDestination(
           icon: Icon(Icons.school_outlined),
           selectedIcon: Icon(Icons.school),
-          label: Text('Lessons'),
+          label: Text('Learn'),
         ),
         NavigationRailDestination(
           icon: Icon(Icons.manage_accounts_outlined),
@@ -284,7 +315,7 @@ class RoleConfig {
         Home(), // Sysadmin dashboard
         Report(),
         AdvisoryScreen(),
-        Lesson(),
+        LessonListScreen(),
         Account(),
         Profile(),
       ],
@@ -327,7 +358,13 @@ class RoleConfig {
           selectedIndex,
           onTap,
         ),
-        _buildDrawerItem(Icons.school, 'Lessons', 3, selectedIndex, onTap),
+        _buildDrawerItem(
+          Icons.school,
+          'Learn',
+          3,
+          selectedIndex,
+          onTap,
+        ),
         _buildDrawerItem(
           Icons.manage_accounts,
           'Accounts',
@@ -350,12 +387,12 @@ class RoleConfig {
   ) {
     final isSelected = index == selectedIndex;
     return ListTile(
-      leading: Icon(icon, color: isSelected ? Colors.blue : null),
+      leading: Icon(icon, color: isSelected ? AppColors.primary : null),
       title: Text(
         label,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.blue : null,
+          color: isSelected ? AppColors.primary : null,
         ),
       ),
       selected: isSelected,

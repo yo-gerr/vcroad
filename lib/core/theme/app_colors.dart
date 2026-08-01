@@ -45,4 +45,7 @@ class AppColors {
   static const exportRedLine = Color(0xFFCC0000);
   static const exportBlue = Color(0xFF0066CC);
   static const exportNearBlack = Color(0xFF111111);
+
+  static Color primaryAdaptive(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? Colors.white : primary;
 }

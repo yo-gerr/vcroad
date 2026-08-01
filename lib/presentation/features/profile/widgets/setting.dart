@@ -9,7 +9,7 @@ import 'package:vcroad/data/repositories/image.dart';
 import 'package:vcroad/presentation/shared/dialogs/confirmation.dart';
 import 'package:vcroad/presentation/shared/dialogs/loading.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
-import 'package:vcroad/presentation/features/profile/widgets/details.dart';
+import 'package:vcroad/core/constants/config.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart'; // <-- Import SnackbarUtils
 import 'package:vcroad/presentation/providers/theme.dart';
 import 'package:vcroad/presentation/features/auth/widgets/faq.dart';
@@ -49,6 +49,7 @@ class AccountSettings extends StatelessWidget {
         dense: true,
         contentPadding: EdgeInsets.zero,
         horizontalTitleGap: 12,
+        trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
       );
     }
 
@@ -59,11 +60,7 @@ class AccountSettings extends StatelessWidget {
         buildItem(
           icon: Icons.info_outline,
           label: 'Profile Details',
-          onTap: () {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const ProfileDetails()));
-          },
+          onTap: () => context.push('/profile-details'),
         ),
         const SizedBox(height: 8),
         // Help section (FAQ + Support) - available to all roles
@@ -81,7 +78,7 @@ class AccountSettings extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text('Appearance', style: sectionTitleStyle),
-        Divider(height: 12, color: Colors.grey.shade200),
+        Divider(height: 12, color: colorScheme.outlineVariant),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: _ThemeSelector(),
@@ -195,7 +192,7 @@ class AccountSettings extends StatelessWidget {
         const SizedBox(height: 32),
         Center(
           child: Text(
-            'VCRoad v2.0.0',
+            '${AppConfig.appName} ${AppConfig.appVersion}',
             style: TextStyle(
               fontSize: 12,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),

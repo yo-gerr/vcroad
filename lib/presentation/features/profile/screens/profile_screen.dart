@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/providers/user.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/presentation/features/profile/widgets/header.dart';
 import 'package:vcroad/presentation/features/profile/widgets/activity_badges.dart';
 import 'package:vcroad/presentation/features/profile/widgets/setting.dart';
@@ -26,9 +27,11 @@ class Profile extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.primary,
         title: Text(
           'Profile',
           style: TextStyle(
+            color: Colors.white,
             fontSize: context.responsive.scaleFont(18),
           ),
         ),
