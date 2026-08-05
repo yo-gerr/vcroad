@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/stats.dart';
 import 'package:vcroad/data/repositories/barangay.dart';
 import 'package:vcroad/data/repositories/google_sheets.dart';
@@ -8,9 +9,8 @@ import 'package:vcroad/core/utils/debouncer/debouncer.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/utils/responsive/responsive.dart';
 import 'package:vcroad/core/utils/format/date_time.dart';
-import 'package:vcroad/presentation/shared/dialogs/confirmation.dart';
-import 'package:vcroad/presentation/shared/dialogs/loading.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
+import 'package:vcroad/presentation/features/home/widgets/stats_common.dart';
 
 /// Lightweight in-file model for barangay report stats.
 /// If you already have a shared model, replace/remove this
@@ -111,6 +111,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
   @override
   Widget build(BuildContext context) {
     final ResponsiveInfo info = context.responsive;
+    final colorScheme = Theme.of(context).colorScheme;
     final sorted = List<BarangayReportStat>.from(_filtered)
       // remove zero-total barangays (hide rows with zero reports)
       ..removeWhere((s) => s.total == 0)
@@ -125,7 +126,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF001278),
+        backgroundColor: AppColors.primary,
         iconTheme: const IconThemeData(color: Colors.white),
         leading: Semantics(
           label: 'Back',
@@ -176,26 +177,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      hintText: 'Search barangay',
-                      isDense: true,
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onChanged: _onSearchChanged,
-                  ),
-                ),
+                Expanded(child: StatsSearchField(onChanged: _onSearchChanged)),
                 SizedBox(width: info.scale(12)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -209,7 +191,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
                         'Filter: "$_query"',
                         style: TextStyle(
                           fontSize: info.scaleFont(11),
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                   ],
@@ -221,7 +203,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
               width: double.infinity,
               padding: EdgeInsets.all(info.scale(12)),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
@@ -261,16 +243,12 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
               ),
             ),
             SizedBox(height: info.scale(12)),
-            Row(
-              children: [
-                _legend(info, 'Verified', Colors.green),
-                SizedBox(width: info.scale(12)),
-                _legend(info, 'Resolved', Colors.blue),
-                SizedBox(width: info.scale(12)),
-                _legend(info, 'Flagged', Colors.red),
-                SizedBox(width: info.scale(12)),
-                _legend(info, 'Pending', Colors.grey),
-                const Spacer(),
+            StatsLegend(
+              items: const [
+                ('Verified', Colors.green),
+                ('Resolved', Colors.blue),
+                ('Flagged', Colors.red),
+                ('Pending', Colors.grey),
               ],
             ),
             SizedBox(height: info.scale(12)),
@@ -295,7 +273,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
             Text(
               'as of ${DateFormatUtils.formatFriendly(widget.timestamp)}',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: info.scaleFont(12),
               ),
             ),
@@ -317,6 +295,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
     Color color = Colors.grey,
     CrossAxisAlignment align = CrossAxisAlignment.start,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: align,
       children: [
@@ -324,7 +303,7 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
           label,
           style: TextStyle(
             fontSize: info.scaleFont(12),
-            color: Colors.grey[700],
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
         SizedBox(height: info.scale(6)),
@@ -340,39 +319,17 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
     );
   }
 
-  Widget _legend(ResponsiveInfo info, String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: info.scale(12),
-          height: info.scale(12),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        SizedBox(width: info.scale(6)),
-        Text(label, style: TextStyle(fontSize: info.scaleFont(12))),
-      ],
-    );
-  }
-
   Future<void> _exportBarangay(BarangayReportStat s) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await confirmStatsExport(
       context: context,
-      builder: (_) => ConfirmationDialog(
-        title: 'Export ${s.barangay}',
-        message:
-            'Create a Google Sheet containing report stats for ${s.barangay}?',
-        confirmText: 'Export',
-        cancelText: 'Cancel',
-      ),
+      title: 'Export ${s.barangay}',
+      message:
+          'Create a Google Sheet containing report stats for ${s.barangay}?',
     );
     if (confirmed != true) return;
 
     if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const LoadingDialog(message: 'Exporting...'),
-    );
+    showExportLoading(context, 'Exporting...');
 
     try {
       final result = await GoogleSheetsService.instance
@@ -414,25 +371,17 @@ class _BarangayReportStatsState extends State<BarangayReportStats> {
       SnackbarUtils.show(context, 'No barangay data to export');
       return;
     }
-    final confirmed = await showDialog<bool>(
+    final confirmed = await confirmStatsExport(
       context: context,
-      builder: (_) => ConfirmationDialog(
-        title: 'Export all visible barangays',
-        message:
-            'Create a Google Sheet for the ${_filtered.length} visible barangays?',
-        confirmText: 'Export',
-        cancelText: 'Cancel',
-      ),
+      title: 'Export all visible barangays',
+      message:
+          'Create a Google Sheet for the ${_filtered.length} visible barangays?',
     );
     if (confirmed != true) return;
 
     if (!mounted) return;
     setState(() => _exporting = true);
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const LoadingDialog(message: 'Exporting...'),
-    );
+    showExportLoading(context, 'Exporting...');
 
     try {
       final rows = _filtered
@@ -492,6 +441,7 @@ class _RowStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final verified = stat.verified.toDouble();
     final resolved = stat.resolved.toDouble();
     final flagged = stat.flagged.toDouble();
@@ -508,113 +458,118 @@ class _RowStat extends StatelessWidget {
 
     final logo = _lookupBarangayLogo(stat.barangay);
 
-    return InkWell(
-      onTap: () => _showDetails(context),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: info.scale(12),
-          vertical: info.scale(8),
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(right: info.scale(8)),
-              child: _buildLogoWidget(context, logo, stat.barangay, info),
-            ),
-            Expanded(
-              flex: 3,
-              child: Text(
-                stat.barangay,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: info.scaleFont(14)),
+    return Semantics(
+      button: true,
+      label:
+          '${stat.barangay}: ${stat.total} total reports, ${stat.verified} verified, ${stat.resolved} resolved, ${stat.flagged} flagged',
+      child: InkWell(
+        onTap: () => _showDetails(context),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: info.scale(12),
+            vertical: info.scale(8),
+          ),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
               ),
-            ),
-            SizedBox(width: info.scale(12)),
-            Expanded(
-              flex: 5,
-              child: Stack(
-                children: [
-                  Container(
-                    width: barMaxWidth,
-                    height: info.scale(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(6),
+            ],
+          ),
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(right: info.scale(8)),
+                child: _buildLogoWidget(context, logo, stat.barangay, info),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  stat.barangay,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: info.scaleFont(14)),
+                ),
+              ),
+              SizedBox(width: info.scale(12)),
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: barMaxWidth,
+                      height: info.scale(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      if (verifiedWidth > 0)
-                        Container(
-                          width: verifiedWidth,
-                          height: info.scale(16),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: const BorderRadius.horizontal(
-                              left: Radius.circular(6),
+                    Row(
+                      children: [
+                        if (verifiedWidth > 0)
+                          Container(
+                            width: verifiedWidth,
+                            height: info.scale(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: const BorderRadius.horizontal(
+                                left: Radius.circular(6),
+                              ),
                             ),
                           ),
-                        ),
-                      if (resolvedWidth > 0)
-                        Container(
-                          width: resolvedWidth,
-                          height: info.scale(16),
-                          decoration: BoxDecoration(color: Colors.blue),
-                        ),
-                      if (flaggedWidth > 0)
-                        Container(
-                          width: flaggedWidth,
-                          height: info.scale(16),
-                          decoration: BoxDecoration(color: Colors.red),
-                        ),
-                      if (pendingWidth > 0)
-                        Container(
-                          width: pendingWidth,
-                          height: info.scale(16),
-                          decoration: BoxDecoration(color: Colors.grey),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: info.scale(12)),
-            SizedBox(
-              width: info.scale(64),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${stat.total}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: info.scaleFont(13),
+                        if (resolvedWidth > 0)
+                          Container(
+                            width: resolvedWidth,
+                            height: info.scale(16),
+                            decoration: BoxDecoration(color: Colors.blue),
+                          ),
+                        if (flaggedWidth > 0)
+                          Container(
+                            width: flaggedWidth,
+                            height: info.scale(16),
+                            decoration: BoxDecoration(color: Colors.red),
+                          ),
+                        if (pendingWidth > 0)
+                          Container(
+                            width: pendingWidth,
+                            height: info.scale(16),
+                            decoration: BoxDecoration(color: Colors.grey),
+                          ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: info.scale(4)),
-                  Text(
-                    '${stat.verified}/${stat.resolved}/${stat.flagged}',
-                    style: TextStyle(
-                      fontSize: info.scaleFont(11),
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(width: info.scale(12)),
+              SizedBox(
+                width: info.scale(64),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${stat.total}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: info.scaleFont(13),
+                      ),
+                    ),
+                    SizedBox(height: info.scale(4)),
+                    Text(
+                      '${stat.verified}/${stat.resolved}/${stat.flagged}',
+                      style: TextStyle(
+                        fontSize: info.scaleFont(11),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -644,7 +599,7 @@ class _RowStat extends StatelessWidget {
                 width: info.scale(40),
                 height: info.scale(4),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -667,9 +622,10 @@ class _RowStat extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _countColumn('Total', stat.total.toString(), info),
+                  _countColumn(ctx, 'Total', stat.total.toString(), info),
                   SizedBox(width: info.scale(18)),
                   _countColumn(
+                    ctx,
                     'Pending',
                     stat.pending.toString(),
                     info,
@@ -677,6 +633,7 @@ class _RowStat extends StatelessWidget {
                   ),
                   SizedBox(width: info.scale(18)),
                   _countColumn(
+                    ctx,
                     'Verified',
                     stat.verified.toString(),
                     info,
@@ -684,6 +641,7 @@ class _RowStat extends StatelessWidget {
                   ),
                   SizedBox(width: info.scale(18)),
                   _countColumn(
+                    ctx,
                     'Resolved',
                     stat.resolved.toString(),
                     info,
@@ -691,6 +649,7 @@ class _RowStat extends StatelessWidget {
                   ),
                   SizedBox(width: info.scale(18)),
                   _countColumn(
+                    ctx,
                     'Flagged',
                     stat.flagged.toString(),
                     info,
@@ -716,12 +675,7 @@ class _RowStat extends StatelessWidget {
                         if (onExport != null) {
                           // parent-provided handler
                           try {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) =>
-                                  const LoadingDialog(message: 'Exporting...'),
-                            );
+                            showExportLoading(context, 'Exporting...');
                             await onExport!(stat);
                             if (!context.mounted) return;
                             Navigator.of(context).pop();
@@ -760,6 +714,7 @@ class _RowStat extends StatelessWidget {
   }
 
   Widget _countColumn(
+    BuildContext context,
     String label,
     String value,
     ResponsiveInfo info, {
@@ -772,7 +727,7 @@ class _RowStat extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: info.scaleFont(16),
-            color: color ?? Colors.black,
+            color: color ?? Theme.of(context).colorScheme.onSurface,
           ),
         ),
         SizedBox(height: info.scale(4)),
@@ -794,6 +749,7 @@ class _RowStat extends StatelessWidget {
     String name,
     ResponsiveInfo info,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final double size = info.scale(40);
     final int cacheW = (size * MediaQuery.of(context).devicePixelRatio).toInt();
 
@@ -804,7 +760,7 @@ class _RowStat extends StatelessWidget {
           .toUpperCase();
       return CircleAvatar(
         radius: size / 2,
-        backgroundColor: Colors.blueGrey.shade700,
+        backgroundColor: colorScheme.primary,
         child: Text(
           initials.isEmpty ? '?' : initials,
           style: TextStyle(color: Colors.white, fontSize: info.scaleFont(12)),
@@ -829,7 +785,7 @@ class _RowStat extends StatelessWidget {
             return Container(
               width: size,
               height: size,
-              color: Colors.grey.shade100,
+              color: colorScheme.surfaceContainerHighest,
               child: Center(
                 child: SizedBox(
                   width: size * 0.4,

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/data/repositories/account.dart';
 import 'package:vcroad/core/utils/format/text.dart';
@@ -14,11 +15,21 @@ class AccountProvider extends ChangeNotifier {
 
   List<UserDetails> _users = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _errorMessage;
   String _searchQuery = '';
   final List<UserRole> _roleFilters = [];
   final List<String> _statusFilters = [];
   String? _barangayFilter;
+
+  // Pagination state
+  static const int _pageSize = 20;
+  DocumentSnapshot? _cursor;
+  bool _hasMore = true;
+  bool _initialized = false;
+
+  // Increments on every first-page reload; stale responses are discarded.
+  int _listSeq = 0;
 
   // New: avatar cache map (userId -> downloadUrl)
   final Map<String, String?> _avatarUrls = {};
@@ -67,122 +78,131 @@ class AccountProvider extends ChangeNotifier {
     }
   }
 
-  /// Optional: preload actor names for visible users (call after loadUsers)
-  void preloadActorNamesFor(List<UserDetails> users) {
-    for (final u in users) {
-      if (u.verifiedBy != null && !_actorNames.containsKey(u.verifiedBy)) {
-        ensureActorName(u.verifiedBy!);
-      }
-      if (u.banBy != null && !_actorNames.containsKey(u.banBy)) {
-        ensureActorName(u.banBy!);
-      }
-      if (u.unbannedBy != null && !_actorNames.containsKey(u.unbannedBy)) {
-        ensureActorName(u.unbannedBy!);
-      }
-    }
-  }
-
   List<UserDetails> get users => _users;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
   String? get errorMessage => _errorMessage;
   String get searchQuery => _searchQuery;
   List<UserRole> get roleFilters => _roleFilters;
   List<String> get statusFilters => _statusFilters;
   String? get barangayFilter => _barangayFilter;
 
-  /// Load initial users
+  /// True once the initial user load has completed on this provider instance.
+  bool get isInitialized => _initialized;
+
+  /// Reloads the first page of users (clears any accumulated results/cursor).
+  /// A sequence token discards stale responses so rapid search/filter changes
+  /// never let an older (slower) query overwrite the latest results.
   Future<void> loadUsers() async {
+    final seq = ++_listSeq;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      List<UserRole>? effectiveRoleFilters = _roleFilters.isEmpty
-          ? null
-          : _roleFilters;
-      List<String>? effectiveStatusFilters = _statusFilters.isEmpty
-          ? null
-          : _statusFilters;
-      String? effectiveBarangayFilter = _barangayFilter;
-
-      // Do NOT override here; service enforces admin scope. Keep filters only for sysadmin.
-      if (_currentUser?.role == UserRole.admin) {
-        effectiveRoleFilters = null; // ignored anyway
-        effectiveBarangayFilter = null;
+      final page = await _fetchUsersPage(startOver: true);
+      if (seq == _listSeq) {
+        _users = page.users;
+        _cursor = page.cursor;
+        _hasMore = page.hasMore;
+        _initialized = true;
       }
-
-      _users = await AccountService.instance.getUsers(
-        roleFilters: effectiveRoleFilters,
-        statusFilters: effectiveStatusFilters,
-        barangayFilter: effectiveBarangayFilter,
-        currentUser: _currentUser,
-      );
-      // _prefetchAvatars(_users); // commented out: uses firebase_storage
     } catch (e) {
-      _errorMessage = 'Failed to load users: $e';
+      if (seq == _listSeq) {
+        _errorMessage = 'Unable to load users. Please try again.';
+        debugPrint('AccountProvider.loadUsers failed: $e');
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (seq == _listSeq) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
-  // Commented out: _prefetchAvatars uses firebase_storage (getDownloadUrlCached)
-  // Future<void> _prefetchAvatars(List<UserDetails> users) async {
-  //   for (final u in users) {
-  //     if (u.selfiePath == null || u.selfiePath!.isEmpty) {
-  //       _avatarUrls[u.userId] = null;
-  //       continue;
-  //     }
-  //     ImageService.getDownloadUrlCached(u.selfiePath!)
-  //         .then((url) {
-  //           _avatarUrls[u.userId] = url;
-  //           notifyListeners();
-  //         })
-  //         .catchError((_) {
-  //           _avatarUrls[u.userId] = null;
-  //         });
-  //   }
-  // }
-
-  /// Search users
-  Future<void> searchUsers(String query) async {
-    _searchQuery = query;
-    if (query.trim().isEmpty) {
-      await loadUsers();
-      return;
-    }
-    _isLoading = true;
-    _errorMessage = null;
+  /// Appends the next page of results for infinite scroll.
+  Future<void> loadMore() async {
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final seq = _listSeq;
+    _isLoadingMore = true;
     notifyListeners();
 
     try {
-      List<UserRole>? effectiveRoleFilters = _roleFilters.isEmpty
-          ? null
-          : _roleFilters;
-      List<String>? effectiveStatusFilters = _statusFilters.isEmpty
-          ? null
-          : _statusFilters;
-      String? effectiveBarangayFilter = _barangayFilter;
-
-      if (_currentUser?.role == UserRole.admin) {
-        effectiveRoleFilters = null;
-        effectiveBarangayFilter = null;
+      final page = await _fetchUsersPage();
+      if (seq == _listSeq) {
+        _users.addAll(page.users);
+        _cursor = page.cursor;
+        _hasMore = page.hasMore;
+        notifyListeners();
       }
+    } catch (_) {
+      // Silently stop pagination on error; hasMore stays so a retry may work.
+    } finally {
+      if (seq == _listSeq) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
+    }
+  }
 
-      _users = await AccountService.instance.searchUsers(
-        query: query,
-        roleFilters: effectiveRoleFilters,
-        statusFilters: effectiveStatusFilters,
-        barangayFilter: effectiveBarangayFilter,
+  Future<({List<UserDetails> users, DocumentSnapshot? cursor, bool hasMore})>
+  _fetchUsersPage({bool startOver = false}) async {
+    if (!startOver && _cursor == null) {
+      return (users: const <UserDetails>[], cursor: null, hasMore: false);
+    }
+
+    final effectiveRole = _effectiveRoleFilters();
+    final effectiveStatus = _effectiveStatusFilters();
+    final effectiveBarangay = _effectiveBarangayFilter();
+
+    final isSearching = _searchQuery.trim().isNotEmpty;
+    if (isSearching) {
+      return await AccountService.instance.searchUsers(
+        query: _searchQuery,
+        roleFilters: effectiveRole,
+        statusFilters: effectiveStatus,
+        barangayFilter: effectiveBarangay,
+        hitsPerPage: _pageSize,
+        startAfter: startOver ? null : _cursor,
         currentUser: _currentUser,
       );
-      // _prefetchAvatars(_users); // commented out: uses firebase_storage
-    } catch (e) {
-      _errorMessage = 'Search failed: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
+
+    return await AccountService.instance.getUsers(
+      limit: _pageSize,
+      startAfter: startOver ? null : _cursor,
+      roleFilters: effectiveRole,
+      statusFilters: effectiveStatus,
+      barangayFilter: effectiveBarangay,
+      currentUser: _currentUser,
+    );
+  }
+
+  List<UserRole>? _effectiveRoleFilters() {
+    if (_currentUser?.role == UserRole.admin) return null;
+    return _roleFilters.isEmpty ? null : _roleFilters;
+  }
+
+  List<String>? _effectiveStatusFilters() =>
+      _statusFilters.isEmpty ? null : List.of(_statusFilters);
+
+  String? _effectiveBarangayFilter() {
+    if (_currentUser?.role == UserRole.admin) return null;
+    return _barangayFilter;
+  }
+
+  /// Whether any filter/search is currently narrowing the visible list.
+  bool get hasActiveFilters =>
+      _searchQuery.trim().isNotEmpty ||
+      _roleFilters.isNotEmpty ||
+      _statusFilters.isNotEmpty ||
+      _barangayFilter != null;
+
+  /// Sets the active search query and reloads the first page.
+  Future<void> searchUsers(String query) async {
+    _searchQuery = query;
+    await loadUsers();
   }
 
   /// Toggle role filter
@@ -230,13 +250,20 @@ class AccountProvider extends ChangeNotifier {
     _applyFilters();
   }
 
-  /// Apply current filters
-  Future<void> _applyFilters() async {
-    if (_searchQuery.trim().isNotEmpty) {
-      await searchUsers(_searchQuery);
-    } else {
-      await loadUsers();
+  /// Reset everything (query + filters) back to the unfiltered list.
+  void reset() {
+    _searchQuery = '';
+    _statusFilters.clear();
+    if (_currentUser?.role != UserRole.admin) {
+      _roleFilters.clear();
+      _barangayFilter = null;
     }
+    _applyFilters();
+  }
+
+  /// Apply current filter/query state by reloading the first page.
+  Future<void> _applyFilters() async {
+    await loadUsers();
   }
 
   /// Update user in list after action
@@ -246,11 +273,5 @@ class AccountProvider extends ChangeNotifier {
       _users[index] = updatedUser;
       notifyListeners();
     }
-  }
-
-  /// Remove user from list
-  void removeUser(String userId) {
-    _users.removeWhere((u) => u.userId == userId);
-    notifyListeners();
   }
 }

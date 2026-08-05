@@ -41,6 +41,14 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 - Map-based route plotting with OSRM road snapping
 - Configurable severity levels and affected areas
 - Real-time updates pushed to all users
+- **Enhanced data model** — advisories carry a stable `barangayId` (from the GeoJSON `id`), a Firestore `GeoPoint` `center` plus `boundsNE`/`boundsSW` for geo-queryability, denormalized lowercase `searchKeywords` for indexed `array-contains` search, `createdByUid`/`updatedByUid` audit fields, a capped `versionHistory` audit trail, and `statusUpdatedAt`/`nextStatusAt` timestamps
+- **Optimistic locking** — edits increment `version` inside a Firestore transaction and fail with a refresh prompt on conflict; security rules enforce the `version + 1` bump and protect immutable fields (`advisoryId`, `createdAt`, `createdBy`, `createdByUid`)
+- **Single consolidated stream** — regular users share one realtime stream (active + scheduled, all barangays) that powers the home map, the advisory list, and the new-advisory alert popups (derived from new additions after the session baseline, with mute/dedupe/self-notification guards); the map always plots only active advisories and barangay selection on the advisory screen is a client-side filter. The admin/sysadmin all-statuses stream is capped at the 200 latest advisories for performance.
+- **Shared advisory UI** — status badges render through one `AdvisoryStatusBadge` widget and category icons through `AdvisoryCategory.iconFor` (labels/colors/icons come from the model, so cards, detail dialogs, and the wizard never drift apart). Desktop/wide screens show the advisory list as a 2-column card grid, and empty states offer an admin Create CTA. The advisory screen is split into testable widgets (`AdvisoryCard`, `AdvisoryListView`) so the list body can be exercised without Firebase.
+- **Quick status toggle** — admins can Activate/Deactivate any advisory directly from its card (re-saves with the persisted status and a bumped `version`; no manual re-save needed). The advisory list also supports Newest / Oldest / Recently-updated sorting.
+- **UI/UX & layout (ISO 25010-aligned)** — the advisory screen surfaces the active sort as a labeled control, the top stat cards (admin/sysadmin only) are a read-only summary (filtering is done through the single chip row below), and pull-to-refresh (mobile) or a refresh action (desktop) re-subscribe the stream. Contextual empty states distinguish "no data yet" from "no results for your search/filters" (with a Clear search & filters action). The whole surface is theme-aware — stat cards, filter chips, the card grid, and the details dialog all use `Theme.colorScheme` + `AppColors.primaryAdaptive` tokens (darker accents brightened in dark mode for ~3:1 contrast) while the brand-navy AppBar/FAB stay fixed; category icons pick dark or light ink from the chip color's luminance (e.g. the yellow partial-lane chip gets a dark icon) to keep WCAG contrast. Desktop uses a lazy 2-column masonry grid with each card isolated in a `RepaintBoundary` so scrolling doesn't repaint off-screen cards, and card action rows wrap instead of overflowing on narrow screens. The advisory details dialog shows a read-only mini map that auto-fits the entire affected + alternate route plot (padded, zoomed out one level, with a graceful fallback for single-point routes), and its image preview uses a stable hero tag. Screen-reader users get `selected`/button semantics on filters, a labeled sort control, and a semantically labeled card.
+- **Inline wizard validation & save safety** — validation errors in the create/edit wizard surface as a persistent inline banner above the navigation bar (not just a transient snackbar), the Details step shows live inline hints on the reason and contractor fields as you type, and an advisory photo (validated client-side: 5 MB cap, JPG/PNG) uploads to Supabase Storage at `advisories/{id}/image.jpg` with the superseded image cleaned up on edit. Save failures surface in the same inline banner with the real error, and leaving the wizard with unsaved changes triggers a discard confirmation via `PopScope` (with `mounted` guards on async saves).
+- **Status lifecycle (deferred)** — statuses (`active` / `inactive` / `expired` / `scheduled`) are currently set on save (client-side). `nextStatusAt` records *when* each status should next change (one-time `startDate`/`endDate` or the next recurring window boundary), so a future scheduled job or client evaluator can auto-transition by querying `status` + `nextStatusAt`. Until such a job exists, a status only changes when an admin re-saves the advisory.
 </details>
 
 <details>
@@ -49,15 +57,18 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 - Interactive lessons with 4 question types: multiple choice, true/false, identification, matching type
 - Question images supported across all types (e.g., road-signage photos): question-level images for identification/true-false, per-option images for multiple choice, and image→meaning pairs for matching type
 - Admin question editor lets you attach images to any question or option (uploaded and compressed on save) — ideal for signage identification drills
-- Chapter-based lesson grouping with progress tracking per chapter
-- Spaced-repetition review system — intervals double on correct answers, reset on wrong
-- **Preview mode** — browse all lesson content with lessons unlocked, no quiz required
+- **Learn dashboard** — stats header with level badge & title (Student Driver → Road Master), XP progress bar, day streak, lessons completed X/Y, overall completion %, and a tappable due-review counter that jumps to the first lesson scheduled for review
+- **Per-chapter progress** — expandable chapter headers show completed/total lesson counts with green progress bars
+- **Progressive unlocking** — only the first lesson and each chapter's opener start unlocked (locked cards are greyed out); scoring **70% or higher** completes a lesson and unlocks the next one
+- **Retake flow** — scores below 70% show a "Keep Going!" result with a pass-hint card and a **Retake Lesson** button that resets the lesson's progress for another attempt
+- **Spaced-repetition reviews** — completed lessons open a dedicated review screen: due questions by default (intervals double on correct answers, reset on wrong), an "All caught up!" state with a next-review countdown and a **Review all questions anyway** option, +5 XP per completed review, and a result screen showing the next review countdown
+- **Preview mode** — admin/sysadmin-only toggle on the Learn page that unlocks every lesson card for browsing; regular users always follow the locked progression. Opening an unlocked-but-not-completed lesson in preview is a placeholder ("coming soon"), while completed lessons open normally.
 - **XP system** with 5 levels (Student Driver → Road Master), streak tracking, and streak bonuses
-- **8 achievement badges** (First Steps, Perfect Score, On a Roll, Week Warrior, Chapter Master, Quick Learner, See It — Report It, Review Master)
+- **8 achievement badges** (First Steps, Perfect Score, On a Roll, Week Warrior, Chapter Master, Quick Learner, See It — Report It, Review Master) — 7 are earnable today; "See It, Report It" awaits the report-flow link-up
 - Animated XP preview as final onboarding slide — shows level progression before entering the app
-- Rich lesson result screen with animated score circle, XP counter, level-up indicator, and badge awards
-- "Report It" prompt after lesson completion — encourages filing a road report tied to what was learned
-- Admin/sysadmin lesson management: create, edit, delete, publish/unpublish, and per-lesson question editor (lessons are auto-numbered; chapters and questions are drag-reorderable)
+- Rich lesson result screen with animated score circle, XP counter, level-up indicator, and badge awards (plus a dedicated retake state when the pass threshold isn't met)
+- "Report It" prompt after lesson completion — encourages filing a road report tied to what was learned (placeholder: the report link-up is not yet wired)
+- Admin/sysadmin lesson management: create, edit, delete, publish/unpublish, and per-lesson question editor (lessons are auto-numbered; chapters and questions are drag-reorderable) — the lesson list adds search, summary chips (N Chapters / N Lessons / N Published), and pull-to-refresh, and the question editor guards against losing unsaved changes. Lessons auto-sum per-question points into their total, and per-answer analytics (`timesAnswered` / `timesCorrect`) are tracked in Firestore.
 - Chapter manager with drag-to-reorder chapters
 - Role-aware tutorial with animated widget previews (users: 5 slides including XP preview; admins: 3 slides with dashboard overview)
 - Location permission requested contextually at point of need (center-on-map or first report), not during onboarding
@@ -68,7 +79,9 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 
 - Three roles: `user`, `admin`, `sysadmin` enforced at both UI and Firestore rules level
 - Admin panel for user management, bans, and role elevation
+- Account search scans the whole `users` collection (bounded scan loop over createdAt-ordered pages) so matches are found regardless of where they sit — no paid search service (Algolia) or Cloud Functions involved; pagination is cursor-based and compositely indexed in `firestore.indexes.json`
 - Registration flow with identity verification (valid ID + selfie capture)
+- Reusable searchable Barangay dropdown (register, profile details, and create-admin) with instant cached names, normalized/prefixed search, load error + Retry, and a no-results state
 - Profile details page: view/edit contact & address (phone, street, house number, barangay dropdown), read-only name & email, role/verification badges, selfie display, and an unsaved-changes guard when leaving while editing
 - Profile management with appearance settings (theme toggle)
 </details>
@@ -113,7 +126,8 @@ VCRoad is a cross-platform mobile and web application that empowers citizens to 
 |---------|--------|---------|
 | Firebase Authentication | ✅ Active | Email/password, Spark free tier (unlimited) |
 | Cloud Firestore | ✅ Active | Primary database, Spark free tier (50K reads/day) |
-| Firebase Storage | ⏸️ Parked | Requires Blaze plan — alternative TBD |
+| Supabase Storage | ✅ Active | Image uploads for advisories, reports & lessons (1 GB free tier) |
+| Firebase Storage | ⏸️ Parked | Not used — Supabase Storage is the live backend |
 | Cloud Functions | ⏸️ Parked | Login tracking migrated to Firestore directly |
 </details>
 
@@ -325,11 +339,44 @@ Role-based access control is enforced at the **database level** via `firestore.r
 - **Verification gating** — only verified users can create reports
 - **Deny-all fallback** — `match /{document=**}` at the bottom rejects anything not explicitly allowed
 
-### Deploy Rules
+### Deploy Rules & Indexes
 
 ```bash
-firebase deploy --only firestore:rules
+firebase deploy --only firestore:rules,firestore:indexes
 ```
+
+> ⚠️ Firestore may prompt you to accept the composite indexes added in
+> `firestore.indexes.json` (advisories `status`/`barangay`/`barangayId`
+> + `createdAt`, and `status` + `nextStatusAt`) before queries using them work.
+
+### Migrate Existing Advisories
+
+After deploying rules + indexes, backfill existing advisory documents with the
+new schema (idempotent, dry-run by default):
+
+```bash
+node scripts/migrate_advisories.js            # preview what will change
+node scripts/migrate_advisories.js --run      # apply the backfill
+```
+
+---
+
+## Testing
+
+Pure-Dart and widget tests (no Firebase required):
+
+```bash
+flutter test
+```
+
+- `test/advisory_model_test.dart` — model units: status labels/colors, category
+  lookup + icon fallback, `buildSearchKeywords`, `computeCenter`/`computeBounds`,
+  `computeNextStatusAt` (one-time + recurring + wrap-around), and tolerant
+  `fromJson`/`toJson` round-trips.
+- `test/widget_test.dart` — widget tests for the shared advisory UI:
+  `AdvisoryStatusBadge` labels/colors and `AdvisoryCard` content, admin-action
+  visibility, callback wiring, recurring-schedule rendering, the lazy desktop
+  masonry grid, and the filtered-empty state's clear-filters action.
 
 ---
 
@@ -340,13 +387,11 @@ firebase deploy --only firestore:rules
 
 | Priority | Feature | Notes |
 |----------|---------|-------|
-| 🔴 High | Move Algolia credentials to environment variables | Currently hardcoded in `config.dart` |
 | 🔴 High | Add Firebase App Check | Protects API keys from unauthorized use |
-| 🟡 Medium | Firebase Storage integration | Requires Blaze plan — enables photo uploads for reports |
+| 🟡 Medium | Storage quota & image optimization | Uploads already run on Supabase Storage (1 GB free tier); add a compression/cleanup pipeline for larger media |
 | 🟡 Medium | Cloud Functions integration | Login tracking migrated; remaining functions pending Blaze |
 | 🟡 Medium | End-to-end testing suite | Provider-based architecture primed for integration tests |
 | 🟡 Medium | CI/CD pipeline | GitHub Actions for lint → test → build |
-| 🟢 Low | Algolia search for users | Or replace with Firestore queries entirely |
 | 🟢 Low | Push notifications | Real-time alerting for new advisories |
 | 🟢 Low | Offline-first support | Firestore persistence + local sync |
 | 🟢 Low | Accessibility (a11y) audit | Screen reader labels, contrast, keyboard navigation |

@@ -4,9 +4,12 @@ import 'package:vcroad/data/models/lesson.dart';
 import 'package:vcroad/data/models/lesson_progress.dart';
 import 'package:vcroad/data/repositories/lesson.dart';
 import 'package:vcroad/data/repositories/lesson_progress.dart';
+import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/providers/user.dart';
 import 'package:vcroad/presentation/features/lesson/screens/lesson_screen.dart';
+import 'package:vcroad/presentation/features/lesson/screens/lesson_review_screen.dart';
 import 'package:vcroad/presentation/features/lesson/widgets/lesson_browser_card.dart';
+import 'package:vcroad/presentation/features/lesson/widgets/lesson_stats_header.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 
@@ -24,6 +27,7 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
   List<Chapter> _chapters = [];
   List<Lesson> _lessons = [];
   Map<String, LessonProgress> _progressMap = {};
+  UserLearningStats _stats = UserLearningStats();
   bool _loading = true;
   bool _previewMode = false;
   final Set<String> _expandedChapters = {};
@@ -78,6 +82,12 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
         if (!mounted) return;
         _updateProgressMap(progress);
       });
+
+      final statsStream = await _progressService.watchUserStats(userId);
+      statsStream.listen((stats) {
+        if (!mounted) return;
+        setState(() => _stats = stats);
+      });
     } catch (_) {
       // fall through
     } finally {
@@ -90,6 +100,13 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
       _progressMap = {for (final p in progressList) p.lessonId: p};
     });
   }
+
+  int get _dueForReviewCount => _progressMap.values
+      .where((p) =>
+          p.isCompleted &&
+          p.nextReviewAt != null &&
+          p.nextReviewAt!.isBefore(DateTime.now()))
+      .length;
 
   List<Lesson> _lessonsForChapter(String chapterId) {
     return _lessons.where((l) => l.chapterId == chapterId).toList()
@@ -104,18 +121,19 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
         centerTitle: true,
         title: Text('Learn', style: TextStyle(color: Colors.white, fontSize: context.scaleFont(18))),
         actions: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Preview', style: TextStyle(color: Colors.white70, fontSize: context.scaleFont(13))),
-              Switch(
-                value: _previewMode,
-                onChanged: (v) => setState(() => _previewMode = v),
-                activeThumbColor: Colors.white,
-                activeTrackColor: Colors.white38,
-              ),
-            ],
-          ),
+          if (context.read<UserProvider>().role != UserRole.user)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Preview', style: TextStyle(color: Colors.white70, fontSize: context.scaleFont(13))),
+                Switch(
+                  value: _previewMode,
+                  onChanged: (v) => setState(() => _previewMode = v),
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: Colors.white38,
+                ),
+              ],
+            ),
         ],
       ),
       body: _loading
@@ -126,6 +144,15 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
                   onRefresh: _load,
                   child: ListView(
                     children: [
+                      LessonStatsHeader(
+                        stats: _stats,
+                        totalLessons: _lessons.length,
+                        dueForReviewCount: _dueForReviewCount,
+                        onDueReviewTap: () {
+                          final lesson = _firstDueLesson();
+                          if (lesson != null) _onLessonTap(lesson);
+                        },
+                      ),
                       if (_previewMode)
                         Container(
                           width: double.infinity,
@@ -199,51 +226,80 @@ class _LessonBrowserScreenState extends State<LessonBrowserScreen> {
             }
           });
         },
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              isExpanded ? Icons.expand_more : Icons.chevron_right,
-              color: AppColors.primaryAdaptive(context),
-              size: context.scale(22),
-            ),
-            SizedBox(width: context.scale(8)),
-            Icon(Icons.folder, color: AppColors.primaryAdaptive(context), size: context.scale(20)),
-            SizedBox(width: context.scale(8)),
-            Expanded(
-              child: Text(
-                chapter.name,
-                style: TextStyle(fontSize: context.scaleFont(17), fontWeight: FontWeight.bold),
-              ),
-            ),
-            if (completed > 0)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: context.scale(8), vertical: context.scale(3)),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                Icon(
+                  isExpanded ? Icons.expand_more : Icons.chevron_right,
+                  color: AppColors.primaryAdaptive(context),
+                  size: context.scale(22),
                 ),
-                child: Text(
-                  '$completed/${chapterLessons.length}',
-                  style: TextStyle(fontSize: context.scaleFont(12), color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                SizedBox(width: context.scale(8)),
+                Icon(Icons.folder, color: AppColors.primaryAdaptive(context), size: context.scale(20)),
+                SizedBox(width: context.scale(8)),
+                Expanded(
+                  child: Text(
+                    chapter.name,
+                    style: TextStyle(fontSize: context.scaleFont(17), fontWeight: FontWeight.bold),
+                  ),
                 ),
-              )
-            else
-              Text(
-                '${chapterLessons.length}',
-                style: TextStyle(fontSize: context.scaleFont(13), color: Theme.of(context).colorScheme.onSurfaceVariant),
+                if (completed > 0)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: context.scale(8), vertical: context.scale(3)),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$completed/${chapterLessons.length}',
+                      style: TextStyle(fontSize: context.scaleFont(12), color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  )
+                else
+                  Text(
+                    '${chapterLessons.length}',
+                    style: TextStyle(fontSize: context.scaleFont(13), color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+              ],
+            ),
+            if (completed > 0) ...[
+              SizedBox(height: context.scale(8)),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: completed / chapterLessons.length,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                  minHeight: 4,
+                ),
               ),
+            ],
           ],
         ),
       ),
     );
   }
 
+  Lesson? _firstDueLesson() {
+    for (final l in _lessons) {
+      final p = _progressMap[l.id];
+      if (p?.isDueForReview ?? false) return l;
+    }
+    return null;
+  }
+
   void _onLessonTap(Lesson lesson) async {
     final progress = _progressMap[lesson.id];
     if (progress?.isCompleted ?? false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"${lesson.title}" already completed — review coming in Phase 6')),
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LessonReviewScreen(lesson: lesson),
+        ),
       );
+      if (mounted) _load();
       return;
     }
     if (_previewMode) {

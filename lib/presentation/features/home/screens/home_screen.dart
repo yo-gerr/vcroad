@@ -93,8 +93,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Map<String, int>? _userStats;
   String? _userStatsError;
 
-  List<BarangayUserStat>? _perBarangayStats;
-  bool _isPerBarangayLoading = false;
+  bool _isUserStatsLoading = false;
+  bool _isReportStatsLoading = false;
 
   VoidCallback? _dashboardSheetListener;
   VoidCallback? _advisoryProviderListener;
@@ -262,19 +262,31 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
     // Ensure we only subscribe to ACTIVE advisories for map usage.
     final up = Provider.of<UserProvider>(context, listen: false);
-    String? barangayParam;
     if (up.isAdmin && !up.isSysAdmin) {
-      barangayParam = up.user?.barangay.name;
+      // Local admins: scope the active stream to their barangay.
+      unawaited(
+        _advisoryProviderRef!.startAdvisoryStream(
+          barangay: up.user?.barangay.name,
+          useRealtime: true,
+          initialFilter: AdvisoryViewFilter.active,
+          statuses: const [AdvisoryStatus.active],
+        ),
+      );
+    } else if (up.isSysAdmin) {
+      // Sysadmins: active stream across all barangays.
+      unawaited(
+        _advisoryProviderRef!.startAdvisoryStream(
+          barangay: null,
+          useRealtime: true,
+          initialFilter: AdvisoryViewFilter.active,
+          statuses: const [AdvisoryStatus.active],
+        ),
+      );
+    } else {
+      // Regular users share the app-level consolidated stream (active +
+      // scheduled, all barangays). Don't restart it here; markers filter below.
+      unawaited(_advisoryProviderRef!.startUserStream());
     }
-    // Start stream with ACTIVE status only
-    unawaited(
-      _advisoryProviderRef!.startAdvisoryStream(
-        barangay: barangayParam,
-        useRealtime: true,
-        initialFilter: AdvisoryViewFilter.active,
-        statuses: const [AdvisoryStatus.active],
-      ),
-    );
 
     if (_advisoryProviderListener == null) {
       _advisoryProviderListener = () {
@@ -320,9 +332,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 2.5);
         _userLocation = newLoc;
         _composeAndSetMarkers();
-        if (shouldAnimate &&
-            _animateToUserWhenMapReady &&
-            _isMapReady) {
+        if (shouldAnimate && _animateToUserWhenMapReady && _isMapReady) {
           _animateToUserWhenMapReady = false;
           _animateToUser(_userLocation!, zoom: _userZoom);
         }
@@ -334,7 +344,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Future<void> _rebuildAdvisoryMarkers() async {
     if (!mounted) return;
     final advProv = Provider.of<AdvisoryProvider>(context, listen: false);
-    final list = advProv.filteredAdvisories;
+    // Always plot only ACTIVE advisories, regardless of the current list filter
+    // (the consolidated user stream also contains scheduled items).
+    final list = advProv.advisories
+        .where((a) => a.status == AdvisoryStatus.active)
+        .toList();
     try {
       final advisoryLogicalSize = 40.0 * context.responsive.markerScale;
       final built = await _markerManager.buildMarkersFromAdvisories(
@@ -457,10 +471,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       await showDialog(
         context: context,
         builder: (ctx) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: LocationPromptCard(
             title: 'Find Your Location',
-            body: 'Allow location access to center the map on your current position and see nearby reports.',
+            body:
+                'Allow location access to center the map on your current position and see nearby reports.',
             onGranted: () {
               Navigator.pop(ctx);
               locProv.start();
@@ -615,8 +632,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.vcroad.app',
               ),
               if (_markers.isNotEmpty)
@@ -630,7 +646,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? AppColors.primary,
+        backgroundColor:
+            Theme.of(context).appBarTheme.backgroundColor ?? AppColors.primary,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -795,12 +812,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   SizedBox(
                                     width: info.scale(16),
                                     height: info.scale(16),
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                   SizedBox(width: info.scale(8)),
                                   Text(
                                     'Fetching location...',
-                                    style: TextStyle(fontSize: info.scaleFont(12)),
+                                    style: TextStyle(
+                                      fontSize: info.scaleFont(12),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -868,6 +889,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   }
 
   Future<void> _fetchUserStats() async {
+    // Aggregate user statistics are admin/sysadmin-only; Firestore rules now
+    // scope users reads accordingly, so regular users must not query them.
+    final up = Provider.of<UserProvider>(context, listen: false);
+    if (!up.isAdmin && !up.isSysAdmin) return;
+
     if (_userStats == null) {
       setState(() {
         _userStats = {'total': 0, 'verified': 0, 'unverified': 0};
@@ -891,23 +917,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   }
 
   Future<void> _showPerBarangayStats() async {
-    if (_isPerBarangayLoading) return;
+    if (_isUserStatsLoading) return;
 
-    if (_perBarangayStats != null && _perBarangayStats!.isNotEmpty) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (c) => BarangayUserStats(stats: _perBarangayStats!),
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isPerBarangayLoading = true);
+    setState(() => _isUserStatsLoading = true);
     try {
       final stats = await AccountService.instance.getUserStatsPerBarangay(
         includeZeroEntries: true,
       );
-      _perBarangayStats = stats;
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(builder: (c) => BarangayUserStats(stats: stats)),
@@ -923,13 +939,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         );
       }
     } finally {
-      if (mounted) setState(() => _isPerBarangayLoading = false);
+      if (mounted) setState(() => _isUserStatsLoading = false);
     }
   }
 
   Future<void> _showPerBarangayReportStats() async {
-    if (_isPerBarangayLoading) return;
-    setState(() => _isPerBarangayLoading = true);
+    if (_isReportStatsLoading) return;
+    setState(() => _isReportStatsLoading = true);
     try {
       final rp = Provider.of<ReportProvider>(context, listen: false);
       final up = Provider.of<UserProvider>(context, listen: false);
@@ -998,7 +1014,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         );
       }
     } finally {
-      if (mounted) setState(() => _isPerBarangayLoading = false);
+      if (mounted) setState(() => _isReportStatsLoading = false);
     }
   }
 
@@ -1144,10 +1160,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         _userStatsError!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ),
-                  ),
-                UserStats(
+                  UserStats(
                     title: 'Total Users',
                     totalCount: _userStats?['total'] ?? 0,
                     verifiedCount: _userStats?['verified'] ?? 0,
@@ -1203,7 +1221,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -1218,7 +1238,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   width: info.scale(40),
                   height: info.scale(4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1228,7 +1250,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       _userStatsError!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 UserStats(
@@ -1266,9 +1290,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Widget? _buildReminderBanner(BuildContext context) {
     final onboarding = context.watch<OnboardingProvider>();
     if (!onboarding.shouldShowBannerToday) return null;
-    return ReminderBanner(
-      onDismiss: () => onboarding.markBannerShownToday(),
-    );
+    return ReminderBanner(onDismiss: () => onboarding.markBannerShownToday());
   }
 
   double _computeMapControlsBottom(ResponsiveInfo info, BuildContext context) {

@@ -1,17 +1,15 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:vcroad/data/models/barangay.dart';
-import 'package:vcroad/core/utils/input/dropdown_style.dart';
 import 'package:vcroad/core/utils/input/input_style.dart';
 import 'package:vcroad/core/utils/input/input_validation.dart';
 import 'package:vcroad/presentation/features/auth/widgets/agreement.dart';
+import 'package:vcroad/presentation/shared/widgets/barangay_dropdown.dart';
 
 class PersonalInfo extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final Map<String, TextEditingController> controllers;
   final Barangay? selectedBarangay;
   final ValueChanged<Barangay?> onBarangayChanged;
-  final List<DropdownMenuItem<Barangay>> barangayItems;
   final Map<String, FocusNode> focusNodes;
 
   // Tracks user agreement to terms and privacy policy
@@ -24,7 +22,6 @@ class PersonalInfo extends StatefulWidget {
     required this.controllers,
     required this.selectedBarangay,
     required this.onBarangayChanged,
-    required this.barangayItems,
     required this.focusNodes,
     required this.agreed,
     required this.onAgreedChanged,
@@ -35,22 +32,6 @@ class PersonalInfo extends StatefulWidget {
 }
 
 class _PersonalInfoState extends State<PersonalInfo> {
-  late final TextEditingController _searchController;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initializes the search controller for barangay dropdown search.
-    _searchController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    // Disposes the search controller when the widget is removed.
-    _searchController.dispose();
-    super.dispose();
-  }
-
   /// Returns an InputDecoration for text fields with label and optional hint.
   InputDecoration _decoration(String label, {String? hint}) {
     return InputStyles.baseDecoration.copyWith(
@@ -59,13 +40,6 @@ class _PersonalInfoState extends State<PersonalInfo> {
       hintStyle: hint != null ? TextStyle(color: Colors.grey.shade500) : null,
       floatingLabelBehavior: FloatingLabelBehavior.never,
     );
-  }
-
-  /// Validates the selected barangay, ensuring it is not null or empty.
-  String? _validateBarangay(Barangay? barangay) {
-    return barangay == null || barangay.name.trim().isEmpty
-        ? 'Barangay is required'
-        : null;
   }
 
   @override
@@ -178,61 +152,9 @@ class _PersonalInfoState extends State<PersonalInfo> {
                 // Barangay dropdown
                 InputStyles.fieldLabel('Barangay'),
                 const SizedBox(height: 4),
-                DropdownButtonFormField2<Barangay>(
+                BarangayDropdownField(
                   value: widget.selectedBarangay,
-                  decoration: _decoration(
-                    'Barangay',
-                  ).copyWith(labelStyle: DropdownStyles.hintTextStyle),
-                  style: DropdownStyles.itemTextStyle,
-                  isExpanded: true,
-                  hint: Text(
-                    'Select barangay',
-                    style: DropdownStyles.hintTextStyle,
-                  ),
-                  items: widget.barangayItems.map((item) {
-                    return DropdownMenuItem<Barangay>(
-                      value: item.value,
-                      child: Container(
-                        color: DropdownStyles.dropdownBackgroundColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        height: DropdownStyles.dropdownItemHeight,
-                        alignment: Alignment.centerLeft,
-                        child: DefaultTextStyle(
-                          style: DropdownStyles.itemTextStyle,
-                          child: item.child,
-                        ),
-                      ),
-                    );
-                  }).toList(),
                   onChanged: widget.onBarangayChanged,
-                  validator: _validateBarangay,
-                  dropdownSearchData: DropdownSearchData(
-                    searchController: _searchController,
-                    searchInnerWidgetHeight: 50,
-                    searchInnerWidget: Container(
-                      height: 50,
-                      padding: const EdgeInsets.all(8),
-                      child: TextFormField(
-                        controller: _searchController,
-                        style: DropdownStyles.itemTextStyle,
-                        decoration: DropdownStyles.searchDecoration,
-                      ),
-                    ),
-                    searchMatchFn: (item, searchValue) {
-                      return item.value!.name.toLowerCase().contains(
-                        searchValue.toLowerCase(),
-                      );
-                    },
-                  ),
-                  menuItemStyleData: const MenuItemStyleData(
-                    height: DropdownStyles.dropdownItemHeight,
-                  ),
-                  dropdownStyleData: DropdownStyleData(
-                    maxHeight:
-                        DropdownStyles.dropdownItemHeight *
-                        DropdownStyles.visibleItemCount,
-                    decoration: DropdownStyles.dropdownDecoration,
-                  ),
                 ),
                 const SizedBox(height: 8),
 

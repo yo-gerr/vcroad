@@ -163,11 +163,7 @@ class BadgeService {
 
       int count = 0;
       for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final nextReview = data['nextReviewAt'] as Timestamp?;
-        if (nextReview != null && nextReview.toDate().isBefore(DateTime.now())) {
-          count++;
-        }
+        count += (doc.data()['reviewCount'] as num?)?.toInt() ?? 0;
       }
       return count;
     } catch (_) {

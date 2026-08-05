@@ -87,6 +87,7 @@ class LessonProgress {
   final DateTime lastAccessedAt;
   final DateTime? nextReviewAt;
   final List<String> badges;
+  final int reviewCount;
 
   LessonProgress({
     required this.id,
@@ -109,6 +110,7 @@ class LessonProgress {
     required this.lastAccessedAt,
     this.nextReviewAt,
     List<String>? badges,
+    this.reviewCount = 0,
   }) : attempts = attempts ?? [],
        badges = badges ?? [];
 
@@ -148,6 +150,7 @@ class LessonProgress {
     DateTime? lastAccessedAt,
     DateTime? nextReviewAt,
     List<String>? badges,
+    int? reviewCount,
   }) {
     return LessonProgress(
       id: id ?? this.id,
@@ -170,6 +173,7 @@ class LessonProgress {
       lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
       nextReviewAt: nextReviewAt ?? this.nextReviewAt,
       badges: badges ?? this.badges,
+      reviewCount: reviewCount ?? this.reviewCount,
     );
   }
 
@@ -197,6 +201,7 @@ class LessonProgress {
     if (nextReviewAt != null)
       'nextReviewAt': Timestamp.fromDate(nextReviewAt!),
     'badges': badges,
+    'reviewCount': reviewCount,
   };
 
   factory LessonProgress.fromJson(Map<String, dynamic> json) {
@@ -234,6 +239,7 @@ class LessonProgress {
               ?.map((b) => b.toString())
               .toList() ??
           [],
+      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart'; // ✅ added
 import 'package:mime/mime.dart'; // ✅ added
 import 'dart:ui' as ui; // ✅ added
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/advisory.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/create_advisory.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
@@ -80,6 +81,26 @@ class _DetailsPageState extends State<DetailsPage> {
       widget.formData.contractorContact = _contractorContactController.text;
       widget.formData.markChanged();
     });
+  }
+
+  // Live inline validation helpers (mirror create_advisory._validatePage rules,
+  // but only warn once the user has started typing to avoid empty-form noise).
+
+  String? _liveReasonError(AdvisoryFormData data) {
+    final text = data.reason;
+    if (text.isEmpty) return null;
+    return text.trim().length < 10
+        ? 'Reason must be at least 10 characters'
+        : null;
+  }
+
+  String? _liveContractorError(AdvisoryFormData data) {
+    final requires =
+        data.selectedCategory?.requiresContractor ?? false;
+    if (!requires) return null;
+    final text = data.contractor ?? '';
+    if (text.isEmpty) return null;
+    return text.trim().isEmpty ? 'Contractor name is required' : null;
   }
 
   // Helper: compute aspect ratio (width/height) from bytes using codec
@@ -170,16 +191,16 @@ class _DetailsPageState extends State<DetailsPage> {
           widget.formData.markChanged();
         });
       } else {
+        // For non-web the picker already constrained dimensions; don't read the
+        // full file into memory just for an aspect ratio — the preview falls
+        // back to its fixed-height BoxFit.contain container.
         final file = File(picked.path);
-        // for non-web we've requested maxWidth/maxHeight via picker; still compute aspect for preview
-        final bytes = await file.readAsBytes();
-        final aspect = await _getAspectRatioFromBytes(bytes);
         setState(() {
           widget.formData.imageFile = file;
           widget.formData.imageBytes = null;
           widget.formData.imageUrl =
               null; // new local image replaces any existing uploaded url
-          _currentImageAspectRatio = aspect;
+          _currentImageAspectRatio = null;
           widget.formData.markChanged();
         });
       }
@@ -279,7 +300,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 style: TextStyle(
                   fontSize: responsive.scaleFont(24),
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF001278),
+                  color: AppColors.primaryAdaptive(context),
                 ),
               ),
               SizedBox(height: responsive.scale(8)),
@@ -287,7 +308,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 'Provide details and schedule for the advisory',
                 style: TextStyle(
                   fontSize: responsive.scaleFont(14),
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: responsive.scale(32)),
@@ -302,11 +323,13 @@ class _DetailsPageState extends State<DetailsPage> {
                 decoration: InputDecoration(
                   hintText: 'Describe the traffic situation in detail...',
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   counterText: '${_reasonController.text.length}/500',
+                  errorText: _liveReasonError(widget.formData),
+                  errorMaxLines: 2,
                 ),
               ),
               SizedBox(height: responsive.scale(24)),
@@ -377,10 +400,11 @@ class _DetailsPageState extends State<DetailsPage> {
                     hintText: 'Enter contractor company name',
                     prefixIcon: const Icon(Icons.business),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    errorText: _liveContractorError(widget.formData),
                   ),
                 ),
                 SizedBox(height: responsive.scale(12)),
@@ -393,7 +417,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     hintText: '09XX XXX XXXX',
                     prefixIcon: const Icon(Icons.phone),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -425,7 +449,7 @@ class _DetailsPageState extends State<DetailsPage> {
           style: TextStyle(
             fontSize: responsive.scaleFont(16),
             fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         if (required) ...[
@@ -444,11 +468,12 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget _buildScheduleTypeSelector(dynamic responsive) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -460,7 +485,7 @@ class _DetailsPageState extends State<DetailsPage> {
               AdvisoryScheduleType.oneTime,
             ),
           ),
-          Container(width: 1, height: 48, color: Colors.grey.shade300),
+          Container(width: 1, height: 48, color: scheme.outlineVariant),
           Expanded(
             child: _buildScheduleOption(
               responsive,
@@ -481,6 +506,8 @@ class _DetailsPageState extends State<DetailsPage> {
     AdvisoryScheduleType type,
   ) {
     final isSelected = widget.formData.scheduleType == type;
+    final brand = AppColors.primaryAdaptive(context);
+    final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () {
         widget.formData.scheduleType = type;
@@ -491,7 +518,10 @@ class _DetailsPageState extends State<DetailsPage> {
         padding: EdgeInsets.symmetric(vertical: responsive.scale(12)),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF001278).withValues(alpha: 0.1)
+              ? brand.withValues(alpha: Theme.of(context).brightness ==
+                      Brightness.dark
+                  ? 0.18
+                  : 0.1)
               : null,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -500,9 +530,7 @@ class _DetailsPageState extends State<DetailsPage> {
           children: [
             Icon(
               icon,
-              color: isSelected
-                  ? const Color(0xFF001278)
-                  : Colors.grey.shade600,
+              color: isSelected ? brand : scheme.onSurfaceVariant,
               size: responsive.scale(20),
             ),
             SizedBox(width: responsive.scale(8)),
@@ -511,9 +539,7 @@ class _DetailsPageState extends State<DetailsPage> {
               style: TextStyle(
                 fontSize: responsive.scaleFont(14),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? const Color(0xFF001278)
-                    : Colors.grey.shade700,
+                color: isSelected ? brand : scheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -582,7 +608,7 @@ class _DetailsPageState extends State<DetailsPage> {
         decoration: InputDecoration(
           labelText: label,
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.surface,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           prefixIcon: const Icon(Icons.calendar_today),
         ),
@@ -615,8 +641,10 @@ class _DetailsPageState extends State<DetailsPage> {
               widget.formData.markChanged();
             });
           },
-          selectedColor: const Color(0xFF001278).withValues(alpha: 0.2),
-          checkmarkColor: const Color(0xFF001278),
+          selectedColor: AppColors.primaryAdaptive(
+            context,
+          ).withValues(alpha: 0.2),
+          checkmarkColor: AppColors.primaryAdaptive(context),
         );
       }),
     );
@@ -667,7 +695,7 @@ class _DetailsPageState extends State<DetailsPage> {
         decoration: InputDecoration(
           labelText: label,
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.surface,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           prefixIcon: const Icon(Icons.access_time),
         ),
@@ -702,7 +730,7 @@ class _DetailsPageState extends State<DetailsPage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   alignment: Alignment.center,
                   child: img,
                 ),
@@ -857,7 +885,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   Icon(
                     Icons.info_outline,
                     size: responsive.scale(16),
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   SizedBox(width: responsive.scale(8)),
                   Expanded(
@@ -865,7 +893,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       'Accepted: JPG, PNG — recommended max 5MB. Use gallery / file explorer to choose an image.',
                       style: TextStyle(
                         fontSize: responsive.scaleFont(13),
-                        color: Colors.grey.shade700,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/create_advisory.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/steps/plot.dart';
@@ -27,7 +28,11 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       children: [
         // Collapsible Instructions Header
         Material(
-          color: const Color(0xFF001278).withValues(alpha: 0.05),
+          color: AppColors.primaryAdaptive(
+            context,
+          ).withValues(alpha: Theme.of(context).brightness == Brightness.dark
+              ? 0.16
+              : 0.08),
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: responsive.scale(16),
@@ -40,7 +45,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                   children: [
                     Icon(
                       Icons.map,
-                      color: const Color(0xFF001278),
+                      color: AppColors.primaryAdaptive(context),
                       size: responsive.scale(24),
                     ),
                     SizedBox(width: responsive.scale(8)),
@@ -50,7 +55,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: responsive.scaleFont(18),
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF001278),
+                          color: AppColors.primaryAdaptive(context),
                         ),
                       ),
                     ),
@@ -64,8 +69,10 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                         turns: _collapsed ? 0.5 : 0.0,
                         duration: const Duration(milliseconds: 250),
                         child: Icon(
-                          _collapsed ? Icons.expand_more : Icons.expand_less,
-                          color: Colors.grey.shade700,
+                          _collapsed
+                              ? Icons.expand_more
+                              : Icons.expand_less,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -91,7 +98,9 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                               '3. Complete route and add alternate routes if needed',
                               style: TextStyle(
                                 fontSize: responsive.scaleFont(13),
-                                color: Colors.grey.shade700,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                                 height: 1.5,
                               ),
                             ),
@@ -123,8 +132,12 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
               width: double.infinity,
               padding: EdgeInsets.all(responsive.scale(12)),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
               ),
               // Use a Wrap so chips flow and wrap on small screens. Constrain per-chip width
               // so long labels truncate gracefully. A horizontal scroll fallback keeps things reachable.
@@ -205,20 +218,27 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         ? responsive.scaleFont(11)
         : responsive.scaleFont(12);
 
+    // Brighten accent colors in dark mode so the chip stays readable on the
+    // darker status-bar surface.
+    final Color chipColor =
+        Theme.of(context).brightness == Brightness.dark
+        ? (Color.lerp(color, Colors.white, 0.35) ?? color)
+        : color;
+
     final child = Container(
       padding: EdgeInsets.symmetric(
         horizontal: responsive.scale(12),
         vertical: responsive.scale(8),
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: chipColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color),
+        border: Border.all(color: chipColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: iconSize, color: color),
+          Icon(icon, size: iconSize, color: chipColor),
           SizedBox(width: responsive.scale(6)),
           Flexible(
             child: Text(
@@ -228,7 +248,7 @@ class _MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
               style: TextStyle(
                 fontSize: fontSize,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: chipColor,
               ),
             ),
           ),

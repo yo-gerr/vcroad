@@ -344,8 +344,13 @@ extension UserDetailsJsonSafe on UserDetails {
 
 extension UserDetailsComputed on UserDetails {
   bool get isInactive => scheduledForDeletionAt != null && deletedAt == null;
+
+  /// Whether the user currently has an *active* ban — a temporary ban that has
+  /// already expired no longer counts as banned.
+  bool get hasActiveBan => isBanned && !isBanExpired;
+
   String get primaryStatus {
-    if (isBanned) return 'banned';
+    if (hasActiveBan) return 'banned';
     if (isInactive) return 'inactive';
     if (isVerified) return 'verified';
     return 'unverified';

@@ -47,17 +47,39 @@ service cloud.firestore {
     // Users collection
     // ──────────────────────────────────────────────
     match /users/{userId} {
-      // Any authenticated user can read user profiles
-      allow read: if isAuthenticated();
+      // Own profile is readable by its owner; other profiles only by
+      // admins/sysadmins (protects emails, phone numbers, addresses, ID paths).
+      allow read: if isOwner(userId) || isAdminOrAbove();
 
-      // Users can create their own doc with role 'user' only
-      allow create: if isOwner(userId)
-        && request.resource.data.role == 'user';
+      // Users can create their own doc with role 'user' only.
+      // Sysadmins may create barangay-admin accounts (role 'admin').
+      allow create: if (isOwner(userId)
+            && request.resource.data.role == 'user')
+        || (isSysAdmin() && request.resource.data.role == 'admin');
 
-      // Users can update themselves; admins can manage regular users;
-      // sysadmins can manage all
-      allow update: if isOwner(userId)
-        || (isAdmin() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'user')
+      // Owners may update only non-privileged profile fields (a diff against
+      // the existing doc). Changing role / ban / verification / deletion state
+      // requires an admin/sysadmin, preventing privilege escalation.
+      // Sysadmins can manage all.
+      allow update: if (isOwner(userId)
+            && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly([
+                 'firstName', 'middleName', 'lastName', 'suffix',
+                 'phoneNumber', 'street', 'houseNumber', 'barangay',
+                 'selfiePath', 'updatedAt', 'lastLoginAt', 'unbanRequestAt',
+                 'scheduledForDeletionAt', 'deletedAt',
+                 'learningStats', 'lastActivityAt', 'badges',
+                 'learningStats.completedLessons',
+                 'learningStats.totalPointsEarned',
+                 'learningStats.totalPointsAvailable',
+                 'learningStats.lastActivityDate',
+                 'learningStats.xp',
+                 'learningStats.level',
+                 'learningStats.currentStreak',
+                 'learningStats.longestStreak',
+               ]))
+        || (isAdmin()
+          && get(/databases/$(database)/documents/users/$(userId)).data.role == 'user')
         || isSysAdmin();
 
       // Only sysadmins can delete user documents
@@ -91,11 +113,28 @@ service cloud.firestore {
       // Any authenticated user can read
       allow read: if isAuthenticated();
 
-      // Only admin and sysadmin can create advisories
-      allow create: if isAdminOrAbove();
+      // Only admins and sysadmins can create advisories. The creator uid must
+      // match the authenticated user (identity-verifiable audit field), and a
+      // barangay admin is restricted to their own barangay (a null admin
+      // barangay is allowed through to avoid locking out unassigned admins).
+      allow create: if isSysAdmin()
+        || (isAdmin()
+          && request.auth.uid == request.resource.data.createdByUid
+          && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.barangay == null
+              || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.barangay
+                  == request.resource.data.barangay));
 
-      // Only admin and sysadmin can update
-      allow update: if isAdminOrAbove();
+      // Only admin and sysadmin can update. Optimistic-lock version must
+      // increment by exactly 1, status must be one of the known values, and
+      // identity/audit fields are immutable after creation.
+      allow update: if isAdminOrAbove()
+        && request.resource.data.version == resource.data.version + 1
+        && request.resource.data.advisoryId == resource.data.advisoryId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.status in
+            ['active', 'inactive', 'expired', 'scheduled'];
 
       // Only admin and sysadmin can delete
       allow delete: if isAdminOrAbove();

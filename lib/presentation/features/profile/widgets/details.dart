@@ -1,14 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vcroad/data/models/barangay.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/providers/user.dart';
-import 'package:vcroad/data/repositories/barangay.dart';
 import 'package:vcroad/data/repositories/image.dart';
 import 'package:vcroad/presentation/shared/dialogs/loading.dart';
-import 'package:vcroad/core/utils/input/dropdown_style.dart';
 import 'package:vcroad/core/utils/input/input_style.dart';
 import 'package:vcroad/core/utils/input/input_validation.dart';
 import 'package:vcroad/core/utils/responsive/responsive.dart';
@@ -18,6 +15,7 @@ import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/core/utils/format/text.dart';
 import 'package:vcroad/presentation/features/profile/widgets/badges.dart';
+import 'package:vcroad/presentation/shared/widgets/barangay_dropdown.dart';
 
 class ProfileDetails extends StatefulWidget {
   const ProfileDetails({super.key});
@@ -30,12 +28,10 @@ class _ProfileDetailsState extends State<ProfileDetails> {
   bool _editing = false;
   final _formKey = GlobalKey<FormState>();
   late final UserDetails _originalUser;
-  late Future<void> _barangayFuture;
   Future<String?>? _avatarFuture;
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _streetCtrl;
   late final TextEditingController _houseNoCtrl;
-  late final TextEditingController _barangaySearchController;
   final ValueNotifier<bool> _saving = ValueNotifier(false);
   final ValueNotifier<bool> _hasChanges = ValueNotifier(false);
   final FocusNode _streetFocus = FocusNode();
@@ -50,7 +46,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     _phoneCtrl = TextEditingController(text: user.phoneNumber);
     _streetCtrl = TextEditingController(text: user.street);
     _houseNoCtrl = TextEditingController(text: user.houseNumber);
-    _barangaySearchController = TextEditingController();
     _selectedBarangay = user.barangay;
     for (final c in [_phoneCtrl, _streetCtrl, _houseNoCtrl]) {
       c.addListener(_computeDirty);
@@ -62,7 +57,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     if (!isAdmin) {
       _avatarFuture = ImageService.getDownloadUrlCached(user.selfiePath);
     }
-    _barangayFuture = BarangayService().loadBarangays();
   }
 
   @override
@@ -70,7 +64,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     _phoneCtrl.dispose();
     _streetCtrl.dispose();
     _houseNoCtrl.dispose();
-    _barangaySearchController.dispose();
     _saving.dispose();
     _hasChanges.dispose();
     _streetFocus.dispose();
@@ -683,193 +676,38 @@ class _ProfileDetailsState extends State<ProfileDetails> {
   }
 
   Widget _buildBarangayField(ResponsiveInfo info) {
-    final svc = BarangayService();
-    return FutureBuilder<void>(
-      future: _barangayFuture,
-      builder: (context, snap) {
-        final loading = snap.connectionState != ConnectionState.done;
-        final failed = snap.hasError;
-        final items = svc.barangayDropdownItems;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: info.scale(16),
-            vertical: info.scale(8),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.place, color: Colors.white, size: info.scale(24)),
-              SizedBox(width: info.scale(12)),
-              Expanded(
-                child: loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : failed
-                    ? Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Couldn't load barangays.",
-                              style: TextStyle(
-                                fontSize: info.scaleFont(14),
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _barangayFuture = BarangayService()
-                                    .loadBarangays(forceReload: true);
-                              });
-                            },
-                            child: const Text(
-                              'Retry',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : DropdownButtonFormField2<Barangay>(
-                        value: _selectedBarangay,
-                        decoration: InputDecoration(
-                          labelText: 'Barangay',
-                          border: InputBorder.none,
-                          // fill the inner input so the selected value block
-                          // matches the blue container.
-                          filled: true,
-                          fillColor: AppColors.primary,
-                          labelStyle: TextStyle(
-                            fontSize: info.scaleFont(13),
-                            color: Colors.white70,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: info.scale(8),
-                          ),
-                        ),
-                        style: TextStyle(
-                          fontSize: info.scaleFont(15),
-                          color: Colors.white,
-                        ),
-                        isExpanded: true,
-                        // Enable searchable dropdown (uses dropdown_button2's search support).
-                        dropdownSearchData: DropdownSearchData<Barangay>(
-                          searchController: _barangaySearchController,
-                          searchInnerWidgetHeight: info.scale(56),
-                          searchInnerWidget: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: info.scale(8),
-                            ),
-                            child: TextFormField(
-                              controller: _barangaySearchController,
-                              decoration: InputDecoration(
-                                hintText: 'Search barangay...',
-                                hintStyle: TextStyle(
-                                  fontSize: info.scaleFont(13),
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Colors.black,
-                                    width: 1,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Colors.black,
-                                    width: 1,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Colors.black,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: info.scale(12),
-                                  vertical: info.scale(10),
-                                ),
-                              ),
-                              style: TextStyle(
-                                fontSize: info.scaleFont(14),
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                          // Efficient string match (case-insensitive)
-                          searchMatchFn: (item, searchValue) {
-                            final name = item.value?.name ?? '';
-                            return name.toLowerCase().contains(
-                              searchValue.toLowerCase(),
-                            );
-                          },
-                        ),
-                        items: items.map((item) {
-                          return DropdownMenuItem<Barangay>(
-                            value: item.value,
-                            child: Container(
-                              color: AppColors.primary,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: info.scale(8),
-                              ),
-                              height: DropdownStyles.dropdownItemHeight,
-                              alignment: Alignment.centerLeft,
-                              child: DefaultTextStyle(
-                                style: TextStyle(
-                                  fontSize: info.scaleFont(15),
-                                  color: Colors.white,
-                                  fontFamily: 'Poppins',
-                                ),
-                                child: Text(item.value?.name ?? ''),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (b) {
-                          _selectedBarangay = b;
-                          _computeDirty();
-                        },
-                        validator: (v) => v == null || v.name.trim().isEmpty
-                            ? 'Barangay is required'
-                            : null,
-                        dropdownStyleData: DropdownStyleData(
-                          maxHeight: 300,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        iconStyleData: IconStyleData(
-                          icon: const Icon(
-                            Icons.arrow_drop_down,
-                            color: Colors.white,
-                          ),
-                          iconSize: info.scale(24),
-                        ),
-                      ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: info.scale(16),
+        vertical: info.scale(6),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.place, color: Colors.white, size: info.scale(24)),
+          SizedBox(width: info.scale(12)),
+          Expanded(
+            child: BarangayDropdownField(
+              value: _selectedBarangay,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                filled: true,
+                fillColor: AppColors.primary,
+                hintText: 'Select barangay',
+                hintStyle: TextStyle(color: Colors.white70),
+                contentPadding: EdgeInsets.symmetric(horizontal: info.scale(8)),
               ),
-            ],
+              onChanged: (b) {
+                setState(() => _selectedBarangay = b);
+                _computeDirty();
+              },
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

@@ -3,25 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vcroad/data/models/lesson.dart';
 import 'package:vcroad/data/models/question.dart';
-import 'package:vcroad/data/repositories/lesson.dart';
 import 'package:vcroad/data/repositories/lesson_progress.dart';
 import 'package:vcroad/presentation/providers/user.dart';
-import 'package:vcroad/presentation/features/lesson/screens/lesson_result_screen.dart';
+import 'package:vcroad/presentation/features/lesson/screens/review_result_screen.dart';
 import 'package:vcroad/presentation/features/lesson/widgets/question_display_widget.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 
-class LessonScreen extends StatefulWidget {
+class LessonReviewScreen extends StatefulWidget {
   final Lesson lesson;
 
-  const LessonScreen({super.key, required this.lesson});
+  const LessonReviewScreen({super.key, required this.lesson});
 
   @override
-  State<LessonScreen> createState() => _LessonScreenState();
+  State<LessonReviewScreen> createState() => _LessonReviewScreenState();
 }
 
-class _LessonScreenState extends State<LessonScreen> {
-  final LessonService _service = LessonService.instance;
+class _LessonReviewScreenState extends State<LessonReviewScreen> {
   final LessonProgressService _progressService = LessonProgressService.instance;
 
   List<QuizQuestion> _questions = [];
@@ -31,6 +29,7 @@ class _LessonScreenState extends State<LessonScreen> {
   bool _showFeedback = false;
   bool _lastAnswerCorrect = false;
   int _correctCount = 0;
+  DateTime? _nextReviewAt;
 
   final Map<int, dynamic> _answers = {};
   final Map<int, bool> _results = {};
@@ -53,22 +52,57 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   Future<void> _load() async {
-    final qs = await _service.getQuestions(widget.lesson.id);
+    final userId = context.read<UserProvider>().user?.userId;
+    if (userId == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+    final qs = await _progressService.getDueReviewQuestions(
+      userId,
+      widget.lesson.id,
+    );
+    final progress = await _progressService.getLessonProgress(
+      userId,
+      widget.lesson.id,
+    );
     if (!mounted) return;
     setState(() {
       _questions = qs;
+      _nextReviewAt = progress?.nextReviewAt;
       _loading = false;
     });
-    _startLesson();
+    if (_questions.isEmpty) return;
+    _startTimer();
   }
 
-  Future<void> _startLesson() async {
-    final userId = context.read<UserProvider>().user?.userId;
-    if (userId == null) return;
-    await _progressService.startLesson(userId, widget.lesson.id);
+  void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _elapsedSeconds++);
     });
+  }
+
+  Future<void> _startReviewAll() async {
+    final userId = context.read<UserProvider>().user?.userId;
+    if (userId == null) return;
+
+    setState(() => _loading = true);
+    final qs = await _progressService.getDueReviewQuestions(
+      userId,
+      widget.lesson.id,
+      onlyDue: false,
+    );
+    if (!mounted) return;
+    setState(() {
+      _questions = qs;
+      _currentIndex = 0;
+      _correctCount = 0;
+      _answers.clear();
+      _results.clear();
+      _showFeedback = false;
+      _loading = false;
+    });
+    if (_questions.isEmpty) return;
+    _startTimer();
   }
 
   void _submitAnswer() async {
@@ -83,7 +117,7 @@ class _LessonScreenState extends State<LessonScreen> {
 
     final isCorrect = _checkAnswer(q, userAnswer);
 
-    await _progressService.submitAnswer(
+    await _progressService.submitReviewAnswer(
       userId: userId,
       lessonId: widget.lesson.id,
       question: q,
@@ -96,9 +130,7 @@ class _LessonScreenState extends State<LessonScreen> {
       _showFeedback = true;
       _lastAnswerCorrect = isCorrect;
       _results[_currentIndex] = isCorrect;
-      if (isCorrect) {
-        _correctCount++;
-      }
+      if (isCorrect) _correctCount++;
     });
   }
 
@@ -113,11 +145,14 @@ class _LessonScreenState extends State<LessonScreen> {
         final correct = q.correctAnswer?.trim().toLowerCase() ?? '';
         return normalized == correct;
       case QuestionType.matchingType:
-        final userMap = answer is Map ? Map<String, String>.from(answer) : <String, String>{};
+        final userMap = answer is Map
+            ? Map<String, String>.from(answer)
+            : <String, String>{};
         final pairs = q.matchingPairs ?? [];
         if (userMap.length != pairs.length) return false;
         for (final p in pairs) {
-          if (userMap[p.id]?.trim().toLowerCase() != p.meaning.trim().toLowerCase()) {
+          if (userMap[p.id]?.trim().toLowerCase() !=
+              p.meaning.trim().toLowerCase()) {
             return false;
           }
         }
@@ -127,7 +162,7 @@ class _LessonScreenState extends State<LessonScreen> {
 
   void _goNext() {
     if (_isLastQuestion) {
-      _finishLesson();
+      _finishReview();
     } else {
       setState(() {
         _currentIndex++;
@@ -136,12 +171,15 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
-  Future<void> _finishLesson() async {
+  Future<void> _finishReview() async {
     _timer?.cancel();
     final userId = context.read<UserProvider>().user?.userId;
     if (userId == null) return;
 
-    final result = await _progressService.completeLesson(userId, widget.lesson.id);
+    final result = await _progressService.completeReview(
+      userId,
+      widget.lesson.id,
+    );
     if (!mounted) return;
 
     result['questionsCorrect'] = _correctCount;
@@ -150,9 +188,9 @@ class _LessonScreenState extends State<LessonScreen> {
     await Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => LessonResultScreen(
+        builder: (_) => ReviewResultScreen(
           result: result,
-          lesson: widget.lesson,
+          lessonTitle: widget.lesson.title,
         ),
       ),
     );
@@ -169,10 +207,13 @@ class _LessonScreenState extends State<LessonScreen> {
           onPressed: () => showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('Leave Lesson?'),
+              title: const Text('Exit Review?'),
               content: const Text('Your progress will be saved.'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Stay')),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Stay'),
+                ),
                 ElevatedButton(
                   onPressed: () {
                     _timer?.cancel();
@@ -189,9 +230,12 @@ class _LessonScreenState extends State<LessonScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.lesson.title, style: TextStyle(color: Colors.white, fontSize: context.scaleFont(16))),
             Text(
-              '${_currentIndex + 1} of ${_questions.length}',
+              'Review — ${widget.lesson.title}',
+              style: TextStyle(color: Colors.white, fontSize: context.scaleFont(16)),
+            ),
+            Text(
+              '${_questions.isEmpty ? 0 : _currentIndex + 1} of ${_questions.length}',
               style: TextStyle(color: Colors.white70, fontSize: context.scaleFont(12)),
             ),
           ],
@@ -211,23 +255,16 @@ class _LessonScreenState extends State<LessonScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _questions.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.quiz_outlined, size: context.scale(64), color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      SizedBox(height: context.scale(16)),
-                      Text('No questions in this lesson', style: TextStyle(fontSize: context.scaleFont(18), color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    ],
-                  ),
-                )
+              ? _buildNothingDue(context)
               : Column(
                   children: [
                     if (_showFeedback)
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(context.scale(12)),
-                        color: _lastAnswerCorrect ? Colors.green.withValues(alpha: 0.08) : Colors.red.withValues(alpha: 0.08),
+                        color: _lastAnswerCorrect
+                            ? Colors.green.withValues(alpha: 0.08)
+                            : Colors.red.withValues(alpha: 0.08),
                         child: Row(
                           children: [
                             Icon(
@@ -242,13 +279,19 @@ class _LessonScreenState extends State<LessonScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: context.scaleFont(15),
-                                  color: _lastAnswerCorrect ? Colors.green.shade700 : Colors.red.shade700,
+                                  color: _lastAnswerCorrect
+                                      ? Colors.green.shade700
+                                      : Colors.red.shade700,
                                 ),
                               ),
                             ),
                             Text(
                               '+${_questions[_currentIndex].points} pts',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.scaleFont(14), color: AppColors.primaryAdaptive(context)),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: context.scaleFont(14),
+                                color: AppColors.primaryAdaptive(context),
+                              ),
                             ),
                           ],
                         ),
@@ -299,12 +342,93 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
+  Widget _buildNothingDue(BuildContext context) {
+    final nextReview = _nextReviewAt;
+    final String nextReviewText;
+    if (nextReview == null) {
+      nextReviewText = 'No questions are scheduled yet.';
+    } else {
+      final diff = nextReview.difference(DateTime.now());
+      if (diff.inDays > 0) {
+        nextReviewText = diff.inDays == 1
+            ? 'Next review is due tomorrow.'
+            : 'Next review is due in ${diff.inDays} days.';
+      } else if (diff.inHours > 0) {
+        nextReviewText = 'Next review is due in ${diff.inHours} hours.';
+      } else {
+        nextReviewText = 'Next review is due in less than an hour.';
+      }
+    }
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: context.scale(24)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.verified_outlined,
+              size: context.scale(64),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            SizedBox(height: context.scale(16)),
+            Text(
+              'All caught up!',
+              style: TextStyle(
+                fontSize: context.scaleFont(18),
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: context.scale(8)),
+            Text(
+              nextReviewText,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: context.scaleFont(14),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            SizedBox(height: context.scale(24)),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _startReviewAll,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: EdgeInsets.symmetric(vertical: context.scale(14)),
+                ),
+                child: const Text(
+                  'Review all questions anyway',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+            SizedBox(height: context.scale(8)),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Back to Lessons'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomBar(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(context.scale(16)),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         child: SizedBox(
@@ -316,15 +440,29 @@ class _LessonScreenState extends State<LessonScreen> {
                     ? _goNext
                     : (_answers[_currentIndex] != null ? _submitAnswer : null),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _showFeedback ? Theme.of(context).colorScheme.primary : (_answers[_currentIndex] != null ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant),
+              backgroundColor: _showFeedback
+                  ? Theme.of(context).colorScheme.primary
+                  : (_answers[_currentIndex] != null
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outlineVariant),
               padding: EdgeInsets.symmetric(vertical: context.scale(14)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: _submitting
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
                 : Text(
                     _showFeedback ? (_isLastQuestion ? 'Finish' : 'Next') : 'Submit',
-                    style: TextStyle(color: _answers[_currentIndex] != null || _showFeedback ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: context.scaleFont(16), fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: _answers[_currentIndex] != null || _showFeedback
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: context.scaleFont(16),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
           ),
         ),

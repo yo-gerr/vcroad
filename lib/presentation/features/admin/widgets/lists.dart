@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/data/repositories/image.dart';
-
+import 'package:vcroad/presentation/features/admin/widgets/badges.dart';
 
 class UserListItem extends StatelessWidget {
   final UserDetails user;
@@ -15,20 +15,6 @@ class UserListItem extends StatelessWidget {
     required this.onTap,
     this.avatarUrl,
   });
-
-  Color _getStatusColor() {
-    if (user.isBanned) return Colors.red;
-    if (user.isInactive) return Colors.amber; // inactive -> yellow/amber
-    if (user.isVerified) return Colors.green;
-    return Colors.grey; // unverified -> grey
-  }
-
-  String _getStatusLabel() {
-    if (user.isBanned) return 'Banned';
-    if (user.isInactive) return 'Inactive';
-    if (user.isVerified) return 'Verified';
-    return 'Unverified';
-  }
 
   Widget _buildAvatar(BuildContext context) {
     final double logicalDiameter = context.scale(48);
@@ -43,16 +29,17 @@ class UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final nameStyle = TextStyle(
       fontWeight: FontWeight.w600,
       fontSize: context.scaleFont(16),
     );
     final emailStyle = TextStyle(
-      color: Colors.grey.shade600,
+      color: colorScheme.onSurfaceVariant,
       fontSize: context.scaleFont(14),
     );
     final barangayStyle = TextStyle(
-      color: Colors.grey.shade700,
+      color: colorScheme.onSurfaceVariant,
       fontSize: context.scaleFont(13),
     );
 
@@ -93,7 +80,7 @@ class UserListItem extends StatelessWidget {
                         Icon(
                           Icons.place,
                           size: context.scale(14),
-                          color: Colors.grey,
+                          color: colorScheme.outline,
                         ),
                         SizedBox(width: context.scale(6)),
                         Expanded(
@@ -113,24 +100,7 @@ class UserListItem extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: context.scale(12),
-                      vertical: context.scale(4),
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getRoleColor(),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _getRoleLabel(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: context.scaleFont(12),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  RoleBadge(role: user.role),
                   SizedBox(height: context.scale(8)),
                   if ((user.flaggedReportsCount) > 0)
                     Container(
@@ -165,25 +135,7 @@ class UserListItem extends StatelessWidget {
                       ),
                     )
                   else
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getStatusIcon(),
-                          size: context.scale(16),
-                          color: _getStatusColor(),
-                        ),
-                        SizedBox(width: context.scale(4)),
-                        Text(
-                          _getStatusLabel(),
-                          style: TextStyle(
-                            color: _getStatusColor(),
-                            fontSize: context.scaleFont(12),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                    StatusBadge.fromUser(user, fontSize: context.scaleFont(12)),
                 ],
               ),
             ],
@@ -191,34 +143,5 @@ class UserListItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getRoleColor() {
-    switch (user.role) {
-      case UserRole.sysadmin:
-        return Colors.purple;
-      case UserRole.admin:
-        return Colors.blue;
-      case UserRole.user:
-        return Colors.teal;
-    }
-  }
-
-  String _getRoleLabel() {
-    switch (user.role) {
-      case UserRole.sysadmin:
-        return 'Super Admin';
-      case UserRole.admin:
-        return 'Barangay Admin';
-      case UserRole.user:
-        return 'Road User';
-    }
-  }
-
-  IconData _getStatusIcon() {
-    if (user.isBanned) return Icons.block;
-    if (user.isInactive) return Icons.schedule_outlined;
-    if (user.isVerified) return Icons.verified;
-    return Icons.pending_outlined;
   }
 }

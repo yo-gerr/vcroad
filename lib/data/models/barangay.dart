@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 
 class Barangay {
   final String name;
+  final String? id; // Stable key (from GeoJSON `id`), used as `barangayId`
   final String? district;
   final String? logo;
   final List<List<LatLng>>? polygons;
@@ -10,6 +11,7 @@ class Barangay {
 
   const Barangay({
     required this.name,
+    this.id,
     this.district,
     this.logo,
     this.polygons,
@@ -40,6 +42,7 @@ class Barangay {
   Map<String, dynamic> toJson({bool includePolygons = false}) {
     return {
       'name': name,
+      if (id != null) 'id': id,
       if (district != null) 'district': district,
       if (logo != null) 'logo': logo,
       if (includePolygons && polygons != null)
@@ -63,6 +66,7 @@ class Barangay {
 
     return Barangay(
       name: json['name'] as String,
+      id: json['id']?.toString(),
       district: json['district'] as String?,
       logo: json['logo'] as String?, // Already nullable, ensure it's safe
       polygons: polygons,

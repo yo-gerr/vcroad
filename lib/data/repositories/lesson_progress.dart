@@ -94,6 +94,7 @@ class LessonProgressService {
       final now = Timestamp.now();
 
       await _firestore.collection(_collection).doc(progressId).set({
+        'userId': userId,
         'startedAt': now,
         'lastAccessedAt': now,
         'attemptCount': FieldValue.increment(1),
@@ -127,19 +128,8 @@ class LessonProgressService {
         final pointsEarned = isCorrect ? question.points : 0;
 
         final now = DateTime.now();
-        var interval = 1;
-        if (isCorrect) {
-          final prevAttempt = progress.attempts
-              .where((a) => a.questionId == question.id)
-              .toList();
-          if (prevAttempt.isNotEmpty && prevAttempt.last.isCorrect) {
-            interval = (prevAttempt.last.interval * 2).clamp(1, 168);
-          }
-        }
-        final nextReviewAt =
-            isCorrect ? now.add(Duration(hours: interval)) : now.add(
-              const Duration(hours: 1),
-            );
+        final interval = _nextInterval(progress, question.id, isCorrect);
+        final nextReviewAt = now.add(Duration(hours: interval));
 
         final attempt = QuestionAttempt(
           questionId: question.id,
@@ -198,6 +188,182 @@ class LessonProgressService {
       });
     } catch (e) {
       debugPrint('LessonProgressService.submitAnswer error: $e');
+      rethrow;
+    }
+  }
+
+  int _nextInterval(
+    LessonProgress progress,
+    String questionId,
+    bool isCorrect,
+  ) {
+    if (!isCorrect) return 1;
+    final prevAttempt = progress.attempts
+        .where((a) => a.questionId == questionId)
+        .toList();
+    if (prevAttempt.isNotEmpty && prevAttempt.last.isCorrect) {
+      return (prevAttempt.last.interval * 2).clamp(1, 168);
+    }
+    return 1;
+  }
+
+  Future<List<QuizQuestion>> getDueReviewQuestions(
+    String userId,
+    String lessonId, {
+    bool onlyDue = true,
+  }) async {
+    try {
+      final progressId = '${userId}_$lessonId';
+      final progressDoc = await _firestore
+          .collection(_collection)
+          .doc(progressId)
+          .get();
+      if (!progressDoc.exists) return [];
+
+      final progress = LessonProgress.fromJson(progressDoc.data()!);
+      if (progress.attempts.isEmpty) return [];
+
+      final now = DateTime.now();
+      final Set<String>? dueQuestionIds;
+      if (onlyDue) {
+        dueQuestionIds = progress.attempts
+            .where((a) => a.nextReviewAt != null && a.nextReviewAt!.isBefore(now))
+            .map((a) => a.questionId)
+            .toSet();
+        if (dueQuestionIds.isEmpty) return [];
+      } else {
+        dueQuestionIds = null;
+      }
+
+      final questionsSnapshot = await _firestore
+          .collection(_questionsCollection)
+          .where('lessonId', isEqualTo: lessonId)
+          .orderBy('order')
+          .get();
+
+      if (!onlyDue) {
+        final attemptedIds = progress.attempts.map((a) => a.questionId).toSet();
+        return questionsSnapshot.docs
+            .map((doc) => QuizQuestion.fromJson(doc.data()))
+            .where((q) => attemptedIds.contains(q.id))
+            .toList();
+      }
+
+      return questionsSnapshot.docs
+          .map((doc) => QuizQuestion.fromJson(doc.data()))
+          .where((q) => dueQuestionIds!.contains(q.id))
+          .toList();
+    } catch (e) {
+      debugPrint('LessonProgressService.getDueReviewQuestions error: $e');
+      return [];
+    }
+  }
+
+  Future<void> submitReviewAnswer({
+    required String userId,
+    required String lessonId,
+    required QuizQuestion question,
+    required dynamic userAnswer,
+    required bool isCorrect,
+  }) async {
+    try {
+      final progressId = '${userId}_$lessonId';
+      final docRef = _firestore.collection(_collection).doc(progressId);
+
+      await _firestore.runTransaction((tx) async {
+        final snapshot = await tx.get(docRef);
+        if (!snapshot.exists) return;
+
+        final progress = LessonProgress.fromJson(snapshot.data()!);
+        final now = DateTime.now();
+        final interval = _nextInterval(progress, question.id, isCorrect);
+        final nextReviewAt = now.add(Duration(hours: interval));
+
+        final attempt = QuestionAttempt(
+          questionId: question.id,
+          userAnswer: userAnswer?.toString(),
+          isCorrect: isCorrect,
+          pointsEarned: isCorrect ? question.points : 0,
+          attemptedAt: now,
+          nextReviewAt: nextReviewAt,
+          interval: interval,
+        );
+
+        final updatedAttempts = [...progress.attempts, attempt];
+        tx.update(docRef, {
+          'attempts': updatedAttempts.map((a) => a.toJson()).toList(),
+          'lastAccessedAt': Timestamp.now(),
+        });
+      });
+    } catch (e) {
+      debugPrint('LessonProgressService.submitReviewAnswer error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> completeReview(
+    String userId,
+    String lessonId,
+  ) async {
+    try {
+      final progressId = '${userId}_$lessonId';
+      final docRef = _firestore.collection(_collection).doc(progressId);
+
+      final doc = await docRef.get();
+      if (!doc.exists) {
+        return {'xpEarned': 0, 'reviewCount': 0, 'earnedBadges': <String>[]};
+      }
+
+      final progress = LessonProgress.fromJson(doc.data()!);
+      if (progress.attempts.isEmpty) {
+        return {
+          'xpEarned': 0,
+          'reviewCount': progress.reviewCount,
+          'earnedBadges': <String>[],
+        };
+      }
+
+      final now = DateTime.now();
+      final futureTimes = progress.attempts
+          .map((a) => a.nextReviewAt)
+          .whereType<DateTime>()
+          .where((t) => t.isAfter(now))
+          .toList();
+      final DateTime? nextReviewAt = futureTimes.isEmpty
+          ? null
+          : futureTimes.reduce((a, b) => a.isBefore(b) ? a : b);
+
+      await docRef.update({
+        'reviewCount': FieldValue.increment(1),
+        if (nextReviewAt != null)
+          'nextReviewAt': Timestamp.fromDate(nextReviewAt)
+        else
+          'nextReviewAt': FieldValue.delete(),
+        'lastAccessedAt': Timestamp.now(),
+      });
+
+      final xpEarned = await _xpService.awardReview(userId);
+
+      final updatedDoc = await docRef.get();
+      final updatedProgress = LessonProgress.fromJson(updatedDoc.data()!);
+
+      final earnedBadges = await _badgeService.checkAndAward(
+        userId: userId,
+        lessonId: lessonId,
+        progress: updatedProgress,
+        durationMinutes: 0,
+        secondsSpent: 0,
+        questionCount: updatedProgress.questionsAnswered,
+      );
+
+      return {
+        'xpEarned': xpEarned,
+        'reviewCount': updatedProgress.reviewCount,
+        'earnedBadges': earnedBadges,
+        'nextReviewAt': nextReviewAt,
+      };
+    } catch (e) {
+      debugPrint('LessonProgressService.completeReview error: $e');
       rethrow;
     }
   }

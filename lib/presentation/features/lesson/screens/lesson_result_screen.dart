@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vcroad/core/constants/badge_definitions.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
+import 'package:vcroad/data/models/lesson.dart';
+import 'package:vcroad/data/repositories/lesson_progress.dart';
+import 'package:vcroad/presentation/features/lesson/screens/lesson_screen.dart';
+import 'package:vcroad/presentation/providers/user.dart';
 
 class LessonResultScreen extends StatefulWidget {
   final Map<String, dynamic> result;
-  final String lessonTitle;
+  final Lesson lesson;
 
   const LessonResultScreen({
     super.key,
     required this.result,
-    required this.lessonTitle,
+    required this.lesson,
   });
 
   @override
@@ -19,6 +24,8 @@ class LessonResultScreen extends StatefulWidget {
 
 class _LessonResultScreenState extends State<LessonResultScreen>
     with SingleTickerProviderStateMixin {
+  final LessonProgressService _progressService = LessonProgressService.instance;
+
   late AnimationController _animCtrl;
   late Animation<double> _fadeIn;
   late Animation<Offset> _slideUp;
@@ -54,6 +61,9 @@ class _LessonResultScreenState extends State<LessonResultScreen>
     super.dispose();
   }
 
+  bool get _passed =>
+      widget.result['passed'] as bool? ??
+      (widget.result['alreadyCompleted'] as bool? ?? false);
   double get _score => (widget.result['score'] as num?)?.toDouble() ?? 0;
   int get _xpEarned => (widget.result['xpEarned'] as num?)?.toInt() ?? 0;
   bool get _leveledUp => widget.result['leveledUp'] as bool? ?? false;
@@ -87,27 +97,39 @@ class _LessonResultScreenState extends State<LessonResultScreen>
                     SizedBox(height: context.scale(20)),
                     _buildScoreCircle(context),
                     SizedBox(height: context.scale(24)),
-                    Text('Lesson Complete!', style: TextStyle(color: Colors.white, fontSize: context.scaleFont(26), fontWeight: FontWeight.bold)),
+                    Text(_passed ? 'Lesson Complete!' : 'Keep Going!', style: TextStyle(color: Colors.white, fontSize: context.scaleFont(26), fontWeight: FontWeight.bold)),
                     SizedBox(height: context.scale(4)),
-                    Text(widget.lessonTitle, style: TextStyle(color: Colors.white70, fontSize: context.scaleFont(15))),
+                    Text(widget.lesson.title, style: TextStyle(color: Colors.white70, fontSize: context.scaleFont(15))),
                     SizedBox(height: context.scale(32)),
-                    _buildXpCard(context),
-                    if (_leveledUp) ...[
-                      SizedBox(height: context.scale(16)),
-                      _buildLevelUpCard(context),
+                    if (_passed) ...[
+                      _buildXpCard(context),
+                      if (_leveledUp) ...[
+                        SizedBox(height: context.scale(16)),
+                        _buildLevelUpCard(context),
+                      ],
+                      if (_isQuickLearner) ...[
+                        SizedBox(height: context.scale(16)),
+                        _buildQuickLearnerBadge(context),
+                      ],
+                      if (_earnedBadgeDefs.isNotEmpty) ...[
+                        SizedBox(height: context.scale(16)),
+                        _buildBadgeSection(context),
+                      ],
+                      SizedBox(height: context.scale(32)),
+                      _buildReportItButton(context),
+                      SizedBox(height: context.scale(12)),
+                      _buildContinueButton(context),
+                    ] else ...[
+                      _buildPassHintCard(context),
+                      SizedBox(height: context.scale(32)),
+                      _buildRetakeButton(context),
+                      SizedBox(height: context.scale(12)),
+                      _buildContinueButton(
+                        context,
+                        label: 'Back to Lessons',
+                        primary: false,
+                      ),
                     ],
-                    if (_isQuickLearner) ...[
-                      SizedBox(height: context.scale(16)),
-                      _buildQuickLearnerBadge(context),
-                    ],
-                    if (_earnedBadgeDefs.isNotEmpty) ...[
-                      SizedBox(height: context.scale(16)),
-                      _buildBadgeSection(context),
-                    ],
-                    SizedBox(height: context.scale(32)),
-                    _buildReportItButton(context),
-                    SizedBox(height: context.scale(12)),
-                    _buildContinueButton(context),
                     SizedBox(height: context.scale(24)),
                   ],
                 ),
@@ -292,6 +314,57 @@ class _LessonResultScreenState extends State<LessonResultScreen>
     );
   }
 
+  Future<void> _retakeLesson() async {
+    final userId = context.read<UserProvider>().user?.userId;
+    if (userId == null) return;
+
+    await _progressService.resetLessonProgress(userId, widget.lesson.id);
+    if (!mounted) return;
+
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => LessonScreen(lesson: widget.lesson)),
+    );
+  }
+
+  Widget _buildPassHintCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(context.scale(16)),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.orange.shade800, size: context.scale(24)),
+            SizedBox(width: context.scale(12)),
+            Expanded(
+              child: Text(
+                'You scored ${_score.toStringAsFixed(0)}%. Score 70% or higher to complete this lesson and unlock the next one.',
+                style: TextStyle(fontSize: context.scaleFont(14)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRetakeButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _retakeLesson,
+        icon: const Icon(Icons.refresh),
+        label: Text('Retake Lesson', style: TextStyle(fontSize: context.scaleFont(16), fontWeight: FontWeight.w600)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          padding: EdgeInsets.symmetric(vertical: context.scale(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
   Widget _buildReportItButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -313,21 +386,35 @@ class _LessonResultScreenState extends State<LessonResultScreen>
     );
   }
 
-  Widget _buildContinueButton(BuildContext context) {
+  Widget _buildContinueButton(BuildContext context, {String label = 'Continue', bool primary = true}) {
+    final button = Text(label, style: TextStyle(fontSize: context.scaleFont(16), fontWeight: FontWeight.w600));
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          padding: EdgeInsets.symmetric(vertical: context.scale(14)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Text('Continue', style: TextStyle(fontSize: context.scaleFont(16), fontWeight: FontWeight.w600)),
-      ),
+      child: primary
+          ? ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding: EdgeInsets.symmetric(vertical: context.scale(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: button,
+            )
+          : OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                padding: EdgeInsets.symmetric(vertical: context.scale(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: button,
+            ),
     );
   }
 

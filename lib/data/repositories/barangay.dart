@@ -16,6 +16,17 @@ class BarangayService {
   bool isLoaded = false;
   bool isLoading = false;
 
+  // Name-only metadata from cache, available instantly for dropdowns/search.
+  List<Barangay>? _cachedMetadata;
+
+  /// Whether at least the barangay names/credentials are available (from cache
+  /// or a full load) so a dropdown/search can render without waiting on polygons.
+  bool get namesReady => _cachedMetadata != null || isLoaded;
+
+  /// Candidate list for dropdowns/search: full load when available, else cache.
+  List<Barangay> get candidates =>
+      isLoaded ? barangays : (_cachedMetadata ?? const <Barangay>[]);
+
   // fast lookup map: normalized lowercase name -> logo path (asset or url)
   final Map<String, String> _logoMap = {};
 
@@ -56,13 +67,22 @@ class BarangayService {
   LatLngBounds get valenzuelaBounds {
     const delta = 0.05;
     return LatLngBounds(
-      LatLng(_valenzuelaCenter.latitude - delta, _valenzuelaCenter.longitude - delta),
-      LatLng(_valenzuelaCenter.latitude + delta, _valenzuelaCenter.longitude + delta),
+      LatLng(
+        _valenzuelaCenter.latitude - delta,
+        _valenzuelaCenter.longitude - delta,
+      ),
+      LatLng(
+        _valenzuelaCenter.latitude + delta,
+        _valenzuelaCenter.longitude + delta,
+      ),
     );
   }
 
   /// Generate polylines for map overlay
-  List<Polyline> generateBarangayPolylines({Color? color, double strokeWidth = 2}) {
+  List<Polyline> generateBarangayPolylines({
+    Color? color,
+    double strokeWidth = 2,
+  }) {
     if (barangays.isEmpty) return [];
 
     final effectiveColor = color ?? const Color.fromRGBO(33, 150, 243, 0.4);
@@ -88,12 +108,14 @@ class BarangayService {
     isLoading = true;
 
     try {
-      // Try cache first for metadata (optional, for dropdown/search)
+      // Try cache first for metadata (optional, for dropdown/search).
+      // Seed an instant name-only list so dropdowns/search render immediately
+      // while the full polygon data is still (re)built below.
       if (!forceReload) {
         final cached = await _loadFromCache();
         if (cached != null && cached.isNotEmpty) {
-          // Use cached metadata for dropdowns/search
-          // But DO NOT use for polygons/detection
+          _cachedMetadata = cached;
+          barangays = cached;
         }
       }
 
@@ -164,6 +186,7 @@ class BarangayService {
 
       return Barangay(
         name: props['barangay'] as String? ?? 'Unknown',
+        id: props['id']?.toString(),
         district: props['district'] as String?,
         logo: props['logo'] as String?,
         polygons: polygons.isEmpty ? null : polygons,
@@ -281,12 +304,14 @@ class BarangayService {
   Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_cacheKey);
+    _cachedMetadata = null;
     isLoaded = false;
   }
 
   /// Dispose (call on app exit if needed)
   void dispose() {
     barangays.clear();
+    _cachedMetadata = null;
     isLoaded = false;
   }
 }

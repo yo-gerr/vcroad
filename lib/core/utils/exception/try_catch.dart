@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:vcroad/presentation/shared/dialogs/something_went_wrong.dart';
 
@@ -99,32 +98,6 @@ String _resolveFirebaseMessage(dynamic e) {
         return "A data error occurred. Please try again.";
     }
   }
-
-  // Commented out: FirebaseFunctionsException handling (cloud_functions dependency removed)
-  // if (e is FirebaseFunctionsException) {
-  //   switch (e.code) {
-  //     case 'unauthenticated':
-  //       return "You must be signed in to perform this action.";
-  //     case 'permission-denied':
-  //       return "You don't have permission to do this action.";
-  //     case 'invalid-argument':
-  //       return "Some details you entered are invalid. Please review and try again.";
-  //     case 'already-exists':
-  //       return "This resource already exists. Try again with different details.";
-  //     case 'not-found':
-  //       return "The requested resource was not found.";
-  //     case 'failed-precondition':
-  //       return "This request could not be completed due to invalid state.";
-  //     case 'unavailable':
-  //       return "The server is currently unavailable. Please try again later.";
-  //     case 'internal':
-  //       return "Something went wrong on the server. Please try again.";
-  //     case 'resource-exhausted':
-  //       return "Quota exceeded. Please try again later.";
-  //     default:
-  //       return e.message ?? "A server error occurred. Please try again.";
-  //   }
-  // }
 
   return "An unexpected error occurred. Please try again.";
 }

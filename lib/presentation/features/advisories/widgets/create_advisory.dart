@@ -1,10 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vcroad/data/models/advisory.dart';
+import 'package:vcroad/data/repositories/storage.dart';
 import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/presentation/shared/dialogs/confirmation.dart';
 import 'package:vcroad/presentation/shared/dialogs/loading.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
@@ -31,6 +33,10 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
   int _currentPage = 0;
   bool _isSubmitting = false;
 
+  // Inline validation error shown above the navigation bar. Kept visible so
+  // users can see *why* the current step is invalid while they fix it.
+  String? _currentError;
+
   // Validation states per page
   final List<bool> _pageValidated = List.filled(4, false);
 
@@ -51,6 +57,7 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
     if (widget.existingAdvisory != null) {
       _formData.loadFromAdvisory(widget.existingAdvisory!);
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         context.read<AdvisoryProvider>().loadAdvisoryForEditing(
           widget.existingAdvisory!,
         );
@@ -65,13 +72,18 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
   Widget build(BuildContext context) {
     final responsive = context.responsive;
 
-    // PopScope API varies across SDK versions. Keep WillPopScope for compatibility
-    // and suppress the deprecation warning until you migrate to PopScope.
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    final navigator = Navigator.of(context);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && mounted) {
+          navigator.pop();
+        }
+      },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F5FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: _buildAppBar(responsive),
         // Center content and constrain max width on wide screens (web/desktop),
         // following the Lesson page pattern for comfortable reading width.
@@ -156,12 +168,20 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
           child: PageView(
             controller: _pageController,
             physics: const NeverScrollableScrollPhysics(),
-            onPageChanged: (page) => setState(() => _currentPage = page),
+            onPageChanged: (page) {
+              setState(() {
+                _currentPage = page;
+                _currentError = null;
+              });
+            },
             children: _pages
                 .map((p) => p.builder(context, responsive, _formData))
                 .toList(),
           ),
         ),
+
+        // Inline validation error (persistent while the step is invalid)
+        if (_currentError != null) _buildErrorBanner(responsive),
 
         // Navigation
         _buildNavigation(responsive),
@@ -169,14 +189,67 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
     );
   }
 
+  Widget _buildErrorBanner(dynamic responsive) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(
+        horizontal: responsive.scale(16),
+        vertical: responsive.scale(8),
+      ),
+      padding: EdgeInsets.all(responsive.scale(12)),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: responsive.scale(20),
+            color: Colors.red.shade700,
+          ),
+          SizedBox(width: responsive.scale(8)),
+          Expanded(
+            child: Text(
+              _currentError!,
+              style: TextStyle(
+                fontSize: responsive.scaleFont(13),
+                color: Colors.red.shade800,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => setState(() => _currentError = null),
+            child: Icon(
+              Icons.close,
+              size: responsive.scale(18),
+              color: Colors.red.shade400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProgressIndicator(dynamic responsive) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color brand = AppColors.primaryAdaptive(context);
+    final Color green =
+        isDark ? Color.lerp(Colors.green, Colors.white, 0.35)! : Colors.green;
+    final Color faint =
+        isDark ? scheme.outlineVariant : Colors.grey.shade300;
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: responsive.scale(24),
         vertical: responsive.scale(16),
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -202,17 +275,13 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
                         height: responsive.scale(isCurrent ? 36 : 32),
                         decoration: BoxDecoration(
                           color: isCompleted
-                              ? Colors.green
-                              : (isCurrent
-                                    ? const Color(0xFF001278)
-                                    : Colors.grey.shade300),
+                              ? green
+                              : (isCurrent ? brand : faint),
                           shape: BoxShape.circle,
                           boxShadow: isCurrent
                               ? [
                                   BoxShadow(
-                                    color: const Color(
-                                      0xFF001278,
-                                    ).withValues(alpha: 0.3),
+                                    color: brand.withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -231,7 +300,7 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
                                   style: TextStyle(
                                     color: isCurrent
                                         ? Colors.white
-                                        : Colors.grey.shade700,
+                                        : scheme.onSurfaceVariant,
                                     fontWeight: FontWeight.bold,
                                     fontSize: responsive.scaleFont(14),
                                   ),
@@ -249,9 +318,7 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
                             fontWeight: isCurrent
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            color: isCurrent
-                                ? const Color(0xFF001278)
-                                : Colors.grey.shade700,
+                            color: isCurrent ? brand : scheme.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -271,9 +338,7 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
                         horizontal: responsive.scale(4),
                       ),
                       decoration: BoxDecoration(
-                        color: i < _currentPage
-                            ? Colors.green
-                            : Colors.grey.shade300,
+                        color: i < _currentPage ? green : faint,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -287,10 +352,11 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
   }
 
   Widget _buildNavigation(dynamic responsive) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.all(responsive.scale(16)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -366,6 +432,9 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
       return;
     }
 
+    // Step is valid — clear any stale inline error before moving on.
+    setState(() => _currentError = null);
+
     if (_currentPage < _pages.length - 1) {
       _pageValidated[_currentPage] = true;
       _pageController.nextPage(
@@ -379,6 +448,7 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
 
   void _previousPage() {
     if (_currentPage > 0) {
+      setState(() => _currentError = null);
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -479,6 +549,10 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
   Future<void> _submitAdvisory() async {
     setState(() => _isSubmitting = true);
 
+    // Track a superseded uploaded image so it can be garbage-collected only
+    // after the advisory write succeeds.
+    String? oldImageUrlToDelete;
+
     try {
       showDialog<void>(
         context: context,
@@ -491,31 +565,53 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
       final provider = context.read<AdvisoryProvider>();
       final userProvider = context.read<UserProvider>();
 
-      // Commented out: uploadImage uses firebase_storage
+      // Resolve the advisory id up-front so media can be uploaded against it
+      // before the document is written.
+      final advisoryId =
+          widget.existingAdvisory?.advisoryId ?? provider.generateAdvisoryId();
+
+      // Determine whether the user picked a fresh image, removed the existing
+      // one, or left it unchanged.
+      final bool hasNewImage =
+          _formData.imageFile != null || _formData.imageBytes != null;
+      final String? previousImageUrl =
+          widget.existingAdvisory?.imageUrl ?? _formData.imageUrl;
+
       String? imageUrl;
-      // if (_formData.imageFile != null || _formData.imageBytes != null) {
-      //   final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-      //   imageUrl = await _advisoryService.uploadImage(
-      //     file: _formData.imageFile,
-      //     bytes: _formData.imageBytes,
-      //     advisoryId: tempId,
-      //   );
-      // } else {
-      //   imageUrl = _formData.imageUrl ?? widget.existingAdvisory?.imageUrl;
-      // }
-      imageUrl = _formData.imageUrl ?? widget.existingAdvisory?.imageUrl;
+      if (hasNewImage) {
+        // Upload first so a failed upload aborts before any write.
+        oldImageUrlToDelete = previousImageUrl;
+        imageUrl = await _uploadPendingImage(advisoryId);
+      } else if (_formData.imageUrl == null) {
+        // No new image and no retained URL (image removed/changed on edit).
+        oldImageUrlToDelete = previousImageUrl;
+        imageUrl = null;
+      } else {
+        imageUrl = previousImageUrl;
+      }
 
       final advisory = _formData.toAdvisory(
-        advisoryId: widget.existingAdvisory?.advisoryId ?? '',
+        advisoryId: advisoryId,
         provider: provider,
         userProvider: userProvider,
         imageUrl: imageUrl,
       );
 
       if (_isEditing) {
-        await provider.updateAdvisory(advisory);
+        final ok = await provider.updateAdvisory(advisory);
+        if (!ok) {
+          throw Exception(provider.error ?? 'Failed to update advisory');
+        }
       } else {
-        await provider.createAdvisory(advisory);
+        final id = await provider.createAdvisory(advisory);
+        if (id == null) {
+          throw Exception(provider.error ?? 'Failed to create advisory');
+        }
+      }
+
+      // Clean up the replaced/removed image only after the write succeeds.
+      if (oldImageUrlToDelete != null) {
+        await SupabaseStorageService.instance.deleteFile(oldImageUrlToDelete);
       }
 
       if (mounted) {
@@ -538,6 +634,26 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  /// Upload the currently pending advisory image to storage keyed by
+  /// [advisoryId], returning the public URL. Web uses the pre-resized bytes;
+  /// native uses the picked file.
+  Future<String> _uploadPendingImage(String advisoryId) async {
+    final storage = SupabaseStorageService.instance;
+    final path = 'advisories/$advisoryId/image.jpg';
+    if (kIsWeb) {
+      final bytes = _formData.imageBytes;
+      if (bytes == null) throw Exception('Image data is missing');
+      return storage.uploadBytes(
+        path: path,
+        bytes: bytes,
+        contentType: 'image/jpeg',
+      );
+    }
+    final file = _formData.imageFile;
+    if (file == null) throw Exception('Image file is missing');
+    return storage.uploadFile(path: path, file: file);
   }
 
   Future<bool> _onWillPop() async {
@@ -565,7 +681,8 @@ class _CreateAdvisoryState extends State<CreateAdvisory> {
 
   void _showError(String message) {
     if (!mounted) return;
-    SnackbarUtils.showError(context, message);
+    // Show inline so the message persists while the user fixes the step.
+    setState(() => _currentError = message);
   }
 
   List<_AdvisoryPage> get _pages => [

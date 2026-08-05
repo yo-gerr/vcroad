@@ -12,7 +12,6 @@ import 'package:vcroad/presentation/features/auth/widgets/personal.dart';
 import 'package:vcroad/presentation/features/auth/widgets/credentials.dart';
 import 'package:vcroad/presentation/features/auth/widgets/confirmation.dart';
 import 'package:vcroad/presentation/features/auth/widgets/status.dart';
-import 'package:vcroad/data/repositories/barangay.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/data/repositories/auth.dart';
 import 'package:vcroad/core/utils/exception/try_catch.dart';
@@ -40,8 +39,6 @@ class _RegisterState extends State<Register> {
   late final Map<String, FocusNode> _focusNodes;
 
   Barangay? _selectedBarangay;
-  final BarangayService _barangayService = BarangayService();
-  List<DropdownMenuItem<Barangay>> _barangayItems = [];
 
   final ValueNotifier<bool> _isSubmitting = ValueNotifier<bool>(false);
   String _emailVerificationStatus = 'pending';
@@ -81,8 +78,6 @@ class _RegisterState extends State<Register> {
       'password': FocusNode(),
       'confirmPassword': FocusNode(),
     };
-
-    _loadBarangays();
 
     if (widget.resumeUid != null) {
       _resumeRegistration(widget.resumeUid!);
@@ -170,25 +165,6 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  Future<void> _loadBarangays() async {
-    try {
-      await _barangayService.loadBarangays();
-      if (mounted) {
-        setState(() {
-          _barangayItems = _barangayService.barangayDropdownItems;
-        });
-      }
-    } catch (e) {
-      debugPrint('Failed to load barangays: $e');
-      if (mounted) {
-        SnackbarUtils.showError(
-          context,
-          'Failed to load barangays. Please restart the app.',
-        );
-      }
-    }
-  }
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -243,9 +219,9 @@ class _RegisterState extends State<Register> {
                 'You need to read and agree to the Terms and Privacy Policy before continuing.',
             onRetry: () {
               Navigator.of(context).pop();
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const UserAgreement()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const UserAgreement()));
             },
           );
           return;
@@ -282,10 +258,24 @@ class _RegisterState extends State<Register> {
         _handleCreateAccount();
       },
       task: () async {
-        final uid = await AuthService.instance.createAccount(
-          email: email,
-          password: password,
-        );
+        String? uid;
+        try {
+          uid = await AuthService.instance.createAccount(
+            email: email,
+            password: password,
+          );
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-already-in-use') {
+            final pending = await AuthService.instance
+                .getPendingRegistrationByEmail(email);
+            if (!mounted) return;
+            if (pending != null) {
+              await _showResumeRegistrationDialog(email);
+              return;
+            }
+          }
+          rethrow;
+        }
         _tempUserId = uid;
 
         _verificationSub?.cancel();
@@ -420,8 +410,8 @@ class _RegisterState extends State<Register> {
   Future<void> _onRefreshEmailStatus() async {
     _isSubmitting.value = true;
     try {
-      final verified =
-          await AuthService.instance.refreshAndCheckEmailVerified();
+      final verified = await AuthService.instance
+          .refreshAndCheckEmailVerified();
 
       if (!mounted) return;
 
@@ -465,6 +455,93 @@ class _RegisterState extends State<Register> {
         _isSubmitting.value = false;
       }
     }
+  }
+
+  Future<void> _showResumeRegistrationDialog(String email) async {
+    final responsive = context.responsive;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => Dialog(
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: responsive.horizontalPadding,
+          vertical: responsive.verticalPadding,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: responsive.maxFormWidth),
+          child: Padding(
+            padding: EdgeInsets.all(responsive.scale(24)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.hourglass_top_rounded,
+                  size: responsive.scale(64),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                SizedBox(height: responsive.scale(20)),
+                Text(
+                  'Unfinished Registration',
+                  style: TextStyle(
+                    fontSize: responsive.scaleFont(20),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: responsive.scale(12)),
+                Text(
+                  'You already started registering with "$email" but did not finish. Sign in to resume it — your saved details will be restored.',
+                  style: TextStyle(
+                    fontSize: responsive.scaleFont(15),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: responsive.scale(24)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        if (mounted) {
+                          GoRouter.of(context).goNamed('login');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        minimumSize: Size(
+                          responsive.scale(170),
+                          responsive.scale(44),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text('Sign in to resume'),
+                    ),
+                    SizedBox(width: responsive.scale(12)),
+                    TextButton(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -584,7 +661,6 @@ class _RegisterState extends State<Register> {
                           selectedBarangay: _selectedBarangay,
                           onBarangayChanged: (b) =>
                               setState(() => _selectedBarangay = b),
-                          barangayItems: _barangayItems,
                           focusNodes: _focusNodes,
                           agreed: _agreed,
                           onAgreedChanged: (v) => setState(() {
@@ -613,7 +689,7 @@ class _RegisterState extends State<Register> {
                   final isConfirmation = _step == RegistrationStep.confirmation;
                   final label = switch (_step) {
                     RegistrationStep.credentials =>
-                        'Create Account & Send Verification',
+                      'Create Account & Send Verification',
                     RegistrationStep.emailStatus => 'Continue',
                     RegistrationStep.personal => 'Complete Registration',
                     RegistrationStep.confirmation => 'Go to Login',
@@ -631,8 +707,8 @@ class _RegisterState extends State<Register> {
                               _step == RegistrationStep.credentials
                                   ? 'Cancel'
                                   : _step == RegistrationStep.emailStatus
-                                      ? 'Cancel Registration'
-                                      : 'Back',
+                                  ? 'Cancel Registration'
+                                  : 'Back',
                               style: TextStyle(fontSize: info.scaleFont(14)),
                             ),
                           ),

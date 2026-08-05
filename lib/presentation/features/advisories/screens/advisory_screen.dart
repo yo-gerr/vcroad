@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:vcroad/data/repositories/advisory_export.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/core/utils/web/web_download.dart' as web_download;
 import 'package:vcroad/presentation/shared/dialogs/loading.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,13 @@ import 'package:vcroad/presentation/shared/dialogs/confirmation.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/presentation/shared/widgets/search/search.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/create_advisory.dart';
-import 'package:vcroad/core/utils/format/date_time.dart';
 import 'package:vcroad/data/models/barangay.dart';
 import 'package:vcroad/data/models/user.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/presentation/shared/widgets/search/filter.dart';
 import 'package:vcroad/presentation/shared/widgets/search/barangay_filter.dart';
 import 'package:vcroad/presentation/shared/widgets/stats/stats.dart';
+import 'package:vcroad/presentation/features/advisories/widgets/advisory_list_view.dart';
 
 class AdvisoryScreen extends StatefulWidget {
   const AdvisoryScreen({super.key});
@@ -31,10 +32,17 @@ class AdvisoryScreen extends StatefulWidget {
 
 class _AdvisoryScreenState extends State<AdvisoryScreen> {
   final _searchController = TextEditingController();
+  // Keyed so "Clear search & filters" can cancel any pending debounced search
+  // before resetting, preventing a stale query from re-applying.
+  final GlobalKey<SearchState> _searchKey = GlobalKey<SearchState>();
   // Single shared BarangayService instance reused by the BarangayFilter to
   // avoid duplicate loads and keep a single cache.
   final BarangayService _barangayService = BarangayService();
   Barangay? _selectedBarangay; // null => no filter (was "All Barangays")
+
+  // Cap the admin/sysadmin all-statuses stream so it doesn't download the full
+  // historical backlog (ordered newest-first, so older docs drop off).
+  static const int _adminStreamLimit = 200;
 
   @override
   void initState() {
@@ -69,18 +77,14 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
     final provider = context.read<AdvisoryProvider>();
     final userProvider = context.read<UserProvider>();
 
-    // Decide which statuses to stream based on role:
-    // - normal user: only active + scheduled
-    // - admin/sysadmin: all statuses (null => no restriction)
-    List<AdvisoryStatus>? statuses;
+    // Regular users share the app-level consolidated stream (active + scheduled,
+    // all barangays) that also powers the home map and new-advisory alerts.
     if (userProvider.role == UserRole.user) {
-      statuses = [AdvisoryStatus.active, AdvisoryStatus.scheduled];
-    } else {
-      statuses = null;
+      await provider.startUserStream();
+      return;
     }
 
-    // userProvider.user?.barangay is a Barangay object — pass the name (String)
-    // If admin (but not sysadmin) restrict stream to their barangay for performance and data privacy.
+    // Admin/sysadmin: stream all statuses, capped to the latest N for performance.
     if (userProvider.isAdmin &&
         !userProvider.isSysAdmin &&
         userProvider.user?.barangay != null) {
@@ -89,14 +93,16 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
         barangay: userProvider.user!.barangay.name,
         useRealtime: true,
         initialFilter: provider.currentFilter,
-        statuses: statuses,
+        statuses: null,
+        limit: _adminStreamLimit,
       );
     } else {
       await provider.startAdvisoryStream(
         barangay: _selectedBarangay?.name,
         useRealtime: true,
         initialFilter: provider.currentFilter,
-        statuses: statuses,
+        statuses: null,
+        limit: _adminStreamLimit,
       );
     }
   }
@@ -114,7 +120,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF001278),
+        backgroundColor: AppColors.primary,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -152,7 +158,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
               heroTag: 'fab_create_advisory',
               onPressed: () => _navigateToCreate(ctx),
               tooltip: tooltip,
-              backgroundColor: const Color(0xFF001278),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               child: const Icon(Icons.add),
             );
@@ -161,7 +167,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
           return FloatingActionButton.extended(
             heroTag: 'fab_create_advisory',
             onPressed: () => _navigateToCreate(ctx),
-            backgroundColor: const Color(0xFF001278),
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add),
             label: Text(
@@ -183,6 +189,16 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
       builder: (context, provider, _) {
         final userProv = context.watch<UserProvider>();
         final hideStatsForUser = userProv.role == UserRole.user;
+        final canEdit = userProv.isAdmin || userProv.isSysAdmin;
+
+        // A non-sysadmin admin's barangay is forced by their account; it is NOT
+        // an active filter, so exclude it from the "filters active" signal.
+        final isAdminOnly = userProv.isAdmin && !userProv.isSysAdmin;
+        final forcedBarangay = isAdminOnly && _selectedBarangay != null;
+        final hasActiveFilters =
+            _searchController.text.trim().isNotEmpty ||
+            (!forcedBarangay && _selectedBarangay != null) ||
+            provider.currentFilter != AdvisoryViewFilter.all;
 
         return Column(
           children: [
@@ -200,12 +216,29 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
             _buildSearchAndFilter(responsive, provider),
             const Divider(height: 1),
 
-            // Advisory Count Stats
-            if (provider.filteredAdvisories.isNotEmpty)
-              _buildStatsBar(responsive, provider),
-
             // Advisory Cards
-            Expanded(child: _buildAdvisoryCards(responsive, provider)),
+            Expanded(
+              child: AdvisoryListView(
+                responsive: responsive,
+                isLoading: provider.isLoading,
+                error: provider.error,
+                advisories: provider.filteredAdvisories,
+                canEdit: canEdit,
+                showCreateCta: canEdit,
+                onRetry: _loadAdvisories,
+                onCreate: () => _navigateToCreate(context),
+                onShowDetails: _showAdvisoryDetails,
+                onDelete: _deleteAdvisory,
+                onDownload: _downloadAdvisory,
+                onEdit: (a) => _navigateToEdit(context, a),
+                onToggleStatus: _toggleStatus,
+                onRefresh: provider.refresh,
+                hasAnyData: provider.advisories.isNotEmpty,
+                hasActiveFilters: hasActiveFilters,
+                searchQuery: _searchController.text.trim(),
+                onClearFilters: _clearFilters,
+              ),
+            ),
           ],
         );
       },
@@ -226,36 +259,38 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
         .length;
     final expired = all.where((a) => a.status == AdvisoryStatus.expired).length;
 
+    // Stats are a read-only summary — filtering is done via the chips below so
+    // there is a single, discoverable filter control.
     final stats = [
       StatsUtils(
         label: 'Total',
         value: total.toString(),
         icon: Icons.list,
-        color: const Color(0xFF001278),
+        color: AppColors.primaryAdaptive(context),
       ),
       StatsUtils(
         label: 'Scheduled',
         value: scheduled.toString(),
         icon: Icons.schedule,
-        color: Colors.orange,
+        color: AdvisoryStatus.scheduled.color,
       ),
       StatsUtils(
         label: 'Active',
         value: activeNow.toString(),
         icon: Icons.play_circle_filled,
-        color: Colors.green,
+        color: AdvisoryStatus.active.color,
       ),
       StatsUtils(
         label: 'Inactive',
         value: inactive.toString(),
         icon: Icons.pause,
-        color: Colors.red, // changed: inactive -> red
+        color: AdvisoryStatus.inactive.color,
       ),
       StatsUtils(
         label: 'Expired',
         value: expired.toString(),
         icon: Icons.history,
-        color: Colors.grey, // changed: expired -> grey
+        color: AdvisoryStatus.expired.color,
       ),
     ];
 
@@ -264,6 +299,8 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
   }
 
   Widget _buildSearchAndFilter(dynamic responsive, AdvisoryProvider provider) {
+    final scheme = Theme.of(context).colorScheme;
+    final primaryAccent = AppColors.primaryAdaptive(context);
     return Container(
       padding: EdgeInsets.all(responsive.scale(12)),
       child: Column(
@@ -271,6 +308,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
         children: [
           // Search bar on top
           Search(
+            key: _searchKey,
             controller: _searchController,
             debounceDuration: const Duration(milliseconds: 300),
             hint: 'Search by address...',
@@ -278,18 +316,100 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
             onClear: () => provider.searchAdvisories(''),
           ),
           SizedBox(height: responsive.scale(12)),
-          // Row: Filter label (left) and barangay selector badge/button (right)
-          Row(
+          // Row: Filter label + sort + refresh (left) and barangay selector
+          // badge/button (right). Wrap so the right group falls to a second
+          // line instead of overflowing on narrow screens.
+          Wrap(
+            spacing: responsive.scale(8),
+            runSpacing: responsive.scale(8),
+            alignment: WrapAlignment.spaceBetween,
+            runAlignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              // Left-aligned label
-              Text(
-                'Filter',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: responsive.scaleFont(16),
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Left-aligned label
+                  Text(
+                    'Filter',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: responsive.scaleFont(16),
+                    ),
+                  ),
+                  SizedBox(width: responsive.scale(4)),
+                  // Sort control: labeled so the active ordering is always visible
+                  PopupMenuButton<AdvisorySortOrder>(
+                    tooltip: 'Sort advisories',
+                    onSelected: (order) => provider.setSortOrder(order),
+                    itemBuilder: (ctx) => [
+                      PopupMenuItem(
+                        value: AdvisorySortOrder.newest,
+                        child: _buildSortItem(
+                          'Newest',
+                          provider.sortOrder == AdvisorySortOrder.newest,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: AdvisorySortOrder.oldest,
+                        child: _buildSortItem(
+                          'Oldest',
+                          provider.sortOrder == AdvisorySortOrder.oldest,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: AdvisorySortOrder.recentlyUpdated,
+                        child: _buildSortItem(
+                          'Recently updated',
+                          provider.sortOrder ==
+                              AdvisorySortOrder.recentlyUpdated,
+                        ),
+                      ),
+                    ],
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: responsive.scale(10),
+                        vertical: responsive.scale(8),
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: scheme.outlineVariant),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.swap_vert,
+                            size: responsive.scale(16),
+                            color: primaryAccent,
+                          ),
+                          SizedBox(width: responsive.scale(6)),
+                          Text(
+                            _sortLabel(provider.sortOrder),
+                            style: TextStyle(
+                              fontSize: responsive.scaleFont(13),
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: responsive.scale(8)),
+                  // Manual refresh (pull-to-refresh handles mobile; desktop needs this)
+                  IconButton(
+                    tooltip: 'Refresh',
+                    onPressed: () => provider.refresh(),
+                    icon: Icon(
+                      Icons.refresh,
+                      size: responsive.scale(20),
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              const Spacer(),
 
               // Right-aligned group: use reusable BarangayFilter widget.
               Row(
@@ -302,29 +422,32 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                       final isAdminOnly = up.isAdmin && !up.isSysAdmin;
                       if (isAdminOnly) {
                         final adminBarangay = up.user?.barangay.name ?? 'N/A';
+                        final badgeScheme = Theme.of(ctx).colorScheme;
                         return Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: responsive.scale(12),
                             vertical: responsive.scale(8),
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: badgeScheme.surface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(
+                              color: badgeScheme.outlineVariant,
+                            ),
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.location_on,
                                 size: responsive.scale(14),
-                                color: Colors.grey[700],
+                                color: badgeScheme.onSurfaceVariant,
                               ),
                               SizedBox(width: responsive.scale(8)),
                               Text(
                                 adminBarangay,
                                 style: TextStyle(
                                   fontSize: responsive.scaleFont(13),
-                                  color: Colors.grey[800],
+                                  color: badgeScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -341,19 +464,23 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                         onChanged: (b) async {
                           setState(() => _selectedBarangay = b);
                           final userRole = context.read<UserProvider>().role;
-                          List<AdvisoryStatus>? statuses =
-                              provider.currentStatuses;
-                          if (statuses == null && userRole == UserRole.user) {
-                            statuses = [
-                              AdvisoryStatus.active,
-                              AdvisoryStatus.scheduled,
-                            ];
+                          if (userRole == UserRole.user) {
+                            // Regular users filter client-side over the shared
+                            // consolidated stream (no stream restart needed).
+                            provider.applyFilter(
+                              b == null
+                                  ? AdvisoryViewFilter.all
+                                  : AdvisoryViewFilter.byBarangay,
+                              barangay: b?.name,
+                            );
+                            return;
                           }
                           await provider.startAdvisoryStream(
                             barangay: b?.name,
                             useRealtime: true,
                             initialFilter: provider.currentFilter,
-                            statuses: statuses,
+                            statuses: null,
+                            limit: _adminStreamLimit,
                           );
                         },
                       );
@@ -381,8 +508,10 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                       selected:
                           provider.currentFilter == AdvisoryViewFilter.all,
                       color: Colors.grey.shade800,
-                      onPressed: () =>
-                          provider.applyFilter(AdvisoryViewFilter.all),
+                      onPressed: () => provider.applyFilter(
+                        AdvisoryViewFilter.all,
+                        barangay: _selectedBarangay?.name,
+                      ),
                     ),
                     SizedBox(width: responsive.scale(8)),
                     FilterChipButton(
@@ -391,9 +520,11 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                       icon: Icons.play_circle_filled,
                       selected:
                           provider.currentFilter == AdvisoryViewFilter.active,
-                      color: Colors.green,
-                      onPressed: () =>
-                          provider.applyFilter(AdvisoryViewFilter.active),
+                      color: Colors.green.shade700,
+                      onPressed: () => provider.applyFilter(
+                        AdvisoryViewFilter.active,
+                        barangay: _selectedBarangay?.name,
+                      ),
                     ),
                     SizedBox(width: responsive.scale(8)),
                     FilterChipButton(
@@ -403,9 +534,11 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                       selected:
                           provider.currentFilter ==
                           AdvisoryViewFilter.scheduled,
-                      color: Colors.orange,
-                      onPressed: () =>
-                          provider.applyFilter(AdvisoryViewFilter.scheduled),
+                      color: Colors.orange.shade800,
+                      onPressed: () => provider.applyFilter(
+                        AdvisoryViewFilter.scheduled,
+                        barangay: _selectedBarangay?.name,
+                      ),
                     ),
                     if (!hideAdminOnlyFilters) ...[
                       SizedBox(width: responsive.scale(8)),
@@ -416,9 +549,11 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                         selected:
                             provider.currentFilter ==
                             AdvisoryViewFilter.inactive,
-                        color: Colors.red,
-                        onPressed: () =>
-                            provider.applyFilter(AdvisoryViewFilter.inactive),
+                        color: Colors.red.shade700,
+                        onPressed: () => provider.applyFilter(
+                          AdvisoryViewFilter.inactive,
+                          barangay: _selectedBarangay?.name,
+                        ),
                       ),
                       SizedBox(width: responsive.scale(8)),
                       FilterChipButton(
@@ -428,9 +563,11 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                         selected:
                             provider.currentFilter ==
                             AdvisoryViewFilter.expired,
-                        color: Colors.grey,
-                        onPressed: () =>
-                            provider.applyFilter(AdvisoryViewFilter.expired),
+                        color: Colors.grey.shade700,
+                        onPressed: () => provider.applyFilter(
+                          AdvisoryViewFilter.expired,
+                          barangay: _selectedBarangay?.name,
+                        ),
                       ),
                     ],
                   ],
@@ -443,563 +580,83 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
     );
   }
 
-  Widget _buildStatsBar(dynamic responsive, AdvisoryProvider provider) {
-    // Show count of persisted-active advisories within filtered set
-    final active = provider.filteredAdvisories
-        .where((a) => a.status == AdvisoryStatus.active)
-        .length;
-    final total = provider.filteredAdvisories.length;
+  String _sortLabel(AdvisorySortOrder order) {
+    return switch (order) {
+      AdvisorySortOrder.newest => 'Newest',
+      AdvisorySortOrder.oldest => 'Oldest',
+      AdvisorySortOrder.recentlyUpdated => 'Recently updated',
+    };
+  }
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.scale(16),
-        vertical: responsive.scale(8),
-      ),
-      color: Colors.blue.shade50,
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, size: responsive.scale(18)),
-          SizedBox(width: responsive.scale(8)),
-          Text(
-            '$active active of $total advisories',
-            style: TextStyle(
-              fontSize: responsive.scaleFont(13),
-              fontWeight: FontWeight.w600,
-            ),
+  Widget _buildSortItem(String label, bool selected) {
+    return Row(
+      children: [
+        Icon(
+          selected ? Icons.radio_button_checked : Icons.radio_button_off,
+          size: 18,
+          color: selected ? AppColors.primaryAdaptive(context) : Colors.grey,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAdvisoryCards(dynamic responsive, AdvisoryProvider provider) {
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-            SizedBox(height: responsive.scale(16)),
-            Text(
-              'Error loading advisories',
-              style: TextStyle(fontSize: responsive.scaleFont(16)),
-            ),
-            SizedBox(height: responsive.scale(8)),
-            Text(
-              provider.error!,
-              style: TextStyle(
-                fontSize: responsive.scaleFont(12),
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: responsive.scale(16)),
-            ElevatedButton.icon(
-              onPressed: _loadAdvisories,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (provider.filteredAdvisories.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.notifications_off_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
-            SizedBox(height: responsive.scale(16)),
-            Text(
-              'No advisories found',
-              style: TextStyle(
-                fontSize: responsive.scaleFont(16),
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: EdgeInsets.all(responsive.scale(16)),
-      itemCount: provider.filteredAdvisories.length,
-      separatorBuilder: (_, _) => SizedBox(height: responsive.scale(12)),
-      itemBuilder: (context, index) {
-        final advisory = provider.filteredAdvisories[index];
-        return _buildAdvisoryCard(responsive, advisory);
-      },
-    );
-  }
-
-  Widget _buildAdvisoryCard(dynamic responsive, Advisory advisory) {
-    final category = AdvisoryCategory.findById(advisory.advisoryType);
-    // Use persisted status only (no runtime computation)
-    final status = advisory.status;
-    // read-only to avoid rebuilding every card when UserProvider changes
+  /// Reset search, barangay, and status filters. A non-sysadmin admin's
+  /// barangay is account-scoped so it is preserved.
+  void _clearFilters() {
+    // Cancel any pending debounced search so a stale keystroke can't re-apply
+    // after the field is cleared.
+    _searchKey.currentState?.cancelPending();
+    _searchController.clear();
+    final provider = context.read<AdvisoryProvider>();
     final userProvider = context.read<UserProvider>();
-    final canEdit = userProvider.isAdmin || userProvider.isSysAdmin;
+    final role = userProvider.role;
 
-    // Color-code card by advisory status for clear visual affordance.
-    // Keep mapping local and cheap to compute for performance.
-    Color statusColorFor(AdvisoryStatus s) {
-      switch (s) {
-        case AdvisoryStatus.active:
-          return Colors.green;
-        case AdvisoryStatus.scheduled:
-          return Colors.orange;
-        case AdvisoryStatus.inactive:
-          return Colors.red; // changed: inactive -> red
-        case AdvisoryStatus.expired:
-          return Colors.grey; // changed: expired -> grey
-      }
+    if (role == UserRole.user) {
+      setState(() => _selectedBarangay = null);
+      provider.applyFilter(AdvisoryViewFilter.all, barangay: null);
+    } else if (userProvider.isSysAdmin) {
+      setState(() => _selectedBarangay = null);
+      provider.applyFilter(AdvisoryViewFilter.all, barangay: null);
+      // Re-scope the stream back to all barangays.
+      provider.startAdvisoryStream(
+        barangay: null,
+        useRealtime: true,
+        initialFilter: AdvisoryViewFilter.all,
+        statuses: null,
+        limit: _adminStreamLimit,
+      );
+    } else {
+      // Non-sysadmin admin: reset only the status filter.
+      provider.applyFilter(
+        AdvisoryViewFilter.all,
+        barangay: _selectedBarangay?.name,
+      );
     }
-
-    final statusColor = statusColorFor(status);
-
-    // Subtle accent used for border / header background
-    final borderColor = statusColor.withValues(alpha: 0.55);
-    final headerBg = statusColor.withValues(alpha: 0.08);
-
-    // Precompute formatted strings to avoid repeated formatter instantiation.
-    final String startFriendly = DateFormatUtils.formatFriendly(
-      advisory.startDate,
-    );
-    final String endFriendly = DateFormatUtils.formatFriendly(advisory.endDate);
-    final String updatedFriendly = DateFormatUtils.formatFriendly(
-      advisory.updatedAt,
-    );
-
-    // Increase card sizes slightly on mobile only (keeps desktop/tablet unchanged)
-    final bool isMobile = (responsive?.isMobile ?? false);
-    final double mobileBoost = isMobile ? 1.12 : 1.0;
-    double s(double v) => responsive.scale(v) * mobileBoost;
-    double sf(double v) => responsive.scaleFont(v) * (isMobile ? 1.06 : 1.0);
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          // Use status-based border color for clearer signal (category color still used in header icon)
-          color: borderColor,
-          width: 2,
-        ),
-      ),
-      child: InkWell(
-        onTap: () => _showAdvisoryDetails(advisory),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(s(12)),
-              decoration: BoxDecoration(
-                // Blend category icon color with status background for consistent branding
-                color: headerBg,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (category != null)
-                    Container(
-                      width: s(48),
-                      height: s(48),
-                      decoration: BoxDecoration(
-                        color: category.color,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _getIconForCategory(category.id),
-                        color: Colors.white,
-                        size: s(26),
-                      ),
-                    ),
-                  SizedBox(width: s(12)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category?.title ?? advisory.advisoryType,
-                          style: TextStyle(
-                            fontSize: sf(17),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: s(6) * (isMobile ? 1 : 0.7)),
-
-                        // Barangay badge
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: s(8),
-                            vertical: s(4),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: Colors.grey.shade300,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: s(14),
-                                color: Colors.grey.shade700,
-                              ),
-                              SizedBox(width: s(6)),
-                              Text(
-                                advisory.barangay,
-                                style: TextStyle(
-                                  fontSize: sf(12),
-                                  color: Colors.grey.shade700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Place name chip (if available)
-                        if (advisory.placeName != null &&
-                            advisory.placeName!.isNotEmpty) ...[
-                          SizedBox(height: s(6)),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: s(8),
-                              vertical: s(4),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Colors.blue.shade200,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.place,
-                                  size: s(14),
-                                  color: Colors.blue.shade700,
-                                ),
-                                SizedBox(width: s(6)),
-                                Flexible(
-                                  child: Text(
-                                    advisory.placeName!,
-                                    style: TextStyle(
-                                      fontSize: sf(12),
-                                      color: Colors.blue.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  _buildStatusBadge(responsive, status),
-                ],
-              ),
-            ),
-
-            // Content
-            Padding(
-              padding: EdgeInsets.all(s(12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    advisory.reason,
-                    style: TextStyle(fontSize: sf(15)),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: s(12)),
-
-                  // Date range for one-time advisories. Recurring advisories show
-                  // their schedule below instead, so hide the date range.
-                  if (advisory.scheduleType == AdvisoryScheduleType.oneTime)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: s(16),
-                          color: Colors.grey.shade600,
-                        ),
-                        SizedBox(width: s(6)),
-                        Expanded(
-                          child: Text(
-                            '$startFriendly — $endFriendly',
-                            style: TextStyle(
-                              fontSize: sf(13),
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  // Schedule Info
-                  if (advisory.scheduleType ==
-                      AdvisoryScheduleType.recurring) ...[
-                    SizedBox(height: s(6)),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.repeat,
-                          size: s(16),
-                          color: Colors.grey.shade600,
-                        ),
-                        SizedBox(width: s(6)),
-                        Flexible(
-                          child: Text(
-                            _formatSchedule(advisory),
-                            style: TextStyle(
-                              fontSize: sf(13),
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                  // Meta: Updated timestamp (formatted via utils)
-                  SizedBox(height: s(8)),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: s(14),
-                        color: Colors.grey.shade600,
-                      ),
-                      SizedBox(width: s(6)),
-                      Expanded(
-                        child: Text(
-                          'Updated $updatedFriendly',
-                          style: TextStyle(
-                            fontSize: sf(12),
-                            color: Colors.grey.shade600,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Contractor Info (if applicable)
-                  if (advisory.contractor != null) ...[
-                    SizedBox(height: s(8)),
-                    Container(
-                      padding: EdgeInsets.all(s(8)),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.business,
-                            size: s(16),
-                            color: Colors.orange,
-                          ),
-                          SizedBox(width: s(8)),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  advisory.contractor!,
-                                  style: TextStyle(
-                                    fontSize: sf(13),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (advisory.contractorContact != null)
-                                  Text(
-                                    advisory.contractorContact!,
-                                    style: TextStyle(
-                                      fontSize: sf(12),
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // Actions
-            if (canEdit)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: s(8)),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      // Delete at the very left
-                      TextButton.icon(
-                        onPressed: () => _deleteAdvisory(advisory),
-                        icon: Icon(
-                          Icons.delete,
-                          size: s(18),
-                          color: Colors.red,
-                        ),
-                        label: Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.red, fontSize: sf(13)),
-                        ),
-                      ),
-
-                      // Center: Download button (expands center space, keeps button centered)
-                      Expanded(
-                        child: Center(
-                          child: TextButton.icon(
-                            onPressed: () => _downloadAdvisory(advisory),
-                            icon: Icon(Icons.download, size: s(18)),
-                            label: Text(
-                              'Download',
-                              style: TextStyle(fontSize: sf(13)),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Edit at the very right
-                      TextButton.icon(
-                        onPressed: () => _navigateToEdit(context, advisory),
-                        icon: Icon(Icons.edit, size: s(18)),
-                        label: Text('Edit', style: TextStyle(fontSize: sf(13))),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
+    provider.searchAdvisories('');
   }
 
-  Widget _buildStatusBadge(dynamic responsive, AdvisoryStatus status) {
-    Color color;
-    IconData icon;
-    String label;
+  /// Quick Activate / Deactivate toggle. The provider re-saves the doc with
+  /// the new persisted status (version bumped); no manual re-save needed.
+  Future<void> _toggleStatus(Advisory advisory) async {
+    final provider = context.read<AdvisoryProvider>();
+    final success = await provider.toggleAdvisoryStatus(advisory.advisoryId);
 
-    switch (status) {
-      case AdvisoryStatus.active:
-        // persisted-active -> show Active (server is authoritative)
-        color = Colors.green;
-        icon = Icons.play_circle_filled;
-        label = 'Active';
-        break;
-      case AdvisoryStatus.scheduled:
-        color = Colors.orange;
-        icon = Icons.schedule;
-        label = 'Scheduled';
-        break;
-      case AdvisoryStatus.expired:
-        color = Colors.grey; // expired -> grey
-        icon = Icons.history;
-        label = 'Expired';
-        break;
-      case AdvisoryStatus.inactive:
-        color = Colors.red; // inactive -> red
-        icon = Icons.pause;
-        label = 'Inactive';
-        break;
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.scale(8),
-        vertical: responsive.scale(4),
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: responsive.scale(14), color: color),
-          SizedBox(width: responsive.scale(4)),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: responsive.scaleFont(11),
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatSchedule(Advisory advisory) {
-    if (advisory.weekdays == null || advisory.weekdays!.isEmpty) return '';
-
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final selectedDays = advisory.weekdays!.map((d) => days[d - 1]).join(', ');
-
-    if (advisory.recurringStartTime != null &&
-        advisory.recurringEndTime != null) {
-      return '$selectedDays (${advisory.recurringStartTime!.format(context)} - ${advisory.recurringEndTime!.format(context)})';
-    }
-
-    return selectedDays;
-  }
-
-  IconData _getIconForCategory(String categoryId) {
-    switch (categoryId) {
-      case 'road_closure':
-        return Icons.block;
-      case 'stop_and_go':
-        return Icons.traffic;
-      case 'one_way':
-        return Icons.arrow_forward;
-      case 'construction':
-        return Icons.construction;
-      case 'partial_lane':
-        return Icons.remove_road;
-      case 'event':
-        return Icons.event;
-      case 'emergency':
-        return Icons.warning;
-      default:
-        return Icons.info;
+    if (!mounted) return;
+    if (success) {
+      final activated = advisory.status != AdvisoryStatus.active;
+      SnackbarUtils.showSuccess(
+        context,
+        'Advisory ${activated ? 'activated' : 'deactivated'}',
+      );
+    } else {
+      SnackbarUtils.showError(context, 'Status update failed');
     }
   }
 

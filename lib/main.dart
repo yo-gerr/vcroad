@@ -150,8 +150,6 @@ class _MyAppState extends State<MyApp> {
     final sessionId = await SessionService.instance.ensureSession(uid);
     _startSessionMonitoring(uid, sessionId);
 
-    // Commented out: prefetchDownloadUrls uses firebase_storage
-    // unawaited(ImageService.prefetchDownloadUrls([details.selfiePath]));
     return details;
   }
 
@@ -295,11 +293,6 @@ class _MyAppState extends State<MyApp> {
 
                       final sessionId = await SessionService.instance
                           .createSession(user.uid);
-
-                      // Commented out: prefetchDownloadUrls uses firebase_storage
-                      // await ImageService.prefetchDownloadUrls([
-                      //   userDetails.selfiePath,
-                      // ]);
 
                       _startSessionMonitoring(user.uid, sessionId);
 

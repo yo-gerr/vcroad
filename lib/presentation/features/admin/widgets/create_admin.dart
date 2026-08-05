@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vcroad/data/models/barangay.dart';
-import 'package:vcroad/data/repositories/barangay.dart';
 import 'package:vcroad/core/utils/input/input_style.dart';
 import 'package:vcroad/core/utils/input/input_validation.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/constants/password_policy.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:vcroad/core/utils/input/dropdown_style.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
+import 'package:vcroad/presentation/shared/widgets/barangay_dropdown.dart';
 
 class CreateAdminDialog extends StatefulWidget {
   const CreateAdminDialog({super.key});
@@ -29,44 +27,14 @@ class _CreateAdminDialogState extends State<CreateAdminDialog> {
   final _phoneCtrl = TextEditingController();
   final _streetCtrl = TextEditingController();
   final _houseNumberCtrl = TextEditingController();
-  final _searchCtrl = TextEditingController();
 
   Barangay? _selectedBarangay;
-  List<DropdownMenuItem<Barangay>> _barangayItems = [];
   bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
   void initState() {
     super.initState();
-    _loadBarangays();
-  }
-
-  Future<void> _loadBarangays() async {
-    final service = BarangayService();
-    await service.loadBarangays();
-    if (mounted) {
-      setState(() {
-        // Build dropdown items with white text and dark background (match ProfileDetails)
-        _barangayItems = service.barangayDropdownItems
-            .map(
-              (it) => DropdownMenuItem<Barangay>(
-                value: it.value,
-                child: Container(
-                  color: DropdownStyles.dropdownBackgroundColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  height: DropdownStyles.dropdownItemHeight,
-                  alignment: Alignment.centerLeft,
-                  child: DefaultTextStyle(
-                    style: DropdownStyles.itemTextStyle,
-                    child: Text(it.value?.name ?? ''),
-                  ),
-                ),
-              ),
-            )
-            .toList();
-      });
-    }
   }
 
   @override
@@ -80,7 +48,6 @@ class _CreateAdminDialogState extends State<CreateAdminDialog> {
     _phoneCtrl.dispose();
     _streetCtrl.dispose();
     _houseNumberCtrl.dispose();
-    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -161,7 +128,7 @@ class _CreateAdminDialogState extends State<CreateAdminDialog> {
                   'Admin accounts are verified by default and do not require ID capture.',
                   style: TextStyle(
                     fontSize: info.scaleFont(13),
-                    color: Colors.black54,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 SizedBox(height: info.scale(20)),
@@ -313,48 +280,10 @@ class _CreateAdminDialogState extends State<CreateAdminDialog> {
                         // Barangay
                         InputStyles.fieldLabel('Barangay'),
                         SizedBox(height: info.scale(4)),
-                        DropdownButtonFormField2<Barangay>(
+                        BarangayDropdownField(
                           value: _selectedBarangay,
-                          decoration: InputStyles.decoration(label: 'Barangay'),
-                          isExpanded: true,
-                          style: DropdownStyles
-                              .itemTextStyle, // ensure selected text is white
-                          hint: Text(
-                            'Select barangay',
-                            style: DropdownStyles.hintTextStyle,
-                          ),
-                          items: _barangayItems,
                           onChanged: (v) =>
                               setState(() => _selectedBarangay = v),
-                          validator: (v) =>
-                              v == null ? 'Barangay required' : null,
-                          dropdownSearchData: DropdownSearchData(
-                            searchController: _searchCtrl,
-                            searchInnerWidgetHeight: 50,
-                            searchInnerWidget: Container(
-                              height: 50,
-                              padding: const EdgeInsets.all(8),
-                              child: TextFormField(
-                                controller: _searchCtrl,
-                                decoration: DropdownStyles.searchDecoration,
-                                style: DropdownStyles.itemTextStyle,
-                              ),
-                            ),
-                            searchMatchFn: (item, searchValue) {
-                              return item.value!.name.toLowerCase().contains(
-                                searchValue.toLowerCase(),
-                              );
-                            },
-                          ),
-                          menuItemStyleData: const MenuItemStyleData(
-                            height: DropdownStyles.dropdownItemHeight,
-                          ),
-                          dropdownStyleData: DropdownStyleData(
-                            maxHeight:
-                                DropdownStyles.dropdownItemHeight *
-                                DropdownStyles.visibleItemCount,
-                            decoration: DropdownStyles.dropdownDecoration,
-                          ),
                         ),
                         SizedBox(height: info.scale(12)),
 

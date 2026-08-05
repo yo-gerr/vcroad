@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/advisory.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/create_advisory.dart';
 
@@ -28,7 +29,7 @@ class CategoryPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: responsive.scaleFont(22),
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF001278),
+                  color: AppColors.primaryAdaptive(context),
                 ),
               ),
               SizedBox(height: responsive.scale(8)),
@@ -36,7 +37,7 @@ class CategoryPage extends StatelessWidget {
                 'Choose the type of traffic advisory you want to create',
                 style: TextStyle(
                   fontSize: responsive.scaleFont(13),
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: responsive.scale(20)),
@@ -116,60 +117,60 @@ class _CategoryCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeInOut,
-            padding: EdgeInsets.all(cardPadding),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey.shade200,
-                width: isSelected ? 1.8 : 1.0,
-              ),
+    duration: const Duration(milliseconds: 160),
+    curve: Curves.easeInOut,
+    padding: EdgeInsets.all(cardPadding),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: isSelected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.outlineVariant,
+        width: isSelected ? 1.8 : 1.0,
+      ),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: iconContainerSize,
+          width: iconContainerSize,
+          child: Center(
+            child: Tooltip(
+              message: category.title,
+              child: category.iconPath.isNotEmpty
+                  ? Image.asset(
+                      category.iconPath,
+                      width: iconSize,
+                      height: iconSize,
+                      fit: BoxFit.contain,
+                    )
+                  : Icon(
+                      AdvisoryCategory.iconFor(category.id),
+                      size: iconSize,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: iconContainerSize,
-                  width: iconContainerSize,
-                  child: Center(
-                    child: Tooltip(
-                      message: category.title,
-                      child: category.iconPath.isNotEmpty
-                          ? Image.asset(
-                              category.iconPath,
-                              width: iconSize,
-                              height: iconSize,
-                              fit: BoxFit.contain,
-                            )
-                          : Icon(
-                              _getIconForCategory(category.id),
-                              size: iconSize,
-                              color: Colors.black87,
-                            ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: responsive.scale(8)),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: responsive.scale(6),
-                  ),
-                  child: Text(
-                    category.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: responsive.scaleFont(16),
-                      fontWeight: FontWeight.w700,
-                      color: Colors.grey.shade800,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+          ),
+        ),
+        SizedBox(height: responsive.scale(8)),
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: responsive.scale(6),
+          ),
+          child: Text(
+            category.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: responsive.scaleFont(16),
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
                 // Removed the check icon - highlight border is used to indicate selection
               ],
             ),
@@ -177,24 +178,5 @@ class _CategoryCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getIconForCategory(String id) {
-    switch (id) {
-      case 'road_closure':
-        return Icons.block;
-      case 'stop_and_go':
-        return Icons.traffic;
-      case 'one_way':
-        return Icons.arrow_forward;
-      case 'construction':
-        return Icons.construction;
-      case 'partial_lane':
-        return Icons.remove_road;
-      case 'event':
-        return Icons.event;
-      default:
-        return Icons.info_outline;
-    }
   }
 }

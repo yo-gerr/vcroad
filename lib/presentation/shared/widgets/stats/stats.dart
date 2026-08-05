@@ -127,29 +127,31 @@ class StatCard extends StatelessWidget {
                 child: Icon(stat.icon, color: stat.color, size: iconSize),
               ),
               SizedBox(width: responsive.scale(isDesktop ? 16 : 10)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Value text is keyed by its string so the framework replaces it immediately
-                  Text(
-                    stat.value,
-                    key: ValueKey<String>(stat.value),
-                    style: TextStyle(
-                      fontSize: valueFont,
-                      fontWeight: FontWeight.bold,
-                      color: stat.color,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Value text is keyed by its string so the framework replaces it immediately
+                    Text(
+                      stat.value,
+                      key: ValueKey<String>(stat.value),
+                      style: TextStyle(
+                        fontSize: valueFont,
+                        fontWeight: FontWeight.bold,
+                        color: stat.color,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: responsive.scale(isDesktop ? 6 : 2)),
-                  Text(
-                    stat.label,
-                    style: TextStyle(
-                      fontSize: labelFont,
-                      color: Colors.grey[700],
+                    SizedBox(height: responsive.scale(isDesktop ? 6 : 2)),
+                    Text(
+                      stat.label,
+                      style: TextStyle(
+                        fontSize: labelFont,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

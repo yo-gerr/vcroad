@@ -12,11 +12,11 @@ import 'package:vcroad/presentation/shared/widgets/image/preview.dart'; // Add t
 import 'dart:math' as math; // added
 import 'ban.dart';
 import 'package:vcroad/presentation/shared/snackbar/snackbar.dart'; // Add this import
-// import 'package:cloud_functions/cloud_functions.dart'; // Add this import
 import 'package:vcroad/presentation/shared/dialogs/confirmation.dart'; // Add this import
 import 'package:vcroad/data/repositories/report.dart'; // <-- added
 import 'package:vcroad/data/models/report.dart'; // <-- added
 import 'package:vcroad/core/theme/app_colors.dart';
+import 'package:vcroad/presentation/features/admin/widgets/badges.dart';
 
 class AccountDetailsPage extends StatefulWidget {
   final UserDetails user;
@@ -40,12 +40,15 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     super.dispose();
   }
 
+  UserDetails? _latestUser;
+
   UserDetails get _currentUserDetails {
     final provider = context.watch<AccountProvider>();
-    // Try to get the latest user from provider
+    // Prefer the most recently fetched copy (pull-to-refresh or an admin
+    // action), then the provider's list copy, then the originally passed user.
     final updated = provider.users.firstWhere(
       (u) => u.userId == widget.user.userId,
-      orElse: () => widget.user,
+      orElse: () => _latestUser ?? widget.user,
     );
     return updated;
   }
@@ -61,12 +64,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     // Permission model:
     // - sysadmin: allowed to perform ban/unban and schedule deletion of admin accounts
     // - admin: allowed to perform verification/unverification only
-    final canBan = isSysAdmin;
+    // Self-management is blocked: a user can never ban, delete, or otherwise
+    // act destructively on their own account.
+    final isSelf = currentUser?.userId == user.userId;
+    final canBan = isSysAdmin && !isSelf;
     final canVerify = isAdmin;
     final canScheduleDelete =
-        isSysAdmin &&
-        user.role == UserRole.admin &&
-        currentUser?.userId != user.userId;
+        isSysAdmin && user.role == UserRole.admin && !isSelf;
     final isDesktop = context.isDesktop;
 
     return Scaffold(
@@ -116,7 +120,19 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
             constraints.maxWidth,
           );
           return RefreshIndicator(
-            onRefresh: () async {},
+            onRefresh: () async {
+              final accountProv = Provider.of<AccountProvider>(
+                context,
+                listen: false,
+              );
+              final fresh = await AccountService.instance.getUserById(
+                widget.user.userId,
+              );
+              if (fresh != null) {
+                accountProv.updateUser(fresh);
+                if (mounted) setState(() => _latestUser = fresh);
+              }
+            },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.symmetric(
@@ -246,7 +262,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           user.email,
           style: TextStyle(
             fontSize: context.scaleFont(15),
-            color: Colors.grey.shade700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 10),
@@ -284,7 +300,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: context.scaleFont(14),
-            color: Colors.grey.shade700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 12),
@@ -294,34 +310,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
   }
 
   Widget _roleChip(UserRole role, BuildContext context) {
-    final color = switch (role) {
-      UserRole.sysadmin => Colors.purple,
-      UserRole.admin => Colors.blue,
-      UserRole.user => Colors.teal,
-    };
-    final label = switch (role) {
-      UserRole.sysadmin => 'Super Admin',
-      UserRole.admin => 'Barangay Admin',
-      UserRole.user => 'Road User',
-    };
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: context.scale(12),
-        vertical: context.scale(6),
-      ),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: context.scaleFont(13),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return RoleBadge(role: role);
   }
 
   Widget _buildIdentitySection(BuildContext context, UserDetails user) {
@@ -395,6 +384,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     final borderRadius = BorderRadius.circular(14);
 
     if (storagePath == null || storagePath.isEmpty) {
+      final colorScheme = Theme.of(context).colorScheme;
       return SizedBox(
         width: maxImageWidth,
         child: AspectRatio(
@@ -402,25 +392,28 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: borderRadius,
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: colorScheme.outline),
             ),
             child: Text(
               'No image',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
             ),
           ),
         ),
       );
     }
 
-    // Commented out: getDownloadUrlCached uses firebase_storage
-    // final future = _urlFutures.putIfAbsent(
-    //   storagePath,
-    //   () => ImageService.getDownloadUrlCached(storagePath),
-    // );
-    final future = Future<String?>.value(null);
+    // Resolve the storage path to a download URL (Supabase-backed) and cache
+    // the future so the same path isn't re-resolved on every rebuild.
+    final future = _urlFutures.putIfAbsent(
+      storagePath,
+      () => ImageService.getDownloadUrlCached(storagePath),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -436,9 +429,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: borderRadius,
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     child: const CircularProgressIndicator(strokeWidth: 2),
                   ),
@@ -454,9 +451,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: borderRadius,
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     child: Text(
                       'Load failed',
@@ -481,9 +482,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                     cursor: SystemMouseCursors.click,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: borderRadius,
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black12,
@@ -557,26 +562,26 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           'Verified At',
           DateFormatUtils.formatFriendly(user.verifiedAt!),
         ),
-      _statusRow(context, 'Banned', user.isBanned ? 'Yes' : 'No'),
-      if (user.isBanned && user.banReason != null)
+      _statusRow(context, 'Banned', user.hasActiveBan ? 'Yes' : 'No'),
+      if (user.hasActiveBan && user.banReason != null)
         _statusRow(context, 'Ban Reason', user.banReason!),
-      if (user.isBanned && user.banBy != null)
+      if (user.hasActiveBan && user.banBy != null)
         _statusRow(context, 'Banned By', _actorName(context, user.banBy)),
-      if (user.isBanned && user.bannedAt != null)
+      if (user.hasActiveBan && user.bannedAt != null)
         _statusRow(
           context,
           'Banned At',
           DateFormatUtils.formatFriendly(user.bannedAt!),
         ),
-      if (user.isBanned && user.banExpiresAt != null)
+      if (user.hasActiveBan && user.banExpiresAt != null)
         _statusRow(context, 'Ban Expires', user.remainingBanTime),
-      if (!user.isBanned && user.unbannedBy != null)
+      if (!user.hasActiveBan && user.unbannedBy != null)
         _statusRow(
           context,
           'Unbanned By',
           _actorName(context, user.unbannedBy),
         ),
-      if (!user.isBanned && user.unbannedAt != null)
+      if (!user.hasActiveBan && user.unbannedAt != null)
         _statusRow(
           context,
           'Unbanned At',
@@ -645,12 +650,12 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       child: ElevatedButton.icon(
         onPressed: _isBanning ? null : () => _toggleBan(user),
         icon: Icon(
-          user.isBanned ? Icons.gpp_good : Icons.block,
+          user.hasActiveBan ? Icons.gpp_good : Icons.block,
           size: context.scale(18),
           color: Colors.white, // ensure icon is white
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: user.isBanned ? Colors.green : Colors.red,
+          backgroundColor: user.hasActiveBan ? Colors.green : Colors.red,
           foregroundColor: Colors.white, // ensures label text is white
           minimumSize: const Size(90, 38),
         ),
@@ -664,7 +669,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                 ),
               )
             : Text(
-                user.isBanned ? 'Unban' : 'Ban',
+                user.hasActiveBan ? 'Unban' : 'Ban',
                 style: const TextStyle(color: Colors.white),
               ),
       ),
@@ -881,7 +886,9 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                       '${r.barangay} • ${r.timeAgo}',
                                       style: TextStyle(
                                         fontSize: info.scaleFont(12),
-                                        color: Colors.grey[700],
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                     SizedBox(height: info.scale(8)),
@@ -958,6 +965,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
         verifiedBy: !user.isVerified ? currentUser.userId : null,
         verifiedAt: !user.isVerified ? DateTime.now() : null,
       );
+      if (mounted) setState(() => _latestUser = updated);
       accountProv.updateUser(updated);
       if (mounted) {
         SnackbarUtils.showSuccess(
@@ -988,7 +996,15 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       return;
     }
 
-    final willBan = !user.isBanned;
+    // Defensive: never allow banning your own account.
+    if (currentUser.userId == user.userId) {
+      if (mounted) {
+        SnackbarUtils.showError(context, 'You cannot ban your own account.');
+      }
+      return;
+    }
+
+    final willBan = !user.hasActiveBan;
     if (!willBan) {
       // Unban flow with confirmation (use ConfirmationDialog)
       final confirmed = await showDialog<bool>(
@@ -1004,12 +1020,11 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
 
       setState(() => _isBanning = true);
       try {
-        // Commented out: unbanUser uses cloud_functions
-        // final functions = FirebaseFunctions.instance;
-        // await functions.httpsCallable('unbanUser').call({
-        //   'userId': user.userId,
-        //   'adminId': currentUser.userId,
-        // });
+        await AccountService.instance.updateBanStatus(
+          userId: user.userId,
+          isBanned: false,
+          actionBy: currentUser.userId,
+        );
 
         final updated = user.copyWith(
           isBanned: false,
@@ -1022,6 +1037,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           banDuration: null,
           banExpiresAt: null,
         );
+        if (mounted) setState(() => _latestUser = updated);
         accountProv.updateUser(updated);
         if (mounted) {
           SnackbarUtils.showSuccess(context, 'User unbanned.');
@@ -1042,16 +1058,15 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
 
     setState(() => _isBanning = true);
     try {
-      // Commented out: banUser uses cloud_functions
-      // final banType = result.isPermanent ? 'permanent' : 'temporary';
-      // final functions = FirebaseFunctions.instance;
-      // await functions.httpsCallable('banUser').call({
-      //   'userId': user.userId,
-      //   'reason': result.reason,
-      //   'adminId': currentUser.userId,
-      //   'banType': banType,
-      //   'banDuration': result.isPermanent ? null : result.days,
-      // });
+      final banType = result.isPermanent ? 'permanent' : 'temporary';
+      await AccountService.instance.updateBanStatus(
+        userId: user.userId,
+        isBanned: true,
+        banReason: result.reason,
+        actionBy: currentUser.userId,
+        banType: banType,
+        banDuration: result.isPermanent ? null : result.days,
+      );
 
       final expiresAt = result.isPermanent
           ? null
@@ -1065,6 +1080,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
         banExpiresAt: expiresAt,
       );
 
+      if (mounted) setState(() => _latestUser = updated);
       accountProv.updateUser(updated);
       if (mounted) {
         SnackbarUtils.showSuccess(context, 'User banned.');
@@ -1128,6 +1144,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       // Update local UI optimistically: scheduledForDeletionAt ~ 30 days from now
       final scheduledAt = DateTime.now().add(const Duration(days: 30));
       final updated = user.copyWith(scheduledForDeletionAt: scheduledAt);
+      if (mounted) setState(() => _latestUser = updated);
       accountProv.updateUser(updated);
 
       if (mounted) {
@@ -1248,7 +1265,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       shadowColor: Colors.black12,
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -1296,7 +1313,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: context.scaleFont(14),
-                    color: Colors.grey.shade700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -1329,7 +1346,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
         color = Colors.green;
         break;
       default:
-        color = Colors.grey.shade600;
+        color = Theme.of(context).colorScheme.onSurfaceVariant;
     }
 
     return Padding(
@@ -1346,7 +1363,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: context.scaleFont(14),
-                    color: Colors.grey.shade700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),

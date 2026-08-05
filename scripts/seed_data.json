@@ -1,0 +1,1168 @@
+{
+  "seedTimestamp": "2026-08-04T00:00:00Z",
+  "createdBy": "seed",
+  "chapters": [
+    {
+      "id": "Driving Basics",
+      "name": "Driving Basics",
+      "order": 0,
+      "description": "Fundamentals every driver must master before hitting Philippine roads.",
+      "lessonCount": 3
+    },
+    {
+      "id": "Road Signs in the Philippines",
+      "name": "Road Signs in the Philippines",
+      "order": 1,
+      "description": "Recognize the regulatory, warning, and guide signs you will see on Philippine highways.",
+      "lessonCount": 3
+    },
+    {
+      "id": "Defensive Driving and Safety",
+      "name": "Defensive Driving and Safety",
+      "order": 2,
+      "description": "Skills and habits that keep you, your passengers, and other road users safe.",
+      "lessonCount": 3
+    },
+    {
+      "id": "Philippine Traffic Laws",
+      "name": "Philippine Traffic Laws",
+      "order": 3,
+      "description": "Key laws every Filipino driver must know, from RA 4136 to anti-distracted driving.",
+      "lessonCount": 3
+    }
+  ],
+  "lessons": [
+    {
+      "id": "lesson-road-readiness",
+      "title": "Road Readiness",
+      "description": "Pre-trip checks and the basic controls you need to know before driving.",
+      "chapterId": "Driving Basics",
+      "lessonNumber": 1,
+      "isPublished": true,
+      "durationMinutes": 4,
+      "tags": ["basics", "pre-trip", "safety"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-traffic-signals",
+      "title": "Traffic Lights and Signals",
+      "description": "What each traffic light color and flashing signal means in the Philippines.",
+      "chapterId": "Driving Basics",
+      "lessonNumber": 2,
+      "isPublished": true,
+      "durationMinutes": 4,
+      "tags": ["signals", "intersection", "basics"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-lane-rules",
+      "title": "Lane Rules and Right of Way",
+      "description": "Which side to drive, how to overtake, and who goes first at intersections.",
+      "chapterId": "Driving Basics",
+      "lessonNumber": 3,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["lane", "overtaking", "right of way"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-regulatory-signs",
+      "title": "Regulatory Signs",
+      "description": "Stop, yield, speed limit, and other signs that command strict compliance.",
+      "chapterId": "Road Signs in the Philippines",
+      "lessonNumber": 1,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["signs", "regulatory", "stop", "speed limit"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-warning-signs",
+      "title": "Warning Signs",
+      "description": "Yellow diamond signs that alert you to hazards ahead on the road.",
+      "chapterId": "Road Signs in the Philippines",
+      "lessonNumber": 2,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["signs", "warning", "hazards"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-informative-signs",
+      "title": "Informative and Guide Signs",
+      "description": "Direction, route, parking, and facility signs that help you navigate.",
+      "chapterId": "Road Signs in the Philippines",
+      "lessonNumber": 3,
+      "isPublished": true,
+      "durationMinutes": 4,
+      "tags": ["signs", "guide", "information"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-defensive-driving",
+      "title": "Defensive Driving Fundamentals",
+      "description": "Scanning ahead, maintaining space, and expecting the unexpected.",
+      "chapterId": "Defensive Driving and Safety",
+      "lessonNumber": 1,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["defensive", "following distance", "safety"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-speed-stopping",
+      "title": "Speed and Stopping Distance",
+      "description": "Speed limits in the Philippines and why stopping distance grows with speed.",
+      "chapterId": "Defensive Driving and Safety",
+      "lessonNumber": 2,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["speed", "stopping distance", "weather"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-sharing-the-road",
+      "title": "Sharing the Road",
+      "description": "Driving safely around motorcycles, pedestrians, jeepneys, and buses.",
+      "chapterId": "Defensive Driving and Safety",
+      "lessonNumber": 3,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["motorcycles", "pedestrians", "public transport"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-ra4136",
+      "title": "RA 4136: Land Transportation and Traffic Code",
+      "description": "The law that governs Philippine land transportation and driver licensing.",
+      "chapterId": "Philippine Traffic Laws",
+      "lessonNumber": 1,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["law", "RA 4136", "licensing"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-distracted-driving",
+      "title": "Distracted Driving, Alcohol, and Drugs",
+      "description": "RA 10913, RA 10586, and RA 9165: the rules against unsafe driving behavior.",
+      "chapterId": "Philippine Traffic Laws",
+      "lessonNumber": 2,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["law", "drunk driving", "distracted driving", "RA 10586"],
+      "pointsAvailable": 5
+    },
+    {
+      "id": "lesson-licensing",
+      "title": "Licensing and the Demerit Point System",
+      "description": "Student permits, license validity under RA 10930, and demerit points.",
+      "chapterId": "Philippine Traffic Laws",
+      "lessonNumber": 3,
+      "isPublished": true,
+      "durationMinutes": 5,
+      "tags": ["license", "RA 10930", "demerit"],
+      "pointsAvailable": 5
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-road-readiness-1",
+      "lessonId": "lesson-road-readiness",
+      "type": "multipleChoice",
+      "questionText": "Which of the following is NOT part of a basic pre-trip inspection?",
+      "options": [
+        "Tires and tire pressure",
+        "Brake lights and turn signals",
+        "Mirror and seat adjustment",
+        "Your passenger's cellphone battery"
+      ],
+      "correctIndex": 3,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A pre-trip inspection covers safety-critical items such as tires, lights, fluids, and mirrors."
+    },
+    {
+      "id": "q-road-readiness-2",
+      "lessonId": "lesson-road-readiness",
+      "type": "trueFalse",
+      "questionText": "You should adjust your seat and mirrors before driving, never while driving.",
+      "correctBool": true,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Adjusting your position while moving takes your eyes and hands off the road."
+    },
+    {
+      "id": "q-road-readiness-3",
+      "lessonId": "lesson-road-readiness",
+      "type": "multipleChoice",
+      "questionText": "Why is good tire tread important?",
+      "options": [
+        "It makes the car look better",
+        "It keeps the car cool",
+        "It gives grip, especially on wet roads",
+        "It reduces fuel needed for the lights"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Tread channels water away and keeps the tires gripping the road, reducing the risk of aquaplaning."
+    },
+    {
+      "id": "q-road-readiness-4",
+      "lessonId": "lesson-road-readiness",
+      "type": "identification",
+      "questionText": "What should you fasten before starting the engine?",
+      "correctAnswer": "seatbelt",
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "RA 8750 requires the driver and front passenger to wear seatbelts."
+    },
+    {
+      "id": "q-road-readiness-5",
+      "lessonId": "lesson-road-readiness",
+      "type": "multipleChoice",
+      "questionText": "If your windshield is fogged or dirty and limits your view, you should...",
+      "options": [
+        "Drive slowly and wipe it with your hand",
+        "Stop safely and clean it before driving",
+        "Keep driving; it will clear on its own",
+        "Turn off your wipers and headlights"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A clear view is essential. Never drive with an obstructed windshield."
+    },
+
+    {
+      "id": "q-traffic-signals-1",
+      "lessonId": "lesson-traffic-signals",
+      "type": "multipleChoice",
+      "questionText": "What does a steady RED traffic light mean?",
+      "options": [
+        "Go slowly",
+        "Stop completely before the stop line",
+        "Speed up to clear the intersection",
+        "Turn left immediately"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A steady red light means stop. You may only proceed when directed by a traffic enforcer."
+    },
+    {
+      "id": "q-traffic-signals-2",
+      "lessonId": "lesson-traffic-signals",
+      "type": "multipleChoice",
+      "questionText": "The light turns AMBER (yellow) as you approach the intersection. You should...",
+      "options": [
+        "Accelerate quickly to beat the red light",
+        "Stop safely unless you are too close to stop in time",
+        "Ignore it and keep going",
+        "Sound your horn and continue"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Amber means prepare to stop. Do not speed up to cross; stop unless you cannot do so safely."
+    },
+    {
+      "id": "q-traffic-signals-3",
+      "lessonId": "lesson-traffic-signals",
+      "type": "trueFalse",
+      "questionText": "In the Philippines, you may proceed on a red light only when a traffic enforcer directs you to.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A red light means stop. An enforcer's signal overrides the traffic light."
+    },
+    {
+      "id": "q-traffic-signals-4",
+      "lessonId": "lesson-traffic-signals",
+      "type": "identification",
+      "questionText": "What color of the traffic light means you may go when it is safe?",
+      "correctAnswer": "green",
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Green means proceed, but only after checking that the intersection is clear."
+    },
+    {
+      "id": "q-traffic-signals-5",
+      "lessonId": "lesson-traffic-signals",
+      "type": "multipleChoice",
+      "questionText": "What does a FLASHING RED light at an intersection mean?",
+      "options": [
+        "Stop, then proceed only when it is safe",
+        "Yield to traffic and keep going",
+        "The speed limit is in effect",
+        "The road is closed ahead"
+      ],
+      "correctIndex": 0,
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A flashing red light is treated like a stop sign: come to a full stop, then go when safe."
+    },
+
+    {
+      "id": "q-lane-rules-1",
+      "lessonId": "lesson-lane-rules",
+      "type": "multipleChoice",
+      "questionText": "In the Philippines, which side of the road do you normally drive on?",
+      "options": [
+        "Left side",
+        "Right side",
+        "The center line",
+        "Whichever side is clear"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The Philippines follows right-hand traffic, like the United States. Steer on the right."
+    },
+    {
+      "id": "q-lane-rules-2",
+      "lessonId": "lesson-lane-rules",
+      "type": "multipleChoice",
+      "questionText": "When overtaking another vehicle, you should normally pass it on its...",
+      "options": [
+        "Right side",
+        "Left side",
+        "Either side",
+        "The shoulder"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "In right-hand traffic, overtaking is done on the left, where the oncoming lane is visible."
+    },
+    {
+      "id": "q-lane-rules-3",
+      "lessonId": "lesson-lane-rules",
+      "type": "multipleChoice",
+      "questionText": "Two vehicles reach an uncontrolled intersection at the same time. Who has the right of way?",
+      "options": [
+        "The bigger vehicle",
+        "The vehicle on the left",
+        "The vehicle on the right",
+        "The faster vehicle"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "When two vehicles arrive together at an uncontrolled intersection, yield to the vehicle on your right."
+    },
+    {
+      "id": "q-lane-rules-4",
+      "lessonId": "lesson-lane-rules",
+      "type": "trueFalse",
+      "questionText": "You may cross a solid double yellow line to overtake the vehicle ahead.",
+      "correctBool": false,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A solid double yellow line means no overtaking or crossing; treat it as a barrier."
+    },
+    {
+      "id": "q-lane-rules-5",
+      "lessonId": "lesson-lane-rules",
+      "type": "identification",
+      "questionText": "In right-hand traffic, you pass a slow vehicle ahead on which side?",
+      "correctAnswer": "left",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Overtaking is normally done on the left side in right-hand traffic countries."
+    },
+
+    {
+      "id": "q-regulatory-signs-1",
+      "lessonId": "lesson-regulatory-signs",
+      "type": "matchingType",
+      "questionText": "Match each regulatory sign to its meaning.",
+      "matchingPairs": [
+        {
+          "id": "mp-reg-1",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Vienna_Convention_road_sign_B2a.svg/330px-Vienna_Convention_road_sign_B2a.svg.png"
+          },
+          "meaning": "Come to a complete stop at the stop line."
+        },
+        {
+          "id": "mp-reg-2",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Vienna_Convention_road_sign_C1a-V1.svg/330px-Vienna_Convention_road_sign_C1a-V1.svg.png"
+          },
+          "meaning": "Do not enter this road."
+        },
+        {
+          "id": "mp-reg-3",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Vienna_Convention_road_sign_C14-V1-40.svg/330px-Vienna_Convention_road_sign_C14-V1-40.svg.png"
+          },
+          "meaning": "Maximum speed limit of 40 km/h."
+        },
+        {
+          "id": "mp-reg-4",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Vienna_Convention_road_sign_C12-V1.svg/330px-Vienna_Convention_road_sign_C12-V1.svg.png"
+          },
+          "meaning": "Turning around (U-turn) is prohibited."
+        }
+      ],
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Regulatory signs tell you what you must or must not do; violating them is a traffic offense."
+    },
+    {
+      "id": "q-regulatory-signs-2",
+      "lessonId": "lesson-regulatory-signs",
+      "type": "multipleChoice",
+      "questionText": "A STOP sign requires you to...",
+      "options": [
+        "Slow down and continue if the road is clear",
+        "Come to a complete stop at the stop line",
+        "Only stop if there is traffic",
+        "Honk your horn and proceed"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A STOP sign is absolute: come to a full stop, check for traffic, then proceed."
+    },
+    {
+      "id": "q-regulatory-signs-3",
+      "lessonId": "lesson-regulatory-signs",
+      "type": "multipleChoice",
+      "questionText": "A circular sign with a red border and a black symbol is generally a...",
+      "options": [
+        "Warning sign",
+        "Regulatory sign",
+        "Guide sign",
+        "Information sign"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Red-bordered circular signs are regulatory and prohibit or command a specific action."
+    },
+    {
+      "id": "q-regulatory-signs-4",
+      "lessonId": "lesson-regulatory-signs",
+      "type": "trueFalse",
+      "questionText": "A YIELD (Give Way) sign means you must stop only if there is crossing traffic.",
+      "correctBool": true,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Yield means slow down and give way; stop only when you need to let other vehicles or pedestrians pass."
+    },
+    {
+      "id": "q-regulatory-signs-5",
+      "lessonId": "lesson-regulatory-signs",
+      "type": "identification",
+      "questionText": "What shape is a STOP sign in the Philippines?",
+      "correctAnswer": "octagon",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The octagonal stop sign shape is recognized worldwide."
+    },
+
+    {
+      "id": "q-warning-signs-1",
+      "lessonId": "lesson-warning-signs",
+      "type": "matchingType",
+      "questionText": "Match each warning sign to its meaning.",
+      "matchingPairs": [
+        {
+          "id": "mp-warn-1",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Vienna_Convention_road_sign_symbol_-_Pedestrian_crossing_11b.svg/330px-Vienna_Convention_road_sign_symbol_-_Pedestrian_crossing_11b.svg.png"
+          },
+          "meaning": "Pedestrians may be crossing ahead."
+        },
+        {
+          "id": "mp-warn-2",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Vienna_Convention_road_sign_symbol_-_Slippery_road.svg/330px-Vienna_Convention_road_sign_symbol_-_Slippery_road.svg.png"
+          },
+          "meaning": "The road may be slippery when wet."
+        },
+        {
+          "id": "mp-warn-3",
+          "image": {
+            "remoteUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Vienna_Convention_road_sign_D3a.svg/330px-Vienna_Convention_road_sign_D3a.svg.png"
+          },
+          "meaning": "Roundabout ahead; yield to traffic already in the circle."
+        }
+      ],
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Warning signs alert you to hazards ahead so you can slow down and be ready."
+    },
+    {
+      "id": "q-warning-signs-2",
+      "lessonId": "lesson-warning-signs",
+      "type": "multipleChoice",
+      "questionText": "What shape are most warning signs in the Philippines?",
+      "options": [
+        "Rectangle",
+        "Circle",
+        "Diamond (rhombus)",
+        "Octagon"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Warning signs are usually yellow diamonds with black symbols or text."
+    },
+    {
+      "id": "q-warning-signs-3",
+      "lessonId": "lesson-warning-signs",
+      "type": "multipleChoice",
+      "questionText": "A yellow diamond sign showing a winding road warns of...",
+      "options": [
+        "Road work ahead",
+        "Curves or a winding road ahead",
+        "A parking area",
+        "A fuel station ahead"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The winding road symbol means sharp curves lie ahead; slow down before you reach them."
+    },
+    {
+      "id": "q-warning-signs-4",
+      "lessonId": "lesson-warning-signs",
+      "type": "trueFalse",
+      "questionText": "Warning signs are typically yellow with black symbols or text.",
+      "correctBool": true,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Yellow-and-black is the standard color scheme for warning signs."
+    },
+    {
+      "id": "q-warning-signs-5",
+      "lessonId": "lesson-warning-signs",
+      "type": "multipleChoice",
+      "questionText": "You see a yellow diamond sign showing a person with a shovel. This warns you to...",
+      "options": [
+        "Speed up to clear the area",
+        "Watch for road construction workers and slow down",
+        "Sound your horn repeatedly",
+        "Switch lanes abruptly"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "This is a men-at-work sign: expect workers and equipment and slow down."
+    },
+
+    {
+      "id": "q-informative-signs-1",
+      "lessonId": "lesson-informative-signs",
+      "type": "multipleChoice",
+      "questionText": "Blue guide signs in the Philippines typically show...",
+      "options": [
+        "Speed limits",
+        "Route numbers and directions",
+        "Stop rules",
+        "Parking fees"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Blue signs give directions, route information, and distances to destinations."
+    },
+    {
+      "id": "q-informative-signs-2",
+      "lessonId": "lesson-informative-signs",
+      "type": "multipleChoice",
+      "questionText": "A brown sign along a highway usually indicates...",
+      "options": [
+        "A tourist or historical site",
+        "An emergency exit",
+        "A bus stop",
+        "A pedestrian zone"
+      ],
+      "correctIndex": 0,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Brown signs point the way to scenic, cultural, and tourist destinations."
+    },
+    {
+      "id": "q-informative-signs-3",
+      "lessonId": "lesson-informative-signs",
+      "type": "trueFalse",
+      "questionText": "Green directional signs on expressways show exits and distances.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Green is the standard color for directional and destination signs."
+    },
+    {
+      "id": "q-informative-signs-4",
+      "lessonId": "lesson-informative-signs",
+      "type": "multipleChoice",
+      "questionText": "A blue sign with a white 'P' means...",
+      "options": [
+        "No parking",
+        "Parking is allowed",
+        "Tow-away zone",
+        "Private road"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The 'P' symbol on a blue background marks a parking area."
+    },
+    {
+      "id": "q-informative-signs-5",
+      "lessonId": "lesson-informative-signs",
+      "type": "identification",
+      "questionText": "What color are most destination guide signs on Philippine highways?",
+      "correctAnswer": "green",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Green with white text is the standard color for direction and guide signs."
+    },
+
+    {
+      "id": "q-defensive-driving-1",
+      "lessonId": "lesson-defensive-driving",
+      "type": "multipleChoice",
+      "questionText": "The best way to avoid a collision is to...",
+      "options": [
+        "Drive fast so you spend less time on the road",
+        "Expect the unexpected and scan the road ahead",
+        "Rely on your horn to warn others",
+        "Assume other drivers will follow the rules"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Defensive driving means scanning ahead, anticipating hazards, and giving yourself room to react."
+    },
+    {
+      "id": "q-defensive-driving-2",
+      "lessonId": "lesson-defensive-driving",
+      "type": "trueFalse",
+      "questionText": "Defensive driving means being mentally and physically prepared to react to other drivers' mistakes.",
+      "correctBool": true,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A defensive driver assumes others may err and keeps space and speed to compensate."
+    },
+    {
+      "id": "q-defensive-driving-3",
+      "lessonId": "lesson-defensive-driving",
+      "type": "multipleChoice",
+      "questionText": "Under normal conditions, how many seconds should you keep behind the vehicle ahead?",
+      "options": [
+        "1 second",
+        "2 seconds",
+        "3 seconds or more",
+        "10 seconds"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Keep at least a 3-second gap so you have time to react if the vehicle ahead stops suddenly."
+    },
+    {
+      "id": "q-defensive-driving-4",
+      "lessonId": "lesson-defensive-driving",
+      "type": "multipleChoice",
+      "questionText": "The brake lights of the vehicle ahead suddenly flash on. Your first reaction should be to...",
+      "options": [
+        "Swerve around it",
+        "Reduce speed and increase your following distance",
+        "Honk at the driver",
+        "Flash your high beams"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Backing off gives you time and space to handle whatever is causing the slowdown."
+    },
+    {
+      "id": "q-defensive-driving-5",
+      "lessonId": "lesson-defensive-driving",
+      "type": "identification",
+      "questionText": "What do you call the area around your vehicle that your mirrors cannot see?",
+      "correctAnswer": "blind spot",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Blind spots hide vehicles from your mirrors; always glance over your shoulder before changing lanes."
+    },
+
+    {
+      "id": "q-speed-stopping-1",
+      "lessonId": "lesson-speed-stopping",
+      "type": "multipleChoice",
+      "questionText": "The usual maximum speed limit for passenger vehicles on Philippine expressways is...",
+      "options": [
+        "40 km/h",
+        "60 km/h",
+        "100 km/h",
+        "120 km/h"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Most expressways set a 100 km/h maximum for passenger vehicles; always follow the posted limit."
+    },
+    {
+      "id": "q-speed-stopping-2",
+      "lessonId": "lesson-speed-stopping",
+      "type": "multipleChoice",
+      "questionText": "A speed limit sign applies to...",
+      "options": [
+        "Only cars",
+        "All motor vehicles unless otherwise posted",
+        "Only trucks and buses",
+        "Only motorcycles"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Posted speed limits apply to all motor vehicles on that road unless a different limit is posted."
+    },
+    {
+      "id": "q-speed-stopping-3",
+      "lessonId": "lesson-speed-stopping",
+      "type": "trueFalse",
+      "questionText": "Doubling your speed roughly quadruples your stopping distance.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Stopping distance grows with the square of speed, so higher speed needs far more room to stop."
+    },
+    {
+      "id": "q-speed-stopping-4",
+      "lessonId": "lesson-speed-stopping",
+      "type": "multipleChoice",
+      "questionText": "In wet or rainy weather, you should...",
+      "options": [
+        "Drive faster to avoid aquaplaning",
+        "Increase your following distance and reduce speed",
+        "Brake firmly at every corner",
+        "Keep your high beams on"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Wet roads reduce grip and lengthen stopping distance, so slow down and leave more space."
+    },
+    {
+      "id": "q-speed-stopping-5",
+      "lessonId": "lesson-speed-stopping",
+      "type": "identification",
+      "questionText": "What is the common speed limit in Philippine school zones?",
+      "correctAnswer": "20",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "School zones are typically limited to 20 km/h to protect children."
+    },
+
+    {
+      "id": "q-sharing-road-1",
+      "lessonId": "lesson-sharing-the-road",
+      "type": "multipleChoice",
+      "questionText": "When driving behind a motorcycle, you should...",
+      "options": [
+        "Follow it very closely to pass quickly",
+        "Give it extra space and pass carefully",
+        "Overtake it using the same lane",
+        "Honk repeatedly until it moves aside"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Motorcycles brake and maneuver faster than cars; give them extra room."
+    },
+    {
+      "id": "q-sharing-road-2",
+      "lessonId": "lesson-sharing-the-road",
+      "type": "multipleChoice",
+      "questionText": "A jeepney ahead is slowing to pick up passengers. You should...",
+      "options": [
+        "Speed up and pass it on the right",
+        "Be patient, watch for pedestrians, and pass only when safe",
+        "Squeeze through the gap beside it",
+        "Follow it closely until it stops"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Public utility vehicles stop suddenly for passengers; expect people to step out from behind them."
+    },
+    {
+      "id": "q-sharing-road-3",
+      "lessonId": "lesson-sharing-the-road",
+      "type": "trueFalse",
+      "questionText": "Pedestrians crossing at a designated crosswalk have the right of way.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Always stop for pedestrians in a crosswalk, especially near schools and terminals."
+    },
+    {
+      "id": "q-sharing-road-4",
+      "lessonId": "lesson-sharing-the-road",
+      "type": "multipleChoice",
+      "questionText": "A school bus stops to load or unload students. You should...",
+      "options": [
+        "Pass it as quickly as possible",
+        "Slow down and be alert for children crossing",
+        "Honk and continue at the same speed",
+        "Pass it on the shoulder"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Children may dart across the road; slow down and be ready to stop."
+    },
+    {
+      "id": "q-sharing-road-5",
+      "lessonId": "lesson-sharing-the-road",
+      "type": "identification",
+      "questionText": "What do you call a person traveling on foot?",
+      "correctAnswer": "pedestrian",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Pedestrians are road users too; always yield to them at crossings."
+    },
+
+    {
+      "id": "q-ra4136-1",
+      "lessonId": "lesson-ra4136",
+      "type": "multipleChoice",
+      "questionText": "RA 4136 is commonly known as the...",
+      "options": [
+        "Anti-Drunk and Drugged Driving Act",
+        "Land Transportation and Traffic Code",
+        "Child Safety in Motor Vehicles Act",
+        "Motorcycle Helmet Act"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "RA 4136, the Land Transportation and Traffic Code of 1964, is the core law on Philippine road traffic."
+    },
+    {
+      "id": "q-ra4136-2",
+      "lessonId": "lesson-ra4136",
+      "type": "multipleChoice",
+      "questionText": "Who is required to carry a valid driver's license while driving?",
+      "options": [
+        "Only professional drivers",
+        "Every driver operating a motor vehicle",
+        "Only those driving public vehicles",
+        "No one, if the vehicle is owned"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Every motor vehicle driver must carry a valid license and present it when asked by law enforcement."
+    },
+    {
+      "id": "q-ra4136-3",
+      "lessonId": "lesson-ra4136",
+      "type": "trueFalse",
+      "questionText": "A driver involved in a collision must stop, render aid, and report the accident.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Leaving the scene of an accident you were involved in is a serious offense under RA 4136."
+    },
+    {
+      "id": "q-ra4136-4",
+      "lessonId": "lesson-ra4136",
+      "type": "multipleChoice",
+      "questionText": "RA 4136 regulates motor vehicle operation, including the issuance of...",
+      "options": [
+        "Barangay clearances",
+        "Driver's licenses and vehicle registration",
+        "Business permits",
+        "Parking tickets"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The law governs licensing of drivers and registration of motor vehicles."
+    },
+    {
+      "id": "q-ra4136-5",
+      "lessonId": "lesson-ra4136",
+      "type": "identification",
+      "questionText": "What agency issues driver's licenses and enforces RA 4136 in the Philippines?",
+      "correctAnswer": "LTO",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The Land Transportation Office (LTO) handles licensing and motor vehicle registration."
+    },
+
+    {
+      "id": "q-distracted-1",
+      "lessonId": "lesson-distracted-driving",
+      "type": "multipleChoice",
+      "questionText": "RA 10913 (Anti-Distracted Driving Act) prohibits...",
+      "options": [
+        "Using mobile phones and electronic devices while driving",
+        "Carrying passengers",
+        "Driving at night",
+        "Wearing sunglasses while driving"
+      ],
+      "correctIndex": 0,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The law bans using phones and other devices to call, text, or browse while the vehicle is in motion."
+    },
+    {
+      "id": "q-distracted-2",
+      "lessonId": "lesson-distracted-driving",
+      "type": "multipleChoice",
+      "questionText": "Under RA 10586, the blood alcohol concentration limit for drivers of private vehicles is...",
+      "options": [
+        "0.00%",
+        "0.01%",
+        "0.05%",
+        "0.08%"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "RA 10586 sets a per se limit of 0.05% BAC for private vehicles and 0.01% for public utility vehicles."
+    },
+    {
+      "id": "q-distracted-3",
+      "lessonId": "lesson-distracted-driving",
+      "type": "trueFalse",
+      "questionText": "Under the Anti-Distracted Driving Act, you may use your phone while stopped at a red light.",
+      "correctBool": false,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The prohibition applies even when the vehicle is temporarily stopped on the road."
+    },
+    {
+      "id": "q-distracted-4",
+      "lessonId": "lesson-distracted-driving",
+      "type": "multipleChoice",
+      "questionText": "Driving while under the influence of illegal drugs is penalized under...",
+      "options": [
+        "RA 4136",
+        "RA 9165",
+        "RA 10930",
+        "RA 10054"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "RA 9165, the Comprehensive Dangerous Drugs Act, covers drug-related offenses, including DUI."
+    },
+    {
+      "id": "q-distracted-5",
+      "lessonId": "lesson-distracted-driving",
+      "type": "multipleChoice",
+      "questionText": "The blood alcohol limit for drivers of public utility vehicles under RA 10586 is...",
+      "options": [
+        "0.01%",
+        "0.05%",
+        "0.08%",
+        "0.10%"
+      ],
+      "correctIndex": 0,
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "A stricter 0.01% limit applies to commercial and public utility vehicle drivers."
+    },
+
+    {
+      "id": "q-licensing-1",
+      "lessonId": "lesson-licensing",
+      "type": "multipleChoice",
+      "questionText": "Under RA 10930, a new driver's license is valid for how many years?",
+      "options": [
+        "1 year",
+        "3 years",
+        "5 years",
+        "10 years"
+      ],
+      "correctIndex": 2,
+      "points": 1,
+      "order": 0,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Licenses are issued for 5 years and may be renewed for 10 years if the driver has no recorded violations."
+    },
+    {
+      "id": "q-licensing-2",
+      "lessonId": "lesson-licensing",
+      "type": "multipleChoice",
+      "questionText": "What is the minimum age to apply for a student permit in the Philippines?",
+      "options": [
+        "15 years old",
+        "16 years old",
+        "17 years old",
+        "18 years old"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 1,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "You may apply for a student permit at 16; a non-professional license requires being at least 17."
+    },
+    {
+      "id": "q-licensing-3",
+      "lessonId": "lesson-licensing",
+      "type": "trueFalse",
+      "questionText": "Accumulating demerit points for traffic violations can lead to license suspension or revocation.",
+      "correctBool": true,
+      "points": 1,
+      "order": 2,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The demerit point system tracks violations; too many points within two years can suspend your license."
+    },
+    {
+      "id": "q-licensing-4",
+      "lessonId": "lesson-licensing",
+      "type": "multipleChoice",
+      "questionText": "A non-professional driver's license allows you to...",
+      "options": [
+        "Drive any motor vehicle without restrictions",
+        "Drive vehicles for personal or household use",
+        "Operate a taxi or bus for hire",
+        "Drive only during the daytime"
+      ],
+      "correctIndex": 1,
+      "points": 1,
+      "order": 3,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "Non-professional licenses cover personal driving; driving for hire needs a professional license."
+    },
+    {
+      "id": "q-licensing-5",
+      "lessonId": "lesson-licensing",
+      "type": "identification",
+      "questionText": "What system records penalty points against a driver for traffic violations?",
+      "correctAnswer": "demerit",
+      "points": 1,
+      "order": 4,
+      "timesAnswered": 0,
+      "timesCorrect": 0,
+      "explanation": "The demerit point system assigns points per violation; reaching the threshold within two years brings penalties."
+    }
+  ]
+}

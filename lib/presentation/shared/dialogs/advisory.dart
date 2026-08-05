@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/advisory.dart';
 import 'package:vcroad/presentation/shared/widgets/image/preview.dart';
+import 'package:vcroad/presentation/shared/widgets/advisory_status_badge.dart';
 import 'package:vcroad/core/utils/responsive/responsive_build_context.dart';
 import 'package:vcroad/core/utils/map/interaction_controller.dart';
 
@@ -32,6 +33,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final responsive = context.responsive;
+    final scheme = Theme.of(context).colorScheme;
     final category = AdvisoryCategory.findById(advisory.advisoryType);
 
     return Dialog(
@@ -47,7 +49,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -70,15 +72,21 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                       ],
 
                       // Status badge
-                      _buildStatusBadge(context, responsive),
+                      AdvisoryStatusBadge(
+                        status: advisory.status,
+                        responsive: responsive,
+                        iconSize: 16,
+                        paddingFactor: 1.3,
+                      ),
                       SizedBox(height: responsive.scale(16)),
 
                       // Location info
-                      _buildLocationSection(responsive),
+                      _buildLocationSection(context, responsive),
                       SizedBox(height: responsive.scale(16)),
 
                       // Description
                       _buildSection(
+                        context,
                         responsive,
                         'Description',
                         Icons.description,
@@ -88,6 +96,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                           style: TextStyle(
                             fontSize: responsive.scaleFont(14),
                             height: 1.5,
+                            color: scheme.onSurface,
                           ),
                         ),
                       ),
@@ -99,18 +108,18 @@ class AdvisoryDetailsDialog extends StatelessWidget {
 
                       // Contractor (if applicable)
                       if (advisory.contractor != null) ...[
-                        _buildContractorSection(responsive),
+                        _buildContractorSection(context, responsive),
                         SizedBox(height: responsive.scale(16)),
                       ],
 
                       // Routes info
-                      _buildRoutesSection(responsive),
+                      _buildRoutesSection(context, responsive),
                       SizedBox(height: responsive.scale(16)),
 
                       // Mini map
                       if (advisory.affectedRoads != null &&
                           advisory.affectedRoads!.isNotEmpty)
-                        _buildMiniMap(responsive),
+                        _buildMiniMap(context, responsive),
                     ],
                   ),
                 ),
@@ -130,12 +139,14 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     dynamic responsive,
     AdvisoryCategory? category,
   ) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final categoryColor = category?.color ?? AppColors.primary;
+
     return Container(
       padding: EdgeInsets.all(responsive.scale(16)),
       decoration: BoxDecoration(
-        color: (category?.color ?? AppColors.primary).withValues(
-          alpha: 0.1,
-        ),
+        color: categoryColor.withValues(alpha: isDark ? 0.18 : 0.10),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -162,8 +173,10 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                       ),
                     )
                   : Icon(
-                      _getIconForCategory(category.id),
-                      color: Colors.white,
+                      AdvisoryCategory.iconFor(category.id),
+                      color: categoryColor.computeLuminance() > 0.5
+                          ? Colors.black87
+                          : Colors.white,
                       size: responsive.scale(28),
                     ),
             ),
@@ -177,14 +190,14 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                   style: TextStyle(
                     fontSize: responsive.scaleFont(18),
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.primaryAdaptive(context),
                   ),
                 ),
                 Text(
                   'Advisory Details',
                   style: TextStyle(
                     fontSize: responsive.scaleFont(12),
-                    color: Colors.grey.shade600,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -209,13 +222,14 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     // Limit the visual size while preserving aspect ratio. Wrap with Hero + GestureDetector
     // and show full-screen preview on tap. Precache image before showing preview for smoother UX.
     final maxHeight = (responsive.scale(160)).clamp(80.0, 320.0) as double;
-    final heroTag = 'advisory_preview${identityHashCode(imageUrl)}';
+    final heroTag = 'advisory_preview_${advisory.advisoryId}';
+    final scheme = Theme.of(context).colorScheme;
 
     return RepaintBoundary(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          color: Colors.grey.shade50,
+          color: scheme.surfaceContainerHighest,
           alignment: Alignment.center,
           constraints: BoxConstraints(
             maxHeight: maxHeight,
@@ -251,7 +265,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                                 (progress.expectedTotalBytes ?? 1)
                           : null;
                       return Container(
-                        color: Colors.grey.shade100,
+                        color: scheme.surfaceContainerHighest,
                         child: Center(
                           child: SizedBox(
                             width: 36,
@@ -265,7 +279,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                       );
                     },
                     errorBuilder: (ctx, err, st) => Container(
-                      color: Colors.grey.shade200,
+                      color: scheme.surfaceContainerHighest,
                       height: maxHeight,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -273,14 +287,14 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                           Icon(
                             Icons.broken_image,
                             size: responsive.scale(36),
-                            color: Colors.grey.shade400,
+                            color: scheme.outline,
                           ),
                           SizedBox(height: responsive.scale(8)),
                           Text(
                             'Image unavailable',
                             style: TextStyle(
                               fontSize: responsive.scaleFont(12),
-                              color: Colors.grey.shade600,
+                              color: scheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -328,67 +342,9 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context, dynamic responsive) {
-    // Use persisted status only
-    final status = advisory.status;
-
-    Color color;
-    IconData icon;
-    String label;
-
-    switch (status) {
-      case AdvisoryStatus.active:
-        color = Colors.green;
-        icon = Icons.play_circle_filled;
-        label = 'Active';
-        break;
-      case AdvisoryStatus.scheduled:
-        color = Colors.blue;
-        icon = Icons.schedule;
-        label = 'Scheduled';
-        break;
-      case AdvisoryStatus.expired:
-        color = Colors.grey;
-        icon = Icons.history;
-        label = 'Expired';
-        break;
-      case AdvisoryStatus.inactive:
-        color = Colors.grey;
-        icon = Icons.pause;
-        label = 'Inactive';
-        break;
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.scale(12),
-        vertical: responsive.scale(8),
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color, width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: responsive.scale(18), color: color),
-          SizedBox(width: responsive.scale(6)),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: responsive.scaleFont(13),
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocationSection(dynamic responsive) {
+  Widget _buildLocationSection(BuildContext context, dynamic responsive) {
     return _buildSection(
+      context,
       responsive,
       'Location',
       Icons.location_on,
@@ -396,10 +352,11 @@ class AdvisoryDetailsDialog extends StatelessWidget {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(responsive, 'Barangay', advisory.barangay, Icons.place),
+          _buildInfoRow(context, responsive, 'Barangay', advisory.barangay, Icons.place),
           if (advisory.placeName != null) ...[
             SizedBox(height: responsive.scale(8)),
             _buildInfoRow(
+              context,
               responsive,
               'Address',
               advisory.placeName!,
@@ -413,6 +370,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
 
   Widget _buildScheduleSection(BuildContext context, dynamic responsive) {
     return _buildSection(
+      context,
       responsive,
       'Schedule',
       Icons.calendar_today,
@@ -421,6 +379,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoRow(
+            context,
             responsive,
             'Type',
             advisory.scheduleType == AdvisoryScheduleType.oneTime
@@ -434,6 +393,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
           // do not display start/end date range (these are nulled on save).
           if (advisory.scheduleType == AdvisoryScheduleType.oneTime) ...[
             _buildInfoRow(
+              context,
               responsive,
               'Duration',
               '${DateFormat('MMM dd, yyyy').format(advisory.startDate)} - ${DateFormat('MMM dd, yyyy').format(advisory.endDate)}',
@@ -444,6 +404,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
 
           if (advisory.scheduleType == AdvisoryScheduleType.recurring) ...[
             _buildInfoRow(
+              context,
               responsive,
               'Days',
               _formatWeekdays(advisory.weekdays ?? []),
@@ -453,6 +414,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                 advisory.recurringEndTime != null) ...[
               SizedBox(height: responsive.scale(8)),
               _buildInfoRow(
+                context,
                 responsive,
                 'Time',
                 '${advisory.recurringStartTime!.format(context)} - ${advisory.recurringEndTime!.format(context)}',
@@ -466,8 +428,9 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildContractorSection(dynamic responsive) {
+  Widget _buildContractorSection(BuildContext context, dynamic responsive) {
     return _buildSection(
+      context,
       responsive,
       'Contractor',
       Icons.business,
@@ -476,6 +439,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoRow(
+            context,
             responsive,
             'Company',
             advisory.contractor!,
@@ -484,6 +448,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
           if (advisory.contractorContact != null) ...[
             SizedBox(height: responsive.scale(8)),
             _buildInfoRow(
+              context,
               responsive,
               'Contact',
               advisory.contractorContact!,
@@ -495,11 +460,12 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildRoutesSection(dynamic responsive) {
+  Widget _buildRoutesSection(BuildContext context, dynamic responsive) {
     final affectedCount = advisory.affectedRoads?.length ?? 0;
     final alternateCount = advisory.alternateRoutes?.length ?? 0;
 
     return _buildSection(
+      context,
       responsive,
       'Routes',
       Icons.alt_route,
@@ -508,6 +474,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoRow(
+            context,
             responsive,
             'Affected Roads',
             '$affectedCount route${affectedCount != 1 ? 's' : ''}',
@@ -515,6 +482,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
           ),
           SizedBox(height: responsive.scale(8)),
           _buildInfoRow(
+            context,
             responsive,
             'Alternate Routes',
             '$alternateCount route${alternateCount != 1 ? 's' : ''}',
@@ -525,8 +493,9 @@ class AdvisoryDetailsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniMap(dynamic responsive) {
+  Widget _buildMiniMap(BuildContext context, dynamic responsive) {
     return _buildSection(
+      context,
       responsive,
       'Map View',
       Icons.map,
@@ -542,18 +511,23 @@ class AdvisoryDetailsDialog extends StatelessWidget {
   }
 
   Widget _buildSection(
+    BuildContext context,
     dynamic responsive,
     String title,
     IconData icon,
     Color color,
     Widget content,
   ) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? Color.lerp(color, Colors.white, 0.35)! : color;
+
     return Container(
       padding: EdgeInsets.all(responsive.scale(16)),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,10 +537,10 @@ class AdvisoryDetailsDialog extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(responsive.scale(8)),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withValues(alpha: isDark ? 0.18 : 0.10),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: responsive.scale(20)),
+                child: Icon(icon, color: accent, size: responsive.scale(20)),
               ),
               SizedBox(width: responsive.scale(12)),
               Text(
@@ -574,7 +548,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                 style: TextStyle(
                   fontSize: responsive.scaleFont(16),
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: scheme.onSurface,
                 ),
               ),
             ],
@@ -587,15 +561,17 @@ class AdvisoryDetailsDialog extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
+    BuildContext context,
     dynamic responsive,
     String label,
     String value,
     IconData icon,
   ) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: responsive.scale(16), color: Colors.grey.shade600),
+        Icon(icon, size: responsive.scale(16), color: scheme.onSurfaceVariant),
         SizedBox(width: responsive.scale(8)),
         Expanded(
           child: Column(
@@ -606,7 +582,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                 style: TextStyle(
                   fontSize: responsive.scaleFont(12),
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: responsive.scale(2)),
@@ -614,7 +590,7 @@ class AdvisoryDetailsDialog extends StatelessWidget {
                 value,
                 style: TextStyle(
                   fontSize: responsive.scaleFont(14),
-                  color: Colors.grey.shade900,
+                  color: scheme.onSurface,
                 ),
               ),
             ],
@@ -625,15 +601,16 @@ class AdvisoryDetailsDialog extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, dynamic responsive) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.all(responsive.scale(16)),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: scheme.surfaceContainerHighest,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(16),
           bottomRight: Radius.circular(16),
         ),
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -653,27 +630,6 @@ class AdvisoryDetailsDialog extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  IconData _getIconForCategory(String categoryId) {
-    switch (categoryId) {
-      case 'road_closure':
-        return Icons.block;
-      case 'stop_and_go':
-        return Icons.traffic;
-      case 'one_way':
-        return Icons.arrow_forward;
-      case 'construction':
-        return Icons.construction;
-      case 'partial_lane':
-        return Icons.remove_road;
-      case 'event':
-        return Icons.event;
-      case 'emergency':
-        return Icons.warning;
-      default:
-        return Icons.info;
-    }
   }
 
   String _formatWeekdays(List<int> days) {
@@ -755,9 +711,29 @@ class _AdvisoryMiniMapState extends State<_AdvisoryMiniMap> {
       if (p.longitude > maxLng) maxLng = p.longitude;
     }
 
-    final centerLat = (minLat + maxLat) / 2;
-    final centerLng = (minLng + maxLng) / 2;
-    _controller.move(LatLng(centerLat, centerLng), 14);
+    // Degenerate geometry (single-point route): a zero-area bounds has no
+    // derivable zoom, so fall back to a centered, fixed zoom instead.
+    if (minLat == maxLat && minLng == maxLng) {
+      _controller.move(LatLng(minLat, minLng), 14);
+      return;
+    }
+
+    // Fit the camera to the full plot so every affected and alternate route
+    // is visible at the correct zoom. Padding keeps the stroke widths from
+    // being clipped at the map edges.
+    final bounds = LatLngBounds(
+      LatLng(minLat, minLng),
+      LatLng(maxLat, maxLng),
+    );
+    _controller.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(24)),
+    );
+
+    // Zoom out one full level (~2x) around the fitted center so the whole
+    // plot stays in view with more surrounding context.
+    final fitted = _controller.camera;
+    final zoomOut = (fitted.zoom - 1).clamp(2.0, 18.0).toDouble();
+    _controller.move(fitted.center, zoomOut);
   }
 
   @override
@@ -767,6 +743,11 @@ class _AdvisoryMiniMapState extends State<_AdvisoryMiniMap> {
         initialCenter: widget.advisory.center ?? const LatLng(14.7083, 120.9833),
         initialZoom: 14.0,
         onMapReady: _fitBounds,
+        // Read-only overview: keep gestures from fighting the dialog's
+        // vertical scroll and keep the view fitted to the plot.
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.none,
+        ),
       ),
       mapController: _controller,
       children: [

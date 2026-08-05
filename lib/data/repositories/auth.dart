@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vcroad/data/models/barangay.dart';
 import 'package:vcroad/data/models/user.dart';
@@ -79,7 +78,6 @@ class AuthService {
       }
     }
   }
-
 
   /// Writes the full user document to Firestore (called after email verification).
   /// Deletes the pending registration document.
@@ -244,7 +242,8 @@ class AuthService {
       final secs = ((_minResendIntervalMs - diff) / 1000).ceil();
       throw FirebaseAuthException(
         code: 'resend-throttled',
-        message: 'Please wait $secs second(s) before requesting another reset link.',
+        message:
+            'Please wait $secs second(s) before requesting another reset link.',
       );
     }
 
@@ -279,8 +278,7 @@ class AuthService {
         final seconds = remaining.inSeconds % 60;
         throw FirebaseAuthException(
           code: 'too-many-requests',
-          message:
-              'Account locked. Try again in ${minutes}m ${seconds}s.',
+          message: 'Account locked. Try again in ${minutes}m ${seconds}s.',
         );
       }
     } on FirebaseAuthException {
@@ -310,8 +308,7 @@ class AuthService {
 
     try {
       final doc = await docRef.get();
-      final current =
-          ((doc.data()?['failedAttempts'] as num?) ?? 0).toInt();
+      final current = ((doc.data()?['failedAttempts'] as num?) ?? 0).toInt();
       final newAttempts = current + 1;
       const maxAttempts = 5;
       const lockoutMinutes = 15;
@@ -440,12 +437,14 @@ class AuthService {
     }
   }
 
-  /// Request account deletion (soft delete, scheduled for 30 days)
+  /// Request account deletion (soft delete, scheduled for 30 days).
+  ///
+  /// `deletedAt` is deliberately NOT set here so the "Scheduled deletion"
+  /// state stays visible until the account is actually deleted.
   Future<void> requestAccountDeletion(String uid) async {
     final scheduledDate = DateTime.now().add(const Duration(days: 30));
     await _firestore.collection('users').doc(uid).set({
       'scheduledForDeletionAt': Timestamp.fromDate(scheduledDate),
-      'deletedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -477,10 +476,31 @@ class AuthService {
   /// Also returns a bool indicating whether the registration has expired (>24h).
   Future<Map<String, dynamic>?> getPendingRegistration(String uid) async {
     try {
-      final doc =
-          await _firestore.collection('pendingRegistrations').doc(uid).get();
+      final doc = await _firestore
+          .collection('pendingRegistrations')
+          .doc(uid)
+          .get();
       if (!doc.exists) return null;
       return doc.data();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Looks up a pending registration by [email], returning its doc data or
+  /// `null` if none exists. Uses a query on `pendingRegistrations.email` so
+  /// callers can detect an unfinished registration without knowing its uid.
+  Future<Map<String, dynamic>?> getPendingRegistrationByEmail(
+    String email,
+  ) async {
+    try {
+      final query = await _firestore
+          .collection('pendingRegistrations')
+          .where('email', isEqualTo: email.trim().toLowerCase())
+          .limit(1)
+          .get();
+      if (query.docs.isEmpty) return null;
+      return query.docs.first.data();
     } catch (_) {
       return null;
     }

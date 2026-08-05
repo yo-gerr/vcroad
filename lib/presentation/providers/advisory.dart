@@ -14,6 +14,8 @@ enum AdvisoryViewFilter {
   inactive,
 }
 
+enum AdvisorySortOrder { newest, oldest, recentlyUpdated }
+
 class AdvisoryProvider with ChangeNotifier {
   final AdvisoryService _service = AdvisoryService();
   // Incrementing tick to force map consumers to rebuild reliably
@@ -29,12 +31,29 @@ class AdvisoryProvider with ChangeNotifier {
   String? _error;
   AdvisoryViewFilter _currentFilter = AdvisoryViewFilter.all;
   String? _filterBarangay;
+  AdvisorySortOrder _sortOrder = AdvisorySortOrder.newest;
 
   // Current statuses used for stream queries (null => no restriction / all)
   List<AdvisoryStatus>? _currentStatuses;
+  int? _streamLimit;
+
+  /// The barangay actually scoping the live Firestore stream (independent of
+  /// [AdvisoryViewFilter._filterBarangay], which regular users change
+  /// client-side without touching the stream).
+  String? _streamBarangay;
 
   /// Expose current statuses so callers (UI) can restart streams consistently
   List<AdvisoryStatus>? get currentStatuses => _currentStatuses;
+
+  // Alert derivation: emits advisories newly added to the (user-consolidated)
+  // stream after the session baseline, so popup alerts share one listener.
+  final StreamController<Advisory> _newAdvisoryController =
+      StreamController<Advisory>.broadcast();
+  Stream<Advisory> get newAdvisories => _newAdvisoryController.stream;
+
+  final Set<String> _seenIds = <String>{};
+  DateTime? _baselineCreatedAt;
+  bool _firstSnapshotHandled = false;
 
   // Map plotting state
   // NOTE: do NOT store raw GoogleMapController in the provider. Widgets own controllers.
@@ -59,6 +78,19 @@ class AdvisoryProvider with ChangeNotifier {
   String? get error => _error;
   AdvisoryViewFilter get currentFilter => _currentFilter;
   String? get filterBarangay => _filterBarangay;
+  AdvisorySortOrder get sortOrder => _sortOrder;
+
+  /// Current stream retry/backoff attempt (0 => healthy stream). Lets the UI
+  /// surface a "Reconnecting…" chip while transient errors are retried.
+  int get retryAttempt => _retryAttempt;
+
+  /// Change how the filtered list is ordered (client-side).
+  void setSortOrder(AdvisorySortOrder order) {
+    if (order == _sortOrder) return;
+    _sortOrder = order;
+    _applyFilter();
+    notifyListeners();
+  }
 
   // Map plotting getters
   bool get isPlotting => _isPlotting;
@@ -93,13 +125,16 @@ class AdvisoryProvider with ChangeNotifier {
     bool useRealtime = true,
     AdvisoryViewFilter initialFilter = AdvisoryViewFilter.all,
     List<AdvisoryStatus>? statuses,
+    int? limit,
   }) async {
     // cancel previous subscription
     await _advisorySub?.cancel();
     _currentFilter = initialFilter;
     _filterBarangay = barangay;
+    _streamBarangay = barangay;
     // persist statuses for later reloads (create/update/delete/refresh)
     _currentStatuses = statuses;
+    _streamLimit = limit;
 
     if (!useRealtime) {
       // fallback to one-time fetch for maintenance scripts, etc.
@@ -111,25 +146,134 @@ class AdvisoryProvider with ChangeNotifier {
     _error = null;
 
     try {
-      // If statuses were provided, pass them to the service; otherwise watch all.
-      _advisorySub = _service
-          .watchAdvisories(barangay: barangay, statuses: _currentStatuses)
-          .listen(
-            (list) {
-              _advisories = list;
-              _applyFilter();
-              _setLoading(false);
-            },
-            onError: (err) {
-              _error = err?.toString();
-              _setLoading(false);
-              debugPrint('❌ Advisory stream error: $err');
-            },
-          );
+      _subscribeWithRetry(
+        () => _service.watchAdvisories(
+          barangay: barangay,
+          statuses: _currentStatuses,
+          limit: limit,
+        ),
+      );
     } catch (e) {
       _error = e.toString();
       _setLoading(false);
       debugPrint('❌ Error starting advisory stream: $e');
+    }
+  }
+
+  /// Start (or reuse) the consolidated stream for regular users: all barangays,
+  /// statuses active + scheduled. This single listener powers the home map, the
+  /// advisory list, and the new-advisory alert popups.
+  Future<void> startUserStream() async {
+    const statuses = [AdvisoryStatus.active, AdvisoryStatus.scheduled];
+    final alreadyUserStream =
+        _advisorySub != null &&
+        _currentStatuses != null &&
+        _currentStatuses!.length == statuses.length &&
+        statuses.every(_currentStatuses!.contains);
+    if (alreadyUserStream) return;
+
+    await startAdvisoryStream(
+      barangay: null,
+      useRealtime: true,
+      initialFilter: AdvisoryViewFilter.all,
+      statuses: statuses,
+    );
+  }
+
+  // Current retry/backoff state (per stream generation).
+  int _retryAttempt = 0;
+  Timer? _retryTimer;
+
+  /// Subscribe to [buildStream], automatically resubscribing with exponential
+  /// backoff on transient errors. Gives up after a bounded number of attempts.
+  /// [onFirst] fires once the first emission (or terminal error) arrives,
+  /// which lets callers await a full reload cycle (e.g. pull-to-refresh).
+  void _subscribeWithRetry(
+    Stream<List<Advisory>> Function() buildStream, {
+    VoidCallback? onFirst,
+  }) {
+    _retryTimer?.cancel();
+    _advisorySub?.cancel();
+    // Each subscription starts fresh: the first emission sets the alert
+    // baseline so historical documents never trigger popups.
+    _firstSnapshotHandled = false;
+
+    _advisorySub = buildStream().listen(
+      (list) {
+        _retryAttempt = 0; // success resets backoff
+        _advisories = list;
+        _applyFilter();
+        _setLoading(false);
+        _deriveNewAdvisories(list);
+        onFirst?.call();
+      },
+      onError: (err) {
+        _error = err?.toString();
+        _setLoading(false);
+        debugPrint('❌ Advisory stream error: $err');
+        onFirst?.call();
+        if (_retryAttempt < _maxRetryAttempts) {
+          _retryAttempt += 1;
+          final delay = Duration(
+            milliseconds: 500 * (1 << (_retryAttempt - 1)).clamp(1, 30),
+          );
+          debugPrint(
+            '↻ Resubscribing advisory stream in ${delay.inMilliseconds}ms '
+            '(attempt $_retryAttempt/$_maxRetryAttempts)',
+          );
+          _retryTimer = Timer(delay, () {
+            if (_disposed) return;
+            try {
+              _subscribeWithRetry(buildStream);
+            } catch (e) {
+              debugPrint('❌ Failed to resubscribe: $e');
+            }
+          });
+        }
+      },
+      onDone: () {
+        // Streams don't emit done normally, but resubscribe defensively.
+        onFirst?.call();
+        if (_retryAttempt < _maxRetryAttempts && !_disposed) {
+          _subscribeWithRetry(buildStream);
+        }
+      },
+    );
+  }
+
+  static const int _maxRetryAttempts = 5;
+  bool _disposed = false;
+
+  /// Detect advisories that newly appeared since the session baseline and emit
+  /// them on [newAdvisories]. The first emission only establishes the baseline
+  /// (newest `createdAt`) so pre-existing documents don't trigger alerts.
+  void _deriveNewAdvisories(List<Advisory> list) {
+    DateTime? newest;
+    for (final a in list) {
+      if (newest == null || a.createdAt.isAfter(newest)) newest = a.createdAt;
+    }
+
+    if (!_firstSnapshotHandled) {
+      _firstSnapshotHandled = true;
+      if (newest != null) _baselineCreatedAt = newest;
+      _seenIds.addAll(list.map((a) => a.advisoryId));
+      return;
+    }
+
+    final newOnes = <Advisory>[];
+    for (final a in list) {
+      if (_seenIds.contains(a.advisoryId)) continue;
+      if (_baselineCreatedAt != null &&
+          !a.createdAt.isAfter(_baselineCreatedAt!)) {
+        continue;
+      }
+      newOnes.add(a);
+    }
+
+    _seenIds.addAll(list.map((a) => a.advisoryId));
+    if (newOnes.isEmpty) return;
+    for (final a in newOnes) {
+      _newAdvisoryController.add(a);
     }
   }
 
@@ -142,7 +286,29 @@ class AdvisoryProvider with ChangeNotifier {
       useRealtime: true,
       initialFilter: _currentFilter,
       statuses: _currentStatuses,
+      limit: _streamLimit,
     );
+  }
+
+  /// Manual full reload: re-subscribes the stream and completes once the first
+  /// snapshot arrives (or a terminal error occurs). Used by pull-to-refresh and
+  /// the desktop refresh action.
+  Future<void> refresh() async {
+    _retryAttempt = 0;
+    final completer = Completer<void>();
+    void mark() {
+      if (!completer.isCompleted) completer.complete();
+    }
+
+    _subscribeWithRetry(
+      () => _service.watchAdvisories(
+        barangay: _streamBarangay,
+        statuses: _currentStatuses,
+        limit: _streamLimit,
+      ),
+      onFirst: mark,
+    );
+    await completer.future;
   }
 
   /// Get active advisories (currently in effect)
@@ -162,13 +328,9 @@ class AdvisoryProvider with ChangeNotifier {
 
     try {
       final id = await _service.createAdvisory(advisory);
-      // reload using same stream restrictions (statuses) and barangay
-      await startAdvisoryStream(
-        barangay: _filterBarangay,
-        useRealtime: true,
-        initialFilter: _currentFilter,
-        statuses: _currentStatuses,
-      );
+      // The realtime stream pushes the new doc automatically; only reload if
+      // the stream isn't active (e.g. after a failure).
+      await _reloadIfNotStreaming();
       _setLoading(false);
       return id;
     } catch (e) {
@@ -179,6 +341,10 @@ class AdvisoryProvider with ChangeNotifier {
     }
   }
 
+  /// Generate a Firestore document identifier for an advisory that has not
+  /// been written yet (used to key media uploads ahead of the doc write).
+  String generateAdvisoryId() => _service.generateAdvisoryId();
+
   /// Update existing advisory
   Future<bool> updateAdvisory(Advisory advisory) async {
     _setLoading(true);
@@ -186,12 +352,7 @@ class AdvisoryProvider with ChangeNotifier {
 
     try {
       await _service.updateAdvisory(advisory);
-      await startAdvisoryStream(
-        barangay: _filterBarangay,
-        useRealtime: true,
-        initialFilter: _currentFilter,
-        statuses: _currentStatuses,
-      );
+      await _reloadIfNotStreaming();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -209,12 +370,7 @@ class AdvisoryProvider with ChangeNotifier {
 
     try {
       await _service.deleteAdvisory(advisoryId);
-      await startAdvisoryStream(
-        barangay: _filterBarangay,
-        useRealtime: true,
-        initialFilter: _currentFilter,
-        statuses: _currentStatuses,
-      );
+      await _reloadIfNotStreaming();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -222,6 +378,14 @@ class AdvisoryProvider with ChangeNotifier {
       _setLoading(false);
       debugPrint('❌ Error deleting advisory: $e');
       return false;
+    }
+  }
+
+  /// The realtime stream handles CRUD updates on its own; this is a safety net
+  /// for the rare case where the stream is not active.
+  Future<void> _reloadIfNotStreaming() async {
+    if (_advisorySub == null) {
+      await loadAdvisories(barangay: _streamBarangay);
     }
   }
 
@@ -248,42 +412,63 @@ class AdvisoryProvider with ChangeNotifier {
   void _applyFilter() {
     switch (_currentFilter) {
       case AdvisoryViewFilter.all:
-        _filteredAdvisories = List.from(_advisories);
+        _filteredAdvisories = _applyBarangayScope(_advisories).toList();
         break;
       case AdvisoryViewFilter.active:
         // Show persisted-active advisories only
-        _filteredAdvisories = _advisories
-            .where((a) => a.status == AdvisoryStatus.active)
-            .toList();
+        _filteredAdvisories = _applyBarangayScope(
+          _advisories.where((a) => a.status == AdvisoryStatus.active),
+        ).toList();
         break;
       case AdvisoryViewFilter.scheduled:
-        _filteredAdvisories = _advisories
-            .where((a) => a.status == AdvisoryStatus.scheduled)
-            .toList();
+        _filteredAdvisories = _applyBarangayScope(
+          _advisories.where((a) => a.status == AdvisoryStatus.scheduled),
+        ).toList();
         break;
       case AdvisoryViewFilter.inactive:
-        _filteredAdvisories = _advisories
-            .where((a) => a.status == AdvisoryStatus.inactive)
-            .toList();
+        _filteredAdvisories = _applyBarangayScope(
+          _advisories.where((a) => a.status == AdvisoryStatus.inactive),
+        ).toList();
         break;
       case AdvisoryViewFilter.expired:
-        _filteredAdvisories = _advisories
-            .where((a) => a.status == AdvisoryStatus.expired)
-            .toList();
+        _filteredAdvisories = _applyBarangayScope(
+          _advisories.where((a) => a.status == AdvisoryStatus.expired),
+        ).toList();
         break;
       case AdvisoryViewFilter.byBarangay:
-        if (_filterBarangay != null) {
-          _filteredAdvisories = _advisories
-              .where((a) => a.barangay == _filterBarangay)
-              .toList();
-        } else {
-          _filteredAdvisories = List.from(_advisories);
-        }
+        _filteredAdvisories = _filterBarangay == null
+            ? List.from(_advisories)
+            : _advisories.where((a) => a.barangay == _filterBarangay).toList();
+        break;
+    }
+    _sort();
+  }
+
+  /// Order the filtered list by the current [AdvisorySortOrder].
+  void _sort() {
+    switch (_sortOrder) {
+      case AdvisorySortOrder.newest:
+        _filteredAdvisories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case AdvisorySortOrder.oldest:
+        _filteredAdvisories.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case AdvisorySortOrder.recentlyUpdated:
+        _filteredAdvisories.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
         break;
     }
   }
 
-  /// Search advisories by query (now optimized for place name).
+  /// Narrow a candidate set to the currently selected barangay, if any.
+  /// Replaces the old "stream scoped by barangay" behavior now that regular
+  /// users share a single all-barangay consolidated stream.
+  Iterable<Advisory> _applyBarangayScope(Iterable<Advisory> source) {
+    if (_filterBarangay == null) return source;
+    return source.where((a) => a.barangay == _filterBarangay);
+  }
+
+  /// Search advisories by query. Prefers the denormalized `searchKeywords`
+  /// (indexed-ready) and falls back to a substring scan for old documents.
   void searchAdvisories(String query) {
     if (query.trim().isEmpty) {
       _applyFilter();
@@ -293,20 +478,42 @@ class AdvisoryProvider with ChangeNotifier {
 
     final q = query.trim().toLowerCase();
 
-    // Prefer searching placeName first for better UX/performance.
     _filteredAdvisories = _advisories.where((a) {
+      if (_filterBarangay != null && a.barangay != _filterBarangay) {
+        return false;
+      }
+      // Fast path: indexed token match.
+      if (a.searchKeywords != null && a.searchKeywords!.isNotEmpty) {
+        if (a.searchKeywords!.any((kw) => kw.contains(q))) return true;
+      }
+
+      // Fallback for legacy docs without searchKeywords.
       final place = (a.placeName ?? '').toLowerCase();
       if (place.isNotEmpty && place.contains(q)) return true;
 
-      // Fallback: match barangay, reason, or type
       final barangay = a.barangay.toLowerCase();
       final reason = a.reason.toLowerCase();
       final type = a.advisoryType.toLowerCase();
 
       return barangay.contains(q) || reason.contains(q) || type.contains(q);
     }).toList();
+    _sort();
 
     notifyListeners();
+  }
+
+  /// Precomputed per-status counts over the currently streamed advisories.
+  Map<AdvisoryStatus, int> get statusCounts {
+    final counts = <AdvisoryStatus, int>{
+      AdvisoryStatus.active: 0,
+      AdvisoryStatus.inactive: 0,
+      AdvisoryStatus.scheduled: 0,
+      AdvisoryStatus.expired: 0,
+    };
+    for (final a in _advisories) {
+      counts[a.status] = (counts[a.status] ?? 0) + 1;
+    }
+    return counts;
   }
 
   // ===== MAP CONTROLLER METHODS =====
@@ -620,7 +827,10 @@ class AdvisoryProvider with ChangeNotifier {
   /// Dispose and cleanup
   @override
   void dispose() {
+    _disposed = true;
+    _retryTimer?.cancel();
     _advisorySub?.cancel();
+    _newAdvisoryController.close();
     clearAllPlotting();
     _advisories.clear();
     _filteredAdvisories.clear();

@@ -99,14 +99,16 @@ class XpService {
     }
   }
 
-  Future<void> awardReview(String userId) async {
+  Future<int> awardReview(String userId) async {
     try {
       final userRef = _firestore.collection('users').doc(userId);
       await userRef.set({
         'learningStats.xp': FieldValue.increment(XpConstants.xpPerReview),
       }, SetOptions(merge: true));
+      return XpConstants.xpPerReview;
     } catch (e) {
       debugPrint('XpService.awardReview error: $e');
+      return 0;
     }
   }
 

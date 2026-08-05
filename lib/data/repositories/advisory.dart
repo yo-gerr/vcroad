@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +14,6 @@ class AdvisoryService {
   AdvisoryService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  // final FirebaseStorage _storage = FirebaseStorage.instance; // commented out: firebase_storage
   final BarangayService _barangayService = BarangayService(); // ✅ ADD THIS
 
   static const String _collection = 'advisories';
@@ -39,21 +39,51 @@ class AdvisoryService {
     }
   }
 
+  /// Generate a Firestore document identifier without writing. Callers can
+  /// use it to upload media keyed by the advisory id before the doc exists.
+  String generateAdvisoryId() => _firestore.collection(_collection).doc().id;
+
   /// Create new advisory
   Future<String> createAdvisory(Advisory advisory) async {
     try {
       // Validate required fields
       _validateAdvisory(advisory);
 
+      // Use a pre-generated id when provided (so callers can upload media
+      // against the id before the doc write); otherwise generate one here.
+      final docRef = advisory.advisoryId.isNotEmpty
+          ? _firestore.collection(_collection).doc(advisory.advisoryId)
+          : _firestore.collection(_collection).doc();
+      final uid = _currentUid();
+      final now = DateTime.now();
+
       // Prepare payload and ensure recurring advisories do NOT persist
       // one-time start/end timestamps (set them to null).
-      final payload = advisory.toJson();
+      final payload = advisory.copyWith(
+        advisoryId: docRef.id,
+        createdByUid: uid,
+        updatedByUid: uid,
+        statusUpdatedAt: now,
+        searchKeywords: advisory.buildSearchKeywords(),
+        nextStatusAt: Advisory.computeNextStatusAt(
+          status: advisory.status,
+          scheduleType: advisory.scheduleType,
+          startDate: advisory.startDate,
+          endDate: advisory.endDate,
+          weekdays: advisory.weekdays,
+          recurringStartTime: advisory.recurringStartTime,
+          recurringEndTime: advisory.recurringEndTime,
+          now: now,
+        ),
+        barangayId: advisory.barangayId ?? await resolveBarangayId(advisory.barangay),
+      ).toJson();
+
       if (advisory.scheduleType == AdvisoryScheduleType.recurring) {
         payload['startDate'] = null;
         payload['endDate'] = null;
       }
 
-      final docRef = await _firestore.collection(_collection).add(payload);
+      await docRef.set(payload);
 
       debugPrint('✅ Advisory created with ID: ${docRef.id}');
       return docRef.id;
@@ -63,59 +93,171 @@ class AdvisoryService {
     }
   }
 
-  /// Update existing advisory
+  /// Update existing advisory (transactional optimistic lock).
   Future<void> updateAdvisory(Advisory advisory) async {
     try {
       _validateAdvisory(advisory);
 
-      // Optimistic locking check
-      final currentDoc = await _firestore
-          .collection(_collection)
-          .doc(advisory.advisoryId)
-          .get();
+      final ref = _firestore.collection(_collection).doc(advisory.advisoryId);
+      final uid = _currentUid();
+      final now = DateTime.now();
 
-      if (!currentDoc.exists) {
-        throw Exception('Advisory not found');
-      }
-
-      final currentVersion = currentDoc.data()?['version'] ?? 1;
-      if (currentVersion != advisory.version) {
-        throw Exception(
-          'Advisory was modified by another user. Please refresh and try again.',
-        );
-      }
-
-      // Increment version
-      final updatedAdvisory = advisory.copyWith(
-        version: advisory.version + 1,
-        updatedAt: DateTime.now(),
+      // Resolve enrichments OUTSIDE the transaction (asset/network I/O is not
+      // allowed inside Firestore transactions).
+      final String? resolvedBarangayId = advisory.barangayId ??
+          (await resolveBarangayId(advisory.barangay));
+      final keywords = advisory.buildSearchKeywords();
+      final nextStatusAt = Advisory.computeNextStatusAt(
+        status: advisory.status,
+        scheduleType: advisory.scheduleType,
+        startDate: advisory.startDate,
+        endDate: advisory.endDate,
+        weekdays: advisory.weekdays,
+        recurringStartTime: advisory.recurringStartTime,
+        recurringEndTime: advisory.recurringEndTime,
+        now: now,
       );
 
-      // Build payload and null-out one-time fields for recurring advisories.
-      final payload = updatedAdvisory.toJson();
-      if (updatedAdvisory.scheduleType == AdvisoryScheduleType.recurring) {
-        payload['startDate'] = null;
-        payload['endDate'] = null;
-      }
+      await _firestore.runTransaction((txn) async {
+        final currentDoc = await txn.get(ref);
 
-      await _firestore
-          .collection(_collection)
-          .doc(advisory.advisoryId)
-          .update(payload);
+        if (!currentDoc.exists) {
+          throw Exception('Advisory not found');
+        }
+
+        final currentData = currentDoc.data()!;
+        final currentVersion = currentData['version'] ?? 1;
+        if (currentVersion != advisory.version) {
+          throw Exception(
+            'Advisory was modified by another user. Please refresh and try again.',
+          );
+        }
+
+        final statusChanged =
+            (currentData['status'] as String?) != advisory.status.name;
+
+        // Increment version
+        final updatedAdvisory = advisory.copyWith(
+          version: currentVersion + 1,
+          updatedAt: now,
+          updatedByUid: uid,
+          // preserve immutable/audit fields from the stored document
+          advisoryId: ref.id,
+          createdAt: _parseDate(currentData['createdAt']),
+          createdBy: (currentData['createdBy'] as String?) ?? advisory.createdBy,
+          createdByUid:
+              (currentData['createdByUid'] as String?) ?? advisory.createdByUid,
+          statusUpdatedAt: statusChanged
+              ? now
+              : _parseNullableDate(currentData['statusUpdatedAt']),
+          searchKeywords: keywords,
+          nextStatusAt: nextStatusAt,
+          barangayId: resolvedBarangayId ?? currentData['barangayId'] as String?,
+        );
+
+        // Append to capped version history (audit trail, max 10 entries).
+        final history = _parseHistory(currentData['versionHistory']);
+        history.insert(
+          0,
+          AdvisoryHistory(
+            version: currentVersion + 1,
+            updatedBy: uid,
+            updatedAt: now,
+            changedFields: _changedFields(currentData, updatedAdvisory),
+          ),
+        );
+        if (history.length > 10) history.removeRange(10, history.length);
+
+        // Build payload and null-out one-time fields for recurring advisories.
+        final payload = updatedAdvisory.toJson();
+        payload['versionHistory'] = history.map((h) => h.toJson()).toList();
+        if (updatedAdvisory.scheduleType == AdvisoryScheduleType.recurring) {
+          payload['startDate'] = null;
+          payload['endDate'] = null;
+        }
+
+        txn.update(ref, payload);
+      });
     } catch (e) {
       debugPrint('❌ Error updating advisory: $e');
       rethrow;
     }
   }
 
-  /// Delete advisory (and associated image)
+  /// Resolve a stable `barangayId` from a barangay display name using the
+  /// bundled BarangayService (GeoJSON `id`). Returns null if unresolvable.
+  Future<String?> resolveBarangayId(String barangayName) async {
+    if (barangayName.isEmpty) return null;
+    try {
+      if (!_barangayService.isLoaded) {
+        await _barangayService.loadBarangays();
+      }
+      for (final b in _barangayService.barangays) {
+        if (b.name == barangayName && b.id != null) return b.id;
+      }
+      // fall back to a normalized comparison
+      final normalized = barangayName.toLowerCase();
+      for (final b in _barangayService.barangays) {
+        if (b.name.toLowerCase() == normalized && b.id != null) return b.id;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('⚠️ Could not resolve barangayId for "$barangayName": $e');
+      return null;
+    }
+  }
+
+  static String? _currentUid() =>
+      FirebaseAuth.instance.currentUser?.uid;
+
+  static DateTime _parseDate(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is Timestamp) return v.toDate();
+    if (v is String) return DateTime.tryParse(v) ?? DateTime.now();
+    return DateTime.now();
+  }
+
+  static DateTime? _parseNullableDate(dynamic v) {
+    if (v == null) return null;
+    if (v is Timestamp) return v.toDate();
+    if (v is String) return DateTime.tryParse(v);
+    return null;
+  }
+
+  static List<AdvisoryHistory> _parseHistory(dynamic raw) {
+    if (raw == null) return [];
+    final list = raw as List;
+    return list
+        .map((e) => AdvisoryHistory.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  static List<String>? _changedFields(
+    Map<String, dynamic> before,
+    Advisory after,
+  ) {
+    final changed = <String>[];
+    final fields = {
+      'reason': (Advisory a) => a.reason,
+      'barangay': (Advisory a) => a.barangay,
+      'status': (Advisory a) => a.status.name,
+      'placeName': (Advisory a) => a.placeName,
+      'contractor': (Advisory a) => a.contractor,
+      'contractorContact': (Advisory a) => a.contractorContact,
+    };
+    for (final entry in fields.entries) {
+      final newValue = entry.value(after);
+      final oldValue = before[entry.key];
+      if ((oldValue ?? '').toString() != (newValue ?? '').toString()) {
+        changed.add(entry.key);
+      }
+    }
+    return changed.isEmpty ? null : changed;
+  }
+
+  /// Delete advisory
   Future<void> deleteAdvisory(String advisoryId) async {
     try {
-      // Commented out: deleteImage uses firebase_storage
-      // if (advisory?.imageUrl != null) {
-      //   await deleteImage(advisory!.imageUrl!);
-      // }
-
       await _firestore.collection(_collection).doc(advisoryId).delete();
 
       debugPrint('✅ Advisory deleted: $advisoryId');
@@ -124,54 +266,6 @@ class AdvisoryService {
       rethrow;
     }
   }
-
-  // Commented out: uploadImage uses firebase_storage
-  // Future<String> uploadImage({
-  //   File? file,
-  //   Uint8List? bytes,
-  //   required String advisoryId,
-  // }) async {
-  //   try {
-  //     if (file == null && bytes == null) {
-  //       throw Exception('No image provided');
-  //     }
-  //     String? mime;
-  //     if (file != null) { mime = lookupMimeType(file.path); }
-  //     else if (bytes != null) { mime = lookupMimeType('', headerBytes: bytes); }
-  //     mime ??= 'image/jpeg';
-  //     final ext = (mime.split('/').length == 2) ? mime.split('/').last : 'jpg';
-  //     final fileName = '${advisoryId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
-  //     final ref = _storage.ref().child('$_storageFolder/$fileName');
-  //     final metadata = SettableMetadata(contentType: mime, customMetadata: {'advisoryId': advisoryId, 'uploadedAt': DateTime.now().toIso8601String()});
-  //     UploadTask uploadTask;
-  //     if (bytes != null) { uploadTask = ref.putData(bytes, metadata); }
-  //     else { uploadTask = ref.putFile(file!, metadata); }
-  //     uploadTask.snapshotEvents.listen((snapshot) {
-  //       if (snapshot.totalBytes > 0) {
-  //         final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-  //         debugPrint('📤 Upload progress: ${progress.toStringAsFixed(1)}%');
-  //       }
-  //     });
-  //     final snapshot = await uploadTask;
-  //     final downloadUrl = await snapshot.ref.getDownloadURL();
-  //     debugPrint('✅ Image uploaded: $downloadUrl');
-  //     return downloadUrl;
-  //   } catch (e) {
-  //     debugPrint('❌ Error uploading image: $e');
-  //     rethrow;
-  //   }
-  // }
-
-  // Commented out: deleteImage uses firebase_storage
-  // Future<void> deleteImage(String imageUrl) async {
-  //   try {
-  //     final ref = _storage.refFromURL(imageUrl);
-  //     await ref.delete();
-  //     debugPrint('✅ Image deleted from storage');
-  //   } catch (e) {
-  //     debugPrint('⚠️ Error deleting image: $e');
-  //   }
-  // }
 
   /// Snap polyline points to roads using OSRM Nearest API (free, no API key).
   Future<List<LatLng>> snapToRoad(
@@ -206,9 +300,11 @@ class AdvisoryService {
     }
 
     if (results.every((r) => r == null)) return points;
-    return results
-        .map((r) => r ?? const LatLng(0, 0))
-        .toList();
+    // Keep original points where snapping failed (never fall back to (0,0)).
+    return List.generate(
+      points.length,
+      (i) => results[i] ?? points[i],
+    );
   }
 
   /// Snap a single point to nearest road via OSRM Nearest.
@@ -354,11 +450,14 @@ class AdvisoryService {
   /// Get advisories count by status
   Future<Map<AdvisoryStatus, int>> getAdvisoryCountsByStatus({
     String? barangay,
+    String? barangayId,
   }) async {
     try {
       Query query = _firestore.collection(_collection);
 
-      if (barangay != null) {
+      if (barangayId != null && barangayId.isNotEmpty) {
+        query = query.where('barangayId', isEqualTo: barangayId);
+      } else if (barangay != null) {
         query = query.where('barangay', isEqualTo: barangay);
       }
 
@@ -421,6 +520,7 @@ class AdvisoryService {
   /// Useful for UI lists so changes are pushed incrementally.
   Stream<List<Advisory>> watchAdvisories({
     String? barangay,
+    String? barangayId,
     List<AdvisoryStatus>? statuses,
     int? limit,
   }) {
@@ -429,7 +529,9 @@ class AdvisoryService {
           .collection(_collection)
           .orderBy('createdAt', descending: true);
 
-      if (barangay != null && barangay.isNotEmpty) {
+      if (barangayId != null && barangayId.isNotEmpty) {
+        query = query.where('barangayId', isEqualTo: barangayId);
+      } else if (barangay != null && barangay.isNotEmpty) {
         query = query.where('barangay', isEqualTo: barangay);
       }
 

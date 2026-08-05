@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:vcroad/core/theme/app_colors.dart';
 import 'package:vcroad/data/models/advisory.dart';
 import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/features/advisories/widgets/create_advisory.dart';
@@ -28,7 +29,7 @@ class ReviewPage extends StatelessWidget {
             style: TextStyle(
               fontSize: responsive.scaleFont(24),
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF001278),
+              color: AppColors.primaryAdaptive(context),
             ),
           ),
           SizedBox(height: responsive.scale(8)),
@@ -36,14 +37,15 @@ class ReviewPage extends StatelessWidget {
             'Review all details before submitting',
             style: TextStyle(
               fontSize: responsive.scaleFont(14),
-              color: Colors.grey.shade700,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           SizedBox(height: responsive.scale(24)),
 
           // Category Section
-          _buildReviewSection('Advisory Type', Icons.category, Colors.purple, [
+          _buildReviewSection(context, 'Advisory Type', Icons.category, Colors.purple, [
             _buildInfoRow(
+              context,
               'Type',
               formData.selectedCategory?.title ?? 'Not selected',
             ),
@@ -51,33 +53,36 @@ class ReviewPage extends StatelessWidget {
           SizedBox(height: responsive.scale(16)),
 
           // Details Section
-          _buildReviewSection('Details', Icons.description, Colors.blue, [
-            _buildInfoRow('Reason', formData.reason),
+          _buildReviewSection(context, 'Details', Icons.description, Colors.blue, [
+            _buildInfoRow(context, 'Reason', formData.reason),
             if (formData.contractor != null)
-              _buildInfoRow('Contractor', formData.contractor!),
+              _buildInfoRow(context, 'Contractor', formData.contractor!),
             if (formData.contractorContact != null)
-              _buildInfoRow('Contact', formData.contractorContact!),
+              _buildInfoRow(context, 'Contact', formData.contractorContact!),
           ]),
           SizedBox(height: responsive.scale(16)),
 
           // Schedule Section
-          _buildReviewSection('Schedule', Icons.calendar_today, Colors.orange, [
+          _buildReviewSection(context, 'Schedule', Icons.calendar_today, Colors.orange, [
             _buildInfoRow(
+              context,
               'Type',
               formData.scheduleType == AdvisoryScheduleType.oneTime
                   ? 'One-Time'
                   : 'Recurring',
             ),
             _buildInfoRow(
+              context,
               'Duration',
               '${DateFormat('MMM dd, yyyy').format(formData.startDate)} - '
                   '${DateFormat('MMM dd, yyyy').format(formData.endDate)}',
             ),
             if (formData.scheduleType == AdvisoryScheduleType.recurring) ...[
-              _buildInfoRow('Days', _formatWeekdays(formData.selectedWeekdays)),
+              _buildInfoRow(context, 'Days', _formatWeekdays(formData.selectedWeekdays)),
               if (formData.recurringStartTime != null &&
                   formData.recurringEndTime != null)
                 _buildInfoRow(
+                  context,
                   'Time',
                   '${formData.recurringStartTime!.format(context)} - '
                       '${formData.recurringEndTime!.format(context)}',
@@ -89,19 +94,21 @@ class ReviewPage extends StatelessWidget {
           // Routes Section
           Consumer<AdvisoryProvider>(
             builder: (context, provider, _) {
-              return _buildReviewSection('Routes', Icons.map, Colors.red, [
+              return _buildReviewSection(context, 'Routes', Icons.map, Colors.red, [
                 _buildInfoRow(
+                  context,
                   'Affected Roads',
                   '${provider.affectedRoads.length} route(s)',
                 ),
                 _buildInfoRow(
+                  context,
                   'Alternate Routes',
                   '${provider.alternateRoutes.length} route(s)',
                 ),
                 if (provider.detectedBarangay != null)
-                  _buildInfoRow('Barangay', provider.detectedBarangay!),
+                  _buildInfoRow(context, 'Barangay', provider.detectedBarangay!),
                 if (provider.detectedPlaceName != null)
-                  _buildInfoRow('Place', provider.detectedPlaceName!),
+                  _buildInfoRow(context, 'Place', provider.detectedPlaceName!),
               ]);
             },
           ),
@@ -112,7 +119,7 @@ class ReviewPage extends StatelessWidget {
           if (formData.imageFile != null ||
               formData.imageBytes != null ||
               formData.imageUrl != null) ...[
-            _buildReviewSection('Image', Icons.image, Colors.green, [
+            _buildReviewSection(context, 'Image', Icons.image, Colors.green, [
               SizedBox(height: responsive.scale(8)),
               // Responsive image preview that preserves original aspect ratio.
               // On mobile it is compact; on web/large screens it is wider but
@@ -136,7 +143,9 @@ class ReviewPage extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          color: Colors.grey.shade100,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           alignment: Alignment.center,
                           child: Builder(
                             builder: (context) {
@@ -231,6 +240,7 @@ class ReviewPage extends StatelessWidget {
   }
 
   Widget _buildReviewSection(
+    BuildContext context,
     String title,
     IconData icon,
     Color color,
@@ -240,9 +250,9 @@ class ReviewPage extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(responsive.scale(16)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +273,7 @@ class ReviewPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: responsive.scaleFont(16),
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -275,7 +285,8 @@ class ReviewPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.only(bottom: responsive.scale(8)),
       child: Row(
@@ -287,7 +298,7 @@ class ReviewPage extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: responsive.scaleFont(13),
-                color: Colors.grey.shade600,
+                color: scheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -297,7 +308,7 @@ class ReviewPage extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: responsive.scaleFont(13),
-                color: Colors.grey.shade900,
+                color: scheme.onSurface,
               ),
             ),
           ),

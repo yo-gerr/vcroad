@@ -37,7 +37,7 @@ dependencies:
   provider: ^6.1.5+1            # State management (presentation layer)
   go_router: ^16.3.0             # Declarative routing
   url_strategy: ^0.3.0           # Web URL strategy (hashless)
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^1.0.8        # Font for CupertinoIcons used by Flutter's Material widgets
 
   # ──────────────────────────────────────────────
   # Data — LOCAL
@@ -51,7 +51,6 @@ dependencies:
   firebase_core: ^4.12.1
   firebase_auth: ^6.5.6
   cloud_firestore: ^6.7.1
-  
 
   # ──────────────────────────────────────────────
   # Maps & Location — ACTIVE
@@ -68,10 +67,8 @@ dependencies:
   lottie: ^3.3.2                 # Lottie animations (keep)
   carousel_slider: ^5.1.1        # Image carousel (keep)
   dropdown_button2: ^2.3.9       # Styled dropdown (keep)
-  confetti: ^0.8.0               # Celebration effects (keep)
   introduction_screen: ^4.0.0    # Onboarding / tutorial full-screen pages
   cached_network_image: ^3.4.1   # Network image caching (keep)
-  flutter_launcher_icons: ^0.14.4
 
   # ──────────────────────────────────────────────
   # Input / Media
@@ -97,6 +94,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4  # App icon generation (build-time tool)
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -127,7 +125,6 @@ flutter:
     - assets/icons/
     - assets/texts/
     - assets/images/
-    - assets/database/
     - assets/barangays/
     - assets/downloads/
     - .env

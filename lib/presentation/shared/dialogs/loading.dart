@@ -11,6 +11,7 @@ class LoadingDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final info = context.responsive;
     final cs = Theme.of(context).colorScheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final logoSize = (size ?? info.logoSize * 0.6).clamp(64.0, 220.0);
 
     return Dialog(
@@ -35,8 +36,8 @@ class LoadingDialog extends StatelessWidget {
                 height: logoSize,
                 child: Lottie.asset(
                   'assets/lottie/traffic_light.json',
-                  repeat: true,
-                  animate: true,
+                  repeat: !reduceMotion,
+                  animate: !reduceMotion,
                   fit: BoxFit.contain,
                   frameRate: FrameRate.max,
                 ),

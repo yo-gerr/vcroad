@@ -14,6 +14,7 @@ import 'package:vcroad/presentation/shared/dialogs/advisory_alert.dart';
 import 'package:vcroad/presentation/providers/location.dart';
 import 'package:vcroad/presentation/providers/onboarding.dart';
 import 'package:vcroad/presentation/providers/user.dart';
+import 'package:vcroad/presentation/providers/advisory.dart';
 import 'package:vcroad/presentation/features/onboarding/screens/onboarding_screen.dart';
 import 'package:vcroad/core/theme/app_colors.dart';
 
@@ -35,11 +36,12 @@ class _AppScreenState extends State<AppScreen> {
   StreamSubscription<QuerySnapshot>? _pendingSub;
 
   // --- New-advisory alert state ---
-  StreamSubscription<QuerySnapshot>? _newAdvSub;
+  // Alerts are derived from the app-level consolidated AdvisoryProvider stream
+  // (see `startUserStream`); this only manages the popup queue/guards.
+  StreamSubscription<Advisory>? _alertSub;
   final Set<String> _shownIds = <String>{};
   final List<Advisory> _alertQueue = <Advisory>[];
   bool _showingAlert = false;
-  DateTime? _baselineCreatedAt; // don’t alert older docs
   DateTime? _muteUntil;
 
   @override
@@ -99,9 +101,14 @@ class _AppScreenState extends State<AppScreen> {
       }
     }
 
-    // Start new-advisory alerts for regular users
+    // Start new-advisory alerts for regular users via the consolidated stream.
     if (widget.role == UserRole.user) {
-      _restoreAlertPrefs().then((_) => _listenForNewAdvisories());
+      _restoreAlertPrefs().then((_) {
+        if (!mounted) return;
+        final provider = context.read<AdvisoryProvider>();
+        provider.startUserStream();
+        _alertSub = provider.newAdvisories.listen(_onNewAdvisory);
+      });
     }
   }
 
@@ -168,7 +175,7 @@ class _AppScreenState extends State<AppScreen> {
   @override
   void dispose() {
     _pendingSub?.cancel();
-    _newAdvSub?.cancel();
+    _alertSub?.cancel();
     super.dispose();
   }
 
@@ -177,10 +184,6 @@ class _AppScreenState extends State<AppScreen> {
     final muteStr = prefs.getString('advisory_alert_muted_until');
     if (muteStr != null) {
       _muteUntil = DateTime.tryParse(muteStr);
-    }
-    final baselineStr = prefs.getString('advisory_alert_baseline_created_at');
-    if (baselineStr != null) {
-      _baselineCreatedAt = DateTime.tryParse(baselineStr);
     }
   }
 
@@ -193,93 +196,27 @@ class _AppScreenState extends State<AppScreen> {
     );
   }
 
-  Future<void> _saveBaseline(DateTime createdAt) async {
-    _baselineCreatedAt = createdAt;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'advisory_alert_baseline_created_at',
-      createdAt.toIso8601String(),
-    );
-  }
+  void _onNewAdvisory(Advisory advisory) {
+    if (!mounted) return;
 
-  void _listenForNewAdvisories() {
-    // active + scheduled only, newest first
-    final q = FirebaseFirestore.instance
-        .collection('advisories')
-        .where('status', whereIn: ['active', 'scheduled'])
-        .orderBy('createdAt', descending: true)
-        .limit(20);
+    // mute guard
+    if (_muteUntil != null && DateTime.now().isBefore(_muteUntil!)) return;
 
-    bool firstSnapshotHandled = false;
+    // dedupe guard
+    if (_shownIds.contains(advisory.advisoryId)) return;
 
-    _newAdvSub = q.snapshots().listen(
-      (snap) async {
-        if (!mounted) return;
+    // avoid self-notification if creator matches this user
+    final createdBy = advisory.createdBy;
+    final currentEmail = widget.userDetails?.email ?? '';
+    if (createdBy.isNotEmpty &&
+        currentEmail.isNotEmpty &&
+        createdBy == currentEmail) {
+      return;
+    }
 
-        // On the very first snapshot, set the baseline to the latest createdAt so
-        // we don’t alert for historical data.
-        if (!firstSnapshotHandled) {
-          firstSnapshotHandled = true;
-          if (snap.docs.isNotEmpty) {
-            final ts = snap.docs.first.data()['createdAt'];
-            if (ts is Timestamp) {
-              await _saveBaseline(ts.toDate());
-            }
-          }
-          return;
-        }
-
-        for (final change in snap.docChanges) {
-          if (change.type != DocumentChangeType.added) continue;
-
-          final data = change.doc.data();
-          if (data == null) continue;
-
-          // createdAt guard
-          final createdAtRaw = data['createdAt'];
-          final createdAt = createdAtRaw is Timestamp
-              ? createdAtRaw.toDate()
-              : (createdAtRaw is String
-                    ? DateTime.tryParse(createdAtRaw)
-                    : null);
-
-          if (createdAt == null) continue;
-          if (_baselineCreatedAt != null &&
-              !createdAt.isAfter(_baselineCreatedAt!)) {
-            continue; // older than baseline
-          }
-
-          // mute guard
-          if (_muteUntil != null && DateTime.now().isBefore(_muteUntil!)) {
-            continue;
-          }
-
-          // dedupe guard
-          final id = change.doc.id;
-          if (_shownIds.contains(id)) continue;
-
-          // avoid self-notification if creator matches this user
-          final createdBy = (data['createdBy'] as String?) ?? '';
-          final currentEmail = widget.userDetails?.email ?? '';
-          if (createdBy.isNotEmpty &&
-              currentEmail.isNotEmpty &&
-              createdBy == currentEmail) {
-            continue;
-          }
-
-          // map to model
-          final advisory = Advisory.fromJson(data, advisoryId: id);
-          _alertQueue.add(advisory);
-        }
-
-        _showNextAlertIfIdle();
-      },
-      onError: (e) {
-        if (kDebugMode) {
-          debugPrint('[AppScreen] new-advisory stream error: $e');
-        }
-      },
-    );
+    _shownIds.add(advisory.advisoryId);
+    _alertQueue.add(advisory);
+    _showNextAlertIfIdle();
   }
 
   void _showNextAlertIfIdle() {

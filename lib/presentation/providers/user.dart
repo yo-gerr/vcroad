@@ -15,6 +15,10 @@ class UserProvider with ChangeNotifier {
   bool get isVerified => _user?.isVerified ?? false;
   bool get isBanned => _user?.isBanned ?? false;
 
+  /// Whether the user has an active (non-expired) ban. Temporary bans that have
+  /// already expired no longer count as banned.
+  bool get hasActiveBan => _user?.hasActiveBan ?? false;
+
   bool get justLoggedIn => _justLoggedIn;
 
   set justLoggedIn(bool v) {
@@ -24,7 +28,7 @@ class UserProvider with ChangeNotifier {
 
   // Only regular users (role == user), verified, and not banned can file reports.
   bool get canReport {
-    return isUser && isVerified && !isBanned;
+    return isUser && isVerified && !hasActiveBan;
   }
 
   void setUser(UserDetails userDetails) {

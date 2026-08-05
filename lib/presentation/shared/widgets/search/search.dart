@@ -32,10 +32,10 @@ class Search extends StatefulWidget {
   });
 
   @override
-  State<Search> createState() => _SearchState();
+  State<Search> createState() => SearchState();
 }
 
-class _SearchState extends State<Search> {
+class SearchState extends State<Search> {
   late final TextEditingController _internalController;
   late final bool _ownsController;
   late final Debouncer _debouncer;
@@ -67,10 +67,19 @@ class _SearchState extends State<Search> {
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
+  /// Cancels any pending debounced search. External callers (e.g. a "Clear
+  /// filters" button) should invoke this before resetting state so a queued
+  /// keystroke can't re-apply an old query after the field was cleared.
+  void cancelPending() {
+    _debouncer.cancel();
+  }
+
   @override
   Widget build(BuildContext context) {
     final info = context.responsive;
-    final fill = widget.fillColor ?? Colors.grey.shade50;
+    final fill =
+        widget.fillColor ??
+        Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: _ctrl,

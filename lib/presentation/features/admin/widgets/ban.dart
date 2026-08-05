@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 class BanAction {
-  final bool confirm;
   final bool isPermanent;
   final int? days; // null for permanent
   final String reason;
 
   BanAction({
-    required this.confirm,
     required this.isPermanent,
     required this.days,
     required this.reason,
@@ -192,7 +190,6 @@ Future<BanAction?> showBanDialog(
                             : int.tryParse(daysStr);
                         Navigator.of(ctx).pop(
                           BanAction(
-                            confirm: true,
                             isPermanent:
                                 selected == BanDurationOption.permanent,
                             days: days,
